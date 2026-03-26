@@ -41,10 +41,9 @@ router.post('/', async (req, res) => {
     return;
   }
 
-  if (!searchQuery || typeof searchQuery !== 'string' || searchQuery.trim().length === 0) {
-    res.status(400).json({ error: 'searchQuery is required' });
-    return;
-  }
+  const resolvedQuery = (typeof searchQuery === 'string' && searchQuery.trim().length > 0)
+    ? searchQuery.trim()
+    : 'local businesses';
 
   if (!sequenceId || typeof sequenceId !== 'string') {
     res.status(400).json({ error: 'sequenceId is required' });
@@ -65,7 +64,7 @@ router.post('/', async (req, res) => {
     .values({
       startedBy: req.user!.userId,
       zipCodes,
-      searchQuery: searchQuery.trim(),
+      searchQuery: resolvedQuery,
     })
     .returning();
 
@@ -78,7 +77,7 @@ router.post('/', async (req, res) => {
       scrapeJobId: scrapeJob.id,
       sequenceId,
       zipCodes,
-      searchQuery: searchQuery.trim(),
+      searchQuery: resolvedQuery,
       topN: topN != null ? parseInt(topN, 10) : 100,
       minScore: minScore != null ? parseInt(minScore, 10) : 0,
       status: 'scraping',
