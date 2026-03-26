@@ -73,8 +73,8 @@ export default function NotificationBell() {
   useEffect(() => {
     if (!open) return;
     setLoadingList(true);
-    api<NotificationsResponse>('/api/notifications?limit=10')
-      .then((res) => setNotifications(res.notifications ?? []))
+    api<{ data?: Notification[]; notifications?: Notification[] }>('/api/notifications?limit=10')
+      .then((res) => setNotifications(res.data ?? res.notifications ?? []))
       .catch(() => setNotifications([]))
       .finally(() => setLoadingList(false));
   }, [open]);

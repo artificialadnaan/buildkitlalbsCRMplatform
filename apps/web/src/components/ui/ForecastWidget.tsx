@@ -48,7 +48,7 @@ export default function ForecastWidget() {
           <p className="text-3xl font-semibold text-gray-900 mb-4">
             {formatCurrency(data.totalWeightedValue)}
           </p>
-          {data.stageBreakdown.length > 0 ? (
+          {(data.stageBreakdown?.length ?? 0) > 0 ? (
             <ResponsiveContainer width="100%" height={160}>
               <BarChart
                 data={data.stageBreakdown}
