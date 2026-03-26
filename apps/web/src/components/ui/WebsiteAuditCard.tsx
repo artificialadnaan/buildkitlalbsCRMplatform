@@ -215,8 +215,8 @@ export default function WebsiteAuditCard({ companyId, companyWebsite, audit, onR
   const c = audit.checks;
   const suggestions = generateSuggestions(c);
   const loadSecs = c.loadTimeMs != null ? (c.loadTimeMs / 1000).toFixed(1) : null;
-  const screenshotUrl = companyWebsite
-    ? `https://image.thum.io/get/width/600/crop/400/${companyWebsite.startsWith('http') ? companyWebsite : 'https://' + companyWebsite}`
+  const siteUrl = companyWebsite
+    ? (companyWebsite.startsWith('http') ? companyWebsite : `https://${companyWebsite}`)
     : null;
 
   const checkRows = [
@@ -238,32 +238,31 @@ export default function WebsiteAuditCard({ companyId, companyWebsite, audit, onR
         {/* Screenshot + Score Header */}
         <div className="flex">
           {/* Screenshot */}
-          {screenshotUrl && (
-            <div className="w-1/2 relative">
-              <img
-                src={screenshotUrl}
-                alt="Website screenshot"
-                className="w-full h-64 object-cover object-top"
+          {siteUrl && (
+            <div className="w-1/2 relative overflow-hidden bg-white">
+              <iframe
+                src={siteUrl}
+                title="Website preview"
+                className="w-[200%] h-[520px] origin-top-left pointer-events-none border-0"
+                style={{ transform: 'scale(0.5)' }}
                 loading="lazy"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                sandbox="allow-same-origin"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-slate-900/80" />
-              <div className="absolute bottom-3 left-3">
-                <a
-                  href={companyWebsite?.startsWith('http') ? companyWebsite : `https://${companyWebsite}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[10px] font-bold text-white/60 hover:text-white flex items-center gap-1 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-xs">open_in_new</span>
-                  Visit Site
-                </a>
-              </div>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-slate-900/80 pointer-events-none" />
+              <a
+                href={siteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute bottom-3 left-3 text-[10px] font-bold text-white/60 hover:text-white flex items-center gap-1 transition-colors z-10"
+              >
+                <span className="material-symbols-outlined text-xs">open_in_new</span>
+                Visit Site
+              </a>
             </div>
           )}
 
           {/* Score + Summary */}
-          <div className={`${screenshotUrl ? 'w-1/2' : 'w-full'} p-8 flex flex-col justify-center`}>
+          <div className={`${siteUrl ? 'w-1/2' : 'w-full'} p-8 flex flex-col justify-center`}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 flex items-center gap-2">
                 <span className="material-symbols-outlined text-sm">monitoring</span>
