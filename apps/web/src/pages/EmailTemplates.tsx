@@ -40,7 +40,7 @@ export default function EmailTemplates() {
       render: (row: Template) => (
         <Badge
           label={row.pipelineType === 'construction' ? 'Construction' : 'Local Business'}
-          variant={row.pipelineType === 'construction' ? 'purple' : 'blue'}
+          variant={row.pipelineType === 'construction' ? 'gray' : 'blue'}
         />
       ),
     },

@@ -62,19 +62,12 @@ export default function Dashboard() {
         title="Dashboard"
         subtitle={today}
         actions={
-          <>
-            <button
-              onClick={() => navigate('/leads')}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500"
-            >
-              New Lead
-            </button>
-            <button
-              className="rounded-lg border border-border bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
-            >
-              Scrape Leads
-            </button>
-          </>
+          <button
+            onClick={() => navigate('/leads')}
+            className="rounded-lg bg-[#1F4D78] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1a4268]"
+          >
+            New Lead
+          </button>
         }
       />
 
@@ -107,7 +100,7 @@ export default function Dashboard() {
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Recent Activity */}
           <div className="rounded-lg border border-border bg-surface p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">
+            <h2 className="text-base font-semibold text-gray-200 mb-3">
               Recent Activity
             </h2>
             {activity.length === 0 ? (
@@ -128,7 +121,7 @@ export default function Dashboard() {
 
           {/* My Tasks */}
           <div className="rounded-lg border border-border bg-surface p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">
+            <h2 className="text-base font-semibold text-gray-200 mb-3">
               My Tasks Due
             </h2>
             <div className="border-t border-border">

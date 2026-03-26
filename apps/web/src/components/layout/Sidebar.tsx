@@ -102,10 +102,10 @@ export default function Sidebar() {
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-56 flex-col bg-sidebar border-r border-border">
       {/* Logo */}
       <div className="flex items-center gap-2 px-5 py-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-cyan-400">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1F4D78]">
           <span className="text-sm font-bold text-white">BK</span>
         </div>
-        <span className="text-base font-semibold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+        <span className="text-base font-semibold text-white">
           BuildKit CRM
         </span>
       </div>
@@ -120,7 +120,7 @@ export default function Sidebar() {
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
                 isActive
-                  ? 'border-l-2 border-blue-500 bg-blue-500/10 text-blue-400'
+                  ? 'border-l-2 border-[#1F4D78] bg-[#1F4D78]/15 text-white'
                   : 'border-l-2 border-transparent text-gray-400 hover:bg-gray-800/50 hover:text-gray-200'
               }`
             }

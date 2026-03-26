@@ -35,7 +35,7 @@ export default function EmailSequences() {
       render: (row: Sequence) => (
         <Badge
           label={row.pipelineType === 'construction' ? 'Construction' : 'Local'}
-          variant={row.pipelineType === 'construction' ? 'purple' : 'blue'}
+          variant={row.pipelineType === 'construction' ? 'gray' : 'blue'}
         />
       ),
     },

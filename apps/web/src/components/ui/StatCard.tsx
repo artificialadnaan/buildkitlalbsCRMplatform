@@ -12,7 +12,7 @@ export default function StatCard({ label, value, trend, trendColor = 'gray' }: S
     green: 'text-emerald-400',
     red: 'text-red-400',
     gray: 'text-gray-500',
-    blue: 'text-blue-400',
+    blue: 'text-[#1F4D78]',
   };
 
   return (

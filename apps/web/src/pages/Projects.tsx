@@ -48,7 +48,7 @@ export default function Projects() {
       render: (row: ProjectRow) => (
         <Badge
           label={row.type === 'software' ? 'Software' : 'Website'}
-          variant={row.type === 'software' ? 'purple' : 'blue'}
+          variant={row.type === 'software' ? 'gray' : 'blue'}
         />
       ),
     },
