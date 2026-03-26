@@ -7,6 +7,10 @@ import pipelinesRoutes from './routes/pipelines.js';
 import dealsRoutes from './routes/deals.js';
 import activitiesRoutes from './routes/activities.js';
 import dashboardRoutes from './routes/dashboard.js';
+import emailTemplatesRoutes from './routes/email-templates.js';
+import emailSequencesRoutes from './routes/email-sequences.js';
+import emailSendsRoutes from './routes/email-sends.js';
+import sequenceEnrollmentsRoutes from './routes/sequence-enrollments.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 export function createApp() {
@@ -23,6 +27,10 @@ export function createApp() {
   app.use('/api/deals', dealsRoutes);
   app.use('/api/activities', activitiesRoutes);
   app.use('/api/dashboard', dashboardRoutes);
+  app.use('/api/email-templates', emailTemplatesRoutes);
+  app.use('/api/email-sequences', emailSequencesRoutes);
+  app.use('/api/email-sends', emailSendsRoutes);
+  app.use('/api/sequence-enrollments', sequenceEnrollmentsRoutes);
 
   // Health check
   app.get('/health', (req, res) => {

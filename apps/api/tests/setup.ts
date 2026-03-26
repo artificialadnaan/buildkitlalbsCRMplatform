@@ -15,5 +15,5 @@ export function authHeaders(overrides?: { userId?: string; role?: 'admin' | 'rep
 
 // Clean test data between tests
 export async function cleanDb() {
-  await db.execute(sql`TRUNCATE activities, deals, contacts, companies, pipeline_stages, pipelines, users CASCADE`);
+  await db.execute(sql`TRUNCATE email_sends, sequence_enrollments, sequence_steps, email_sequences, email_templates, activities, deals, contacts, companies, pipeline_stages, pipelines, users CASCADE`);
 }
