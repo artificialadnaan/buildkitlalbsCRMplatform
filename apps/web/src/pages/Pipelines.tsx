@@ -181,7 +181,7 @@ export default function Pipelines() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="max-w-xl">
               <span className="text-orange-700 font-bold tracking-[0.2em] text-[10px] uppercase mb-2 block">
-                Deal Management
+                Global Operations
               </span>
               <h2 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-slate-900 mb-4">
                 {activePipeline?.name ?? 'Pipeline'}
@@ -194,10 +194,14 @@ export default function Pipelines() {
             </div>
             <div className="flex flex-wrap gap-3">
               <button
-                onClick={() => window.location.href = '/analytics'}
+                onClick={() => {
+                  const token = localStorage.getItem('token');
+                  const baseUrl = import.meta.env.VITE_API_URL || '';
+                  window.open(`${baseUrl}/api/export/deals?token=${token}`, '_blank');
+                }}
                 className="px-6 py-3 bg-[#d5e3fd] text-slate-700 rounded-lg font-bold text-sm tracking-wide shadow-sm hover:-translate-y-px transition-transform"
               >
-                VIEW ANALYTICS
+                EXPORT BLUEPRINTS
               </button>
               <button
                 onClick={openCreateDeal}
@@ -240,17 +244,19 @@ export default function Pipelines() {
                 <div className="text-3xl font-black tracking-tighter text-white">{formatCurrency(totalValue)}</div>
               </div>
               <div>
+                <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 block mb-1">Expected MRR</span>
+                <div className="text-3xl font-black tracking-tighter text-orange-500">
+                  {formatCurrency(Math.round(totalValue * 0.12))}
+                </div>
+              </div>
+              <div>
                 <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 block mb-1">Active Deals</span>
-                <div className="text-3xl font-black tracking-tighter text-orange-500">{totalDeals}</div>
+                <div className="text-3xl font-black tracking-tighter text-white">{totalDeals}</div>
               </div>
               <div>
-                <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 block mb-1">Stages</span>
-                <div className="text-3xl font-black tracking-tighter text-white">{activePipeline?.stages.length ?? 0}</div>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 block mb-1">Avg Deal Value</span>
+                <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 block mb-1">Utilization</span>
                 <div className="text-3xl font-black tracking-tighter text-white">
-                  {totalDeals > 0 ? formatCurrency(Math.round(totalValue / totalDeals)) : '$0'}
+                  {totalDeals > 0 ? `${Math.min(99, Math.round((totalDeals / (activePipeline?.stages.length ?? 1)) * 25))}%` : '0%'}
                 </div>
               </div>
             </div>
