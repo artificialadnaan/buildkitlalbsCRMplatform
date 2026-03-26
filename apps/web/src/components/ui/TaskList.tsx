@@ -16,7 +16,7 @@ interface TaskListProps {
   onTaskClick?: (task: Task) => void;
 }
 
-const priorityVariant: Record<string, string> = {
+const priorityVariant: Record<string, 'green' | 'amber' | 'red' | 'blue' | 'gray' | 'purple'> = {
   low: 'gray',
   medium: 'amber',
   high: 'red',

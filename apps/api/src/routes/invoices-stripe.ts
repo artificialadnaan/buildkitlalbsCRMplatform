@@ -1,10 +1,12 @@
-import { Router } from 'express';
+import { Router, type Request } from 'express';
 import { eq } from 'drizzle-orm';
 import { db, invoices, companies, contacts } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
 import Stripe from 'stripe';
 import { Queue } from 'bullmq';
 import Redis from 'ioredis';
+
+type IdParams = { id: string };
 
 const router = Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -15,7 +17,7 @@ const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 const invoiceQueue = new Queue('invoice', { connection: redis });
 
 // Send invoice via Stripe (transitions draft -> sent)
-router.post('/:id/send', authMiddleware, async (req, res) => {
+router.post('/:id/send', authMiddleware, async (req: Request<IdParams>, res) => {
   const [invoice] = await db.select()
     .from(invoices)
     .where(eq(invoices.id, req.params.id))
@@ -78,7 +80,7 @@ router.post('/:id/send', authMiddleware, async (req, res) => {
         quantity: item.quantity,
         unit_amount: item.unitPriceCents,
         currency: 'usd',
-      });
+      } as Stripe.InvoiceItemCreateParams);
     }
 
     // Finalize and send

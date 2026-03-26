@@ -57,7 +57,7 @@ interface TimeSummary {
   nonBillableMinutes: number;
 }
 
-const statusVariant: Record<string, string> = {
+const statusVariant: Record<string, 'green' | 'amber' | 'red' | 'blue' | 'gray' | 'purple'> = {
   active: 'green',
   on_hold: 'amber',
   completed: 'blue',

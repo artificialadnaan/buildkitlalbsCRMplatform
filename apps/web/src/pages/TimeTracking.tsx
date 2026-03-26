@@ -55,7 +55,7 @@ export default function TimeTracking() {
 
       <div className="grid grid-cols-3 gap-3 mb-6">
         <StatCard label="Total Hours" value={summary ? formatHours(summary.totalMinutes) : '0h'} />
-        <StatCard label="Billable Hours" value={summary ? formatHours(summary.billableMinutes) : '0h'} trendColor="text-green-500" trend={summary && summary.totalMinutes > 0 ? `${Math.round((summary.billableMinutes / summary.totalMinutes) * 100)}% of total` : undefined} />
+        <StatCard label="Billable Hours" value={summary ? formatHours(summary.billableMinutes) : '0h'} trendColor="green" trend={summary && summary.totalMinutes > 0 ? `${Math.round((summary.billableMinutes / summary.totalMinutes) * 100)}% of total` : undefined} />
         <StatCard label="Non-Billable Hours" value={summary ? formatHours(summary.nonBillableMinutes) : '0h'} />
       </div>
 

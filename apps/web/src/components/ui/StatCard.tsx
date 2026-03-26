@@ -1,15 +1,18 @@
+type TrendColor = 'green' | 'red' | 'gray' | 'blue';
+
 interface StatCardProps {
   label: string;
   value: string | number;
   trend?: string;
-  trendColor?: 'green' | 'red' | 'gray';
+  trendColor?: TrendColor;
 }
 
 export default function StatCard({ label, value, trend, trendColor = 'gray' }: StatCardProps) {
-  const trendColors = {
+  const trendColors: Record<TrendColor, string> = {
     green: 'text-emerald-400',
     red: 'text-red-400',
     gray: 'text-gray-500',
+    blue: 'text-blue-400',
   };
 
   return (

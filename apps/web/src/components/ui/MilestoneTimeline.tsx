@@ -14,7 +14,7 @@ interface MilestoneTimelineProps {
   onMilestoneClick?: (milestone: Milestone) => void;
 }
 
-const statusVariant: Record<string, string> = {
+const statusVariant: Record<string, 'green' | 'amber' | 'red' | 'blue' | 'gray' | 'purple'> = {
   pending: 'gray',
   in_progress: 'amber',
   done: 'green',

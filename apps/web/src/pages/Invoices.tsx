@@ -20,7 +20,7 @@ interface InvoiceRow {
   companyName: string;
 }
 
-const statusVariants: Record<string, string> = {
+const statusVariants: Record<string, 'green' | 'amber' | 'red' | 'blue' | 'gray' | 'purple'> = {
   draft: 'gray',
   sent: 'blue',
   paid: 'green',

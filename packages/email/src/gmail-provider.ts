@@ -80,7 +80,7 @@ export class GmailProvider implements EmailProvider {
       userId: 'me',
       startHistoryId,
       historyTypes: ['messageAdded'],
-      labelIds: ['INBOX'],
+      labelId: 'INBOX',
     });
 
     const messagesAdded: GmailHistoryResult['messagesAdded'] = [];
