@@ -193,7 +193,81 @@ router.get('/conversations/:id/messages', async (req, res) => {
 
 // ============================================================
 // Twilio inbound webhook — NO auth middleware
+// POST /call — Initiate outbound call (authenticated)
+router.post('/call', async (req, res) => {
+  const { contactId, dealId } = req.body;
+  if (!contactId) { res.status(400).json({ error: 'contactId required' }); return; }
+
+  const [contact] = await db.select({
+    id: contacts.id,
+    phone: contacts.phone,
+    firstName: contacts.firstName,
+    lastName: contacts.lastName,
+    companyId: contacts.companyId,
+  }).from(contacts).where(eq(contacts.id, contactId)).limit(1);
+
+  if (!contact?.phone) { res.status(400).json({ error: 'Contact has no phone number' }); return; }
+
+  try {
+    const { makeCall } = await import('../lib/twilio.js');
+    const { sid, status } = await makeCall(contact.phone);
+    const contactName = `${contact.firstName} ${contact.lastName ?? ''}`.trim();
+
+    // Create conversation
+    let [conv] = await db.select().from(conversations).where(and(eq(conversations.contactId, contactId), eq(conversations.channel, 'call'))).limit(1);
+    if (!conv) {
+      [conv] = await db.insert(conversations).values({
+        companyId: contact.companyId,
+        contactId,
+        dealId: dealId ?? null,
+        channel: 'call',
+        subject: `Calls with ${contactName}`,
+        lastMessageAt: new Date(),
+      }).returning();
+    } else {
+      await db.update(conversations).set({ lastMessageAt: new Date() }).where(eq(conversations.id, conv.id));
+    }
+
+    await db.insert(conversationMessages).values({
+      conversationId: conv.id,
+      direction: 'outbound',
+      channel: 'call',
+      body: `Outbound call to ${contactName}`,
+      senderName: 'BuildKit Labs',
+      twilioSid: sid,
+      status: status as any,
+    });
+
+    res.json({ sid, status, message: `Calling ${contactName} at ${contact.phone}` });
+  } catch (err) {
+    console.error('[sms/call] Failed:', err instanceof Error ? err.message : err);
+    res.status(500).json({ error: 'Failed to initiate call' });
+  }
+});
+
 // ============================================================
+// Twilio webhooks — NO auth middleware
+// ============================================================
+
+// POST /webhook/status — SMS delivery status callback (no auth)
+router.post('/webhook/status', async (req, res) => {
+  try {
+    const { MessageSid, MessageStatus } = req.body;
+    if (MessageSid && MessageStatus) {
+      const statusMap: Record<string, string> = {
+        queued: 'queued', sent: 'sent', delivered: 'delivered',
+        undelivered: 'failed', failed: 'failed',
+      };
+      const newStatus = statusMap[MessageStatus] ?? MessageStatus;
+      await db.update(conversationMessages)
+        .set({ status: newStatus as any })
+        .where(eq(conversationMessages.twilioSid, MessageSid));
+    }
+  } catch (err) {
+    console.error('[sms/status] Error:', err instanceof Error ? err.message : err);
+  }
+  res.sendStatus(200);
+});
 
 // POST /webhook/inbound — Twilio inbound SMS webhook
 router.post('/webhook/inbound', async (req, res) => {

@@ -66,10 +66,11 @@ export default function AppLayout() {
 
       <CommandPalette isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
 
-      {/* FAB - New Lead */}
+      {/* FAB - New Lead (hidden on /inbox to avoid overlap) */}
       <button
         onClick={() => navigate('/leads')}
-        className="fixed bottom-8 right-8 w-14 h-14 bg-gradient-to-br from-orange-700 to-orange-500 text-white rounded shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group"
+        className="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-br from-orange-700 to-orange-500 text-white rounded shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40 group"
+        style={{ display: window.location.pathname === '/inbox' ? 'none' : undefined }}
       >
         <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>add</span>
         <span className="absolute right-full mr-4 px-3 py-1 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity rounded-sm">
