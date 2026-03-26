@@ -54,16 +54,18 @@ export function createApp() {
   app.use('/api/files', filesRoutes);
   app.use('/api/messages', messagesRoutes);
 
-  // Bull Board admin UI (only in development or for admin)
-  const serverAdapter = new ExpressAdapter();
-  serverAdapter.setBasePath('/admin/queues');
+  // Bull Board admin UI (only when Redis is available)
+  if (process.env.REDIS_URL) {
+    const serverAdapter = new ExpressAdapter();
+    serverAdapter.setBasePath('/admin/queues');
 
-  createBullBoard({
-    queues: [new BullMQAdapter(createScrapeQueue())],
-    serverAdapter,
-  });
+    createBullBoard({
+      queues: [new BullMQAdapter(createScrapeQueue())],
+      serverAdapter,
+    });
 
-  app.use('/admin/queues', serverAdapter.getRouter());
+    app.use('/admin/queues', serverAdapter.getRouter());
+  }
 
   // Health check
   app.get('/health', (req, res) => {

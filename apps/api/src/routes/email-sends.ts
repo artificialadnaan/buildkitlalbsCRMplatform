@@ -4,17 +4,18 @@ import { db, emailSends, emailTemplates, contacts, companies } from '@buildkit/s
 import { resolveVariables } from '@buildkit/email';
 import { authMiddleware } from '../middleware/auth.js';
 import { Queue } from 'bullmq';
-import { EMAIL_SEND_QUEUE } from '@buildkit/shared';
+import { EMAIL_SEND_QUEUE, getRedisConnection } from '@buildkit/shared';
 import type { EmailJobPayload } from '@buildkit/shared';
 
 const DAILY_SEND_LIMIT = 2000;
 
-const redisConnection = {
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-};
-
-const emailSendQueue = new Queue<EmailJobPayload>(EMAIL_SEND_QUEUE, { connection: redisConnection });
+let _emailSendQueue: Queue<EmailJobPayload> | null = null;
+function getEmailSendQueue() {
+  if (!_emailSendQueue) {
+    _emailSendQueue = new Queue<EmailJobPayload>(EMAIL_SEND_QUEUE, { connection: getRedisConnection() });
+  }
+  return _emailSendQueue;
+}
 
 const router = Router();
 
@@ -116,7 +117,7 @@ router.post('/', async (req, res) => {
   }).returning();
 
   // Enqueue BullMQ job for the worker to send via Gmail
-  await emailSendQueue.add('send', {
+  await getEmailSendQueue().add('send', {
     emailSendId: emailSend.id,
     userId: req.user!.userId,
   });
