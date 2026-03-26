@@ -150,7 +150,23 @@ router.get('/conversations', async (req, res) => {
     .limit(limitNum)
     .offset(offset);
 
-  res.json({ data: rows, page: pageNum, limit: limitNum });
+  // Map to frontend-expected shape
+  const data = rows.map(r => ({
+    id: r.id,
+    contactId: r.contactId,
+    contactName: [r.contactFirstName, r.contactLastName].filter(Boolean).join(' ') || r.companyName || 'Unknown',
+    contactPhone: r.contactPhone,
+    contactEmail: null,
+    companyName: r.companyName,
+    channel: r.channel,
+    subject: r.subject,
+    lastMessagePreview: r.subject || '',
+    lastMessageAt: r.lastMessageAt,
+    unread: false,
+    dealId: r.dealId,
+  }));
+
+  res.json({ data, page: pageNum, limit: limitNum });
 });
 
 // GET /conversations/:id/messages — Messages in a conversation (chronological)
@@ -172,7 +188,7 @@ router.get('/conversations/:id/messages', async (req, res) => {
     .where(eq(conversationMessages.conversationId, id))
     .orderBy(asc(conversationMessages.createdAt));
 
-  res.json(messages);
+  res.json({ data: messages });
 });
 
 // ============================================================
