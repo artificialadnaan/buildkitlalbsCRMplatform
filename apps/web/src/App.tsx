@@ -1,5 +1,7 @@
-import { Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout.js';
+import { useAuth } from './lib/auth.js';
 import Login from './pages/Login.js';
 import Dashboard from './pages/Dashboard.js';
 import Leads from './pages/Leads.js';
@@ -19,7 +21,22 @@ import ProjectDetail from './pages/ProjectDetail.js';
 import TimeTracking from './pages/TimeTracking.js';
 
 function AuthCallback() {
-  return <div className="min-h-screen flex items-center justify-center bg-gray-950 text-gray-500">Signing in...</div>;
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/', { replace: true });
+    } else if (!loading && !user) {
+      navigate('/login', { replace: true });
+    }
+  }, [loading, user, navigate]);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-900 text-gray-400">
+      Signing in...
+    </div>
+  );
 }
 
 export default function App() {
