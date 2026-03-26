@@ -9,5 +9,6 @@ export const users = pgTable('users', {
   avatarUrl: varchar('avatar_url', { length: 500 }),
   role: userRoleEnum('role').notNull().default('rep'),
   googleTokens: jsonb('google_tokens'),
+  gmailHistoryId: varchar('gmail_history_id', { length: 255 }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });

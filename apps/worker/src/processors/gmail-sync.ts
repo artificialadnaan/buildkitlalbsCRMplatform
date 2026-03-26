@@ -8,9 +8,6 @@ const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY!;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
 
-// In-memory store for historyIds per user.
-// In production, persist this to Redis or a database column.
-const historyIds = new Map<string, string>();
 
 async function decryptTokens(encrypted: string): Promise<GmailTokens> {
   const crypto = await import('crypto');
@@ -33,8 +30,8 @@ export async function processGmailSync(job: Job<{ userId: string }>) {
   console.log(`[gmail-sync] Syncing Gmail for user ${userId}`);
 
   try {
-    // Get user tokens
-    const [user] = await db.select({ googleTokens: users.googleTokens, email: users.email })
+    // Get user tokens and persisted historyId
+    const [user] = await db.select({ googleTokens: users.googleTokens, email: users.email, gmailHistoryId: users.gmailHistoryId })
       .from(users).where(eq(users.id, userId)).limit(1);
 
     if (!user?.googleTokens) {
@@ -59,19 +56,19 @@ export async function processGmailSync(job: Job<{ userId: string }>) {
       await db.update(users).set({ googleTokens: encryptedStr }).where(eq(users.id, userId));
     }
 
-    // Get or initialize history ID
-    let startHistoryId = historyIds.get(userId);
+    // Get or initialize history ID from DB
+    let startHistoryId = user.gmailHistoryId ?? undefined;
     if (!startHistoryId) {
       const profile = await gmail.getProfile();
       startHistoryId = profile.historyId;
-      historyIds.set(userId, startHistoryId);
+      await db.update(users).set({ gmailHistoryId: startHistoryId }).where(eq(users.id, userId));
       console.log(`[gmail-sync] Initialized historyId ${startHistoryId} for user ${userId}`);
       return; // First run — just set the baseline
     }
 
     // Fetch history since last sync
     const history = await gmail.getHistory(startHistoryId);
-    historyIds.set(userId, history.historyId);
+    await db.update(users).set({ gmailHistoryId: history.historyId }).where(eq(users.id, userId));
 
     if (history.messagesAdded.length === 0) {
       console.log(`[gmail-sync] No new messages for user ${userId}`);
