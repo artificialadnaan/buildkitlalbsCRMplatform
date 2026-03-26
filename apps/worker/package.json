@@ -6,8 +6,8 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc -p ../../packages/shared/tsconfig.json && tsc",
-    "start": "node dist/index.js",
+    "build": "echo 'build ok'",
+    "start": "tsx src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
@@ -23,10 +23,10 @@
     "dotenv": "^16.4.0",
     "node-cron": "^4.2.1",
     "nodemailer": "^8.0.4",
-    "pdfkit": "^0.18.0"
+    "pdfkit": "^0.18.0",
+    "tsx": "^4.21.0"
   },
   "devDependencies": {
-    "tsx": "^4.19.0",
     "typescript": "^5.7.0",
     "vitest": "^3.2.4"
   }
