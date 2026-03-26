@@ -36,6 +36,19 @@ interface ContactsResponse {
   total: number;
 }
 
+interface Stage {
+  id: string;
+  name: string;
+  position: number;
+  pipelineId: string;
+}
+
+interface Pipeline {
+  id: string;
+  name: string;
+  stages: Stage[];
+}
+
 export default function LeadDetail() {
   const { id } = useParams<{ id: string }>();
   const [company, setCompany] = useState<Company | null>(null);
@@ -43,6 +56,10 @@ export default function LeadDetail() {
   const [showAddContact, setShowAddContact] = useState(false);
   const [contactForm, setContactForm] = useState({ firstName: '', lastName: '', email: '', phone: '', title: '', isPrimary: false });
   const [contactSubmitting, setContactSubmitting] = useState(false);
+  const [showCreateDeal, setShowCreateDeal] = useState(false);
+  const [pipelines, setPipelines] = useState<Pipeline[]>([]);
+  const [dealForm, setDealForm] = useState({ title: '', value: '', pipelineId: '', stageId: '', contactId: '' });
+  const [dealSubmitting, setDealSubmitting] = useState(false);
 
   const loadContacts = () => {
     if (!id) return;
@@ -81,6 +98,48 @@ export default function LeadDetail() {
     }
   };
 
+  const openCreateDeal = () => {
+    if (pipelines.length === 0) {
+      api<Pipeline[]>('/api/pipelines').then((data) => {
+        setPipelines(data);
+        if (data.length > 0) {
+          const first = data[0];
+          setDealForm((f) => ({ ...f, pipelineId: first.id, stageId: first.stages[0]?.id || '' }));
+        }
+      }).catch(console.error);
+    }
+    setShowCreateDeal(true);
+  };
+
+  const handlePipelineChange = (pipelineId: string) => {
+    const pipeline = pipelines.find((p) => p.id === pipelineId);
+    setDealForm((f) => ({ ...f, pipelineId, stageId: pipeline?.stages[0]?.id || '' }));
+  };
+
+  const handleCreateDeal = async () => {
+    if (!id || !dealForm.title.trim() || !dealForm.pipelineId || !dealForm.stageId) return;
+    setDealSubmitting(true);
+    try {
+      await api('/api/deals', {
+        method: 'POST',
+        body: JSON.stringify({
+          companyId: id,
+          title: dealForm.title,
+          value: dealForm.value ? parseInt(dealForm.value, 10) : null,
+          pipelineId: dealForm.pipelineId,
+          stageId: dealForm.stageId,
+          contactId: dealForm.contactId || null,
+        }),
+      });
+      setShowCreateDeal(false);
+      setDealForm({ title: '', value: '', pipelineId: '', stageId: '', contactId: '' });
+    } catch (err) {
+      console.error('Failed to create deal:', err);
+    } finally {
+      setDealSubmitting(false);
+    }
+  };
+
   if (!company) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -107,9 +166,17 @@ export default function LeadDetail() {
       <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-2">
         {/* Company Info */}
         <div className="rounded-lg border border-border bg-surface p-5">
-          <h2 className="mb-4 text-base font-semibold text-gray-200">
-            Company Details
-          </h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-base font-semibold text-gray-200">
+              Company Details
+            </h2>
+            <button
+              onClick={openCreateDeal}
+              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-emerald-500"
+            >
+              + Create Deal
+            </button>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             {infoFields.map((field) => (
               <div key={field.label}>
@@ -172,6 +239,89 @@ export default function LeadDetail() {
           )}
         </div>
       </div>
+
+      {/* Create Deal Modal */}
+      <Modal open={showCreateDeal} onClose={() => setShowCreateDeal(false)} title="Create Deal">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium uppercase text-gray-500 mb-1">Title *</label>
+            <input
+              type="text"
+              value={dealForm.title}
+              onChange={(e) => setDealForm({ ...dealForm, title: e.target.value })}
+              placeholder="Deal title"
+              className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium uppercase text-gray-500 mb-1">Value ($)</label>
+            <input
+              type="number"
+              value={dealForm.value}
+              onChange={(e) => setDealForm({ ...dealForm, value: e.target.value })}
+              placeholder="0"
+              className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium uppercase text-gray-500 mb-1">Pipeline *</label>
+            <select
+              value={dealForm.pipelineId}
+              onChange={(e) => handlePipelineChange(e.target.value)}
+              className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+            >
+              <option value="">Select pipeline...</option>
+              {pipelines.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+          {dealForm.pipelineId && (
+            <div>
+              <label className="block text-xs font-medium uppercase text-gray-500 mb-1">Stage *</label>
+              <select
+                value={dealForm.stageId}
+                onChange={(e) => setDealForm({ ...dealForm, stageId: e.target.value })}
+                className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+              >
+                {pipelines.find((p) => p.id === dealForm.pipelineId)?.stages.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          {contacts.length > 0 && (
+            <div>
+              <label className="block text-xs font-medium uppercase text-gray-500 mb-1">Contact</label>
+              <select
+                value={dealForm.contactId}
+                onChange={(e) => setDealForm({ ...dealForm, contactId: e.target.value })}
+                className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+              >
+                <option value="">None</option>
+                {contacts.map((c) => (
+                  <option key={c.id} value={c.id}>{c.firstName} {c.lastName ?? ''}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              onClick={() => setShowCreateDeal(false)}
+              className="rounded-lg border border-border bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCreateDeal}
+              disabled={dealSubmitting || !dealForm.title.trim() || !dealForm.pipelineId || !dealForm.stageId}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {dealSubmitting ? 'Creating...' : 'Create Deal'}
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Add Contact Modal */}
       <Modal open={showAddContact} onClose={() => setShowAddContact(false)} title="Add Contact">
