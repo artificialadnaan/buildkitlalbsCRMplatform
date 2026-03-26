@@ -30,8 +30,6 @@ const navItems = [
     ),
   },
   {
-<<<<<<< HEAD
-=======
     to: '/scraper',
     label: 'Scraper',
     icon: (
@@ -59,7 +57,6 @@ const navItems = [
     ),
   },
   {
->>>>>>> feat/plan5-portal
     to: '/invoices',
     label: 'Invoices',
     icon: (
@@ -69,8 +66,6 @@ const navItems = [
     ),
   },
   {
-<<<<<<< HEAD
-=======
     to: '/projects',
     label: 'Projects',
     icon: (
@@ -89,7 +84,6 @@ const navItems = [
     ),
   },
   {
->>>>>>> feat/plan5-portal
     to: '/settings',
     label: 'Settings',
     icon: (
