@@ -11,6 +11,10 @@ import emailTemplatesRoutes from './routes/email-templates.js';
 import emailSequencesRoutes from './routes/email-sequences.js';
 import emailSendsRoutes from './routes/email-sends.js';
 import sequenceEnrollmentsRoutes from './routes/sequence-enrollments.js';
+import projectsRoutes from './routes/projects.js';
+import milestonesRoutes from './routes/milestones.js';
+import tasksRoutes from './routes/tasks.js';
+import timeEntriesRoutes from './routes/time-entries.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 export function createApp() {

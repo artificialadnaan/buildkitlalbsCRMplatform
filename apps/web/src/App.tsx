@@ -7,6 +7,10 @@ import LeadDetail from './pages/LeadDetail.js';
 import Pipelines from './pages/Pipelines.js';
 import DealDetail from './pages/DealDetail.js';
 import Settings from './pages/Settings.js';
+import EmailTemplates from './pages/EmailTemplates.js';
+import EmailTemplateEditor from './pages/EmailTemplateEditor.js';
+import EmailSequences from './pages/EmailSequences.js';
+import EmailSequenceBuilder from './pages/EmailSequenceBuilder.js';
 
 function AuthCallback() {
   return <div className="min-h-screen flex items-center justify-center bg-gray-950 text-gray-500">Signing in...</div>;
@@ -23,6 +27,12 @@ export default function App() {
         <Route path="/leads/:id" element={<LeadDetail />} />
         <Route path="/pipelines" element={<Pipelines />} />
         <Route path="/deals/:id" element={<DealDetail />} />
+        <Route path="/email/templates" element={<EmailTemplates />} />
+        <Route path="/email/templates/new" element={<EmailTemplateEditor />} />
+        <Route path="/email/templates/:id" element={<EmailTemplateEditor />} />
+        <Route path="/email/sequences" element={<EmailSequences />} />
+        <Route path="/email/sequences/new" element={<EmailSequenceBuilder />} />
+        <Route path="/email/sequences/:id" element={<EmailSequenceBuilder />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
     </Routes>

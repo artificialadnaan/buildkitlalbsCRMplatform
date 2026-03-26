@@ -6,6 +6,8 @@ import TopBar from '../components/layout/TopBar.js';
 import Badge from '../components/ui/Badge.js';
 import ActivityItem from '../components/ui/ActivityItem.js';
 import Modal from '../components/ui/Modal.js';
+import ComposeEmailModal from '../components/email/ComposeEmailModal.js';
+import EnrollSequenceModal from '../components/email/EnrollSequenceModal.js';
 
 interface DealResult {
   deal: {
@@ -56,6 +58,8 @@ export default function DealDetail() {
   const [activitySubject, setActivitySubject] = useState('');
   const [activityBody, setActivityBody] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showSequenceModal, setShowSequenceModal] = useState(false);
 
   const loadData = () => {
     if (!id) return;
@@ -162,16 +166,22 @@ export default function DealDetail() {
           </h2>
           <div className="flex flex-col gap-2">
             <button
-              onClick={() => setModalOpen(true)}
+              onClick={() => setShowEmailModal(true)}
               className="w-full rounded-lg border border-border bg-gray-800 px-4 py-2.5 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
             >
               Send Email
             </button>
             <button
+              onClick={() => setShowSequenceModal(true)}
+              className="w-full rounded-lg border border-border bg-gray-800 px-4 py-2.5 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
+            >
+              Start Sequence
+            </button>
+            <button
               onClick={() => setModalOpen(true)}
               className="w-full rounded-lg border border-border bg-gray-800 px-4 py-2.5 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
             >
-              Move Stage
+              Log Activity
             </button>
             {deal.status === 'open' && (
               <>
@@ -270,6 +280,27 @@ export default function DealDetail() {
           </div>
         </div>
       </Modal>
+
+      <ComposeEmailModal
+        open={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        dealId={deal.id}
+        contactId={deal.contactId || ''}
+        contactName={result.contactName || 'Unknown'}
+        contactEmail={result.contactEmail || ''}
+        onSent={() => {
+          api<ActivitiesResponse>(`/api/activities?dealId=${id}`).then((res) => setActivities(res.data));
+        }}
+      />
+      <EnrollSequenceModal
+        open={showSequenceModal}
+        onClose={() => setShowSequenceModal(false)}
+        dealId={deal.id}
+        contactId={deal.contactId || ''}
+        onEnrolled={() => {
+          api<ActivitiesResponse>(`/api/activities?dealId=${id}`).then((res) => setActivities(res.data));
+        }}
+      />
     </div>
   );
 }
