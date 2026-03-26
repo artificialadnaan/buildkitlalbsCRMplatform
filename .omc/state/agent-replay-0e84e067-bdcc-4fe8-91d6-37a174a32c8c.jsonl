@@ -21,3 +21,4 @@
 {"t":0,"agent":"a0545a4","agent_type":"designer","event":"agent_start","parent_mode":"none"}
 {"t":0,"agent":"a23af5b","agent_type":"designer","event":"agent_start","parent_mode":"none"}
 {"t":0,"agent":"a090f2b","agent_type":"designer","event":"agent_stop","success":true,"duration_ms":160358}
+{"t":0,"agent":"a0545a4","agent_type":"designer","event":"agent_stop","success":true,"duration_ms":58616}
