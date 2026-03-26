@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { google } from 'googleapis';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { db, users } from '@buildkit/shared';
 import { signToken } from '../lib/jwt.js';
 import { encrypt } from '../lib/encryption.js';
@@ -65,11 +65,15 @@ router.get('/callback', async (req, res) => {
         .where(eq(users.email, profile.email))
         .returning();
     } else {
+      // First user gets admin role, subsequent users default to rep
+      const userCount = await db.select({ count: sql<number>`count(*)::int` }).from(users);
+      const isFirstUser = userCount[0].count === 0;
+
       [user] = await db.insert(users).values({
         email: profile.email,
         name: profile.name || profile.email.split('@')[0],
         avatarUrl: profile.picture,
-        role: 'rep',
+        role: isFirstUser ? 'admin' : 'rep',
         googleTokens: encryptedTokens,
       }).returning();
     }
