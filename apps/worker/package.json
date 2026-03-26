@@ -6,17 +6,21 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "start": "tsx src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@buildkit/shared": "*",
     "@buildkit/email": "*",
+    "@buildkit/shared": "*",
     "bullmq": "^5.0.0",
     "dotenv": "^16.4.0"
   },
   "devDependencies": {
-    "tsx": "^4.0.0",
-    "typescript": "^5.7.0"
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.4"
   }
 }
