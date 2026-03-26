@@ -1,15 +1,12 @@
 import { Queue, Worker } from 'bullmq';
 import { eq } from 'drizzle-orm';
 import { db, users } from '@buildkit/shared';
-import { EMAIL_SEND_QUEUE, SEQUENCE_TICK_QUEUE, GMAIL_SYNC_QUEUE, EMAIL_QUEUE_OPTIONS } from '@buildkit/shared';
+import { EMAIL_SEND_QUEUE, SEQUENCE_TICK_QUEUE, GMAIL_SYNC_QUEUE, EMAIL_QUEUE_OPTIONS, getRedisConnection } from '@buildkit/shared';
 import { processEmailSend } from './processors/email-send.js';
 import { processSequenceTick } from './processors/sequence-tick.js';
 import { processGmailSync } from './processors/gmail-sync.js';
 
-const redisConnection = {
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-};
+const redisConnection = getRedisConnection();
 
 export function setupEmailQueues() {
   // Email send queue — processes individual email sends
