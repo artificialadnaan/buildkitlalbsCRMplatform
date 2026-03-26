@@ -21,6 +21,7 @@ import ProjectDetail from './pages/ProjectDetail.js';
 import TimeTracking from './pages/TimeTracking.js';
 import Import from './pages/Import.js';
 import AuditLog from './pages/AuditLog.js';
+import EmailHistory from './pages/EmailHistory.js';
 import Analytics from './pages/Analytics.js';
 import Notifications from './pages/Notifications.js';
 import OutreachCampaigns from './pages/OutreachCampaigns.js';
@@ -75,6 +76,7 @@ export default function App() {
         <Route path="/time" element={<TimeTracking />} />
         <Route path="/import" element={<Import />} />
         <Route path="/audit" element={<AuditLog />} />
+        <Route path="/email-history" element={<EmailHistory />} />
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/outreach" element={<OutreachCampaigns />} />

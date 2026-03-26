@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { eq, and, sql, gte } from 'drizzle-orm';
-import { db, emailSends, emailTemplates, contacts, companies, emailEvents } from '@buildkit/shared';
+import { eq, and, sql, gte, desc } from 'drizzle-orm';
+import { db, emailSends, emailTemplates, contacts, companies, emailEvents, deals } from '@buildkit/shared';
 import { resolveVariables } from '@buildkit/email';
 import { authMiddleware } from '../middleware/auth.js';
 import { Queue } from 'bullmq';
@@ -21,17 +21,39 @@ const router = Router();
 
 router.use(authMiddleware);
 
-// List email sends for a deal
+// List email sends — supports ?dealId= for deal-scoped view, or returns all for history view
 router.get('/', async (req, res) => {
   const dealId = req.query.dealId as string | undefined;
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 50;
   const offset = (page - 1) * limit;
 
-  const where = dealId ? eq(emailSends.dealId, dealId) : eq(emailSends.sentBy, req.user!.userId);
+  const where = dealId ? eq(emailSends.dealId, dealId) : undefined;
 
   const [data, countResult] = await Promise.all([
-    db.select().from(emailSends).where(where).limit(limit).offset(offset).orderBy(emailSends.createdAt),
+    db
+      .select({
+        id: emailSends.id,
+        subject: emailSends.subject,
+        status: emailSends.status,
+        sentAt: emailSends.sentAt,
+        createdAt: emailSends.createdAt,
+        errorMessage: emailSends.errorMessage,
+        dealId: emailSends.dealId,
+        dealTitle: deals.title,
+        contactId: emailSends.contactId,
+        contactFirstName: contacts.firstName,
+        contactLastName: contacts.lastName,
+        contactEmail: contacts.email,
+        sentBy: emailSends.sentBy,
+      })
+      .from(emailSends)
+      .leftJoin(contacts, eq(emailSends.contactId, contacts.id))
+      .leftJoin(deals, eq(emailSends.dealId, deals.id))
+      .where(where)
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(emailSends.createdAt)),
     db.select({ count: sql<number>`count(*)::int` }).from(emailSends).where(where),
   ]);
 

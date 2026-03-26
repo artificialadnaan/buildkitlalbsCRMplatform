@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { eq, desc } from 'drizzle-orm';
 import { db, activities } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
+import { logAudit } from '../lib/audit.js';
 
 const router = Router();
 router.use(authMiddleware);
@@ -22,6 +23,7 @@ router.post('/', async (req, res) => {
     ...req.body,
     userId: req.user!.userId,
   }).returning();
+  logAudit({ userId: req.user!.userId, action: 'create', entity: 'activity', entityId: activity.id, changes: { after: activity } });
   res.status(201).json(activity);
 });
 
