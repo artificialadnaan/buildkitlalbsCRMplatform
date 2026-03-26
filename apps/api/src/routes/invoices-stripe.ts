@@ -9,12 +9,24 @@ import Redis from 'ioredis';
 type IdParams = { id: string };
 
 const router = Router();
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-02-24.acacia' as Stripe.LatestApiVersion,
-});
 
-const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-const invoiceQueue = new Queue('invoice', { connection: redis });
+let _stripe: Stripe | null = null;
+function getStripe(): Stripe {
+  if (!_stripe) {
+    if (!process.env.STRIPE_SECRET_KEY) throw new Error('STRIPE_SECRET_KEY required');
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-02-24.acacia' as Stripe.LatestApiVersion });
+  }
+  return _stripe;
+}
+
+let _invoiceQueue: Queue | null = null;
+function getInvoiceQueue(): Queue {
+  if (!_invoiceQueue) {
+    const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+    _invoiceQueue = new Queue('invoice', { connection: redis });
+  }
+  return _invoiceQueue;
+}
 
 // Send invoice via Stripe (transitions draft -> sent)
 router.post('/:id/send', authMiddleware, async (req: Request<IdParams>, res) => {
@@ -51,19 +63,19 @@ router.post('/:id/send', authMiddleware, async (req: Request<IdParams>, res) => 
 
   try {
     // Create or retrieve Stripe customer
-    const customers = await stripe.customers.list({ email: contact.email, limit: 1 });
+    const customers = await getStripe().customers.list({ email: contact.email, limit: 1 });
     let customer: Stripe.Customer;
     if (customers.data.length > 0) {
       customer = customers.data[0];
     } else {
-      customer = await stripe.customers.create({
+      customer = await getStripe().customers.create({
         email: contact.email,
         name: company?.name || 'Client',
       });
     }
 
     // Create Stripe invoice
-    const stripeInvoice = await stripe.invoices.create({
+    const stripeInvoice = await getStripe().invoices.create({
       customer: customer.id,
       collection_method: 'send_invoice',
       days_until_due: Math.max(1, Math.ceil((new Date(invoice.dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))),
@@ -73,7 +85,7 @@ router.post('/:id/send', authMiddleware, async (req: Request<IdParams>, res) => 
     // Add line items
     const lineItems = invoice.lineItems as { description: string; quantity: number; unitPriceCents: number }[];
     for (const item of lineItems) {
-      await stripe.invoiceItems.create({
+      await getStripe().invoiceItems.create({
         customer: customer.id,
         invoice: stripeInvoice.id,
         description: item.description,
@@ -84,8 +96,8 @@ router.post('/:id/send', authMiddleware, async (req: Request<IdParams>, res) => 
     }
 
     // Finalize and send
-    const finalized = await stripe.invoices.finalizeInvoice(stripeInvoice.id!);
-    await stripe.invoices.sendInvoice(stripeInvoice.id!);
+    const finalized = await getStripe().invoices.finalizeInvoice(stripeInvoice.id!);
+    await getStripe().invoices.sendInvoice(stripeInvoice.id!);
 
     // Update our invoice record
     const [updated] = await db.update(invoices)
@@ -98,7 +110,7 @@ router.post('/:id/send', authMiddleware, async (req: Request<IdParams>, res) => 
       .returning();
 
     // Trigger PDF generation
-    await invoiceQueue.add('generate-invoice-pdf', { invoiceId: invoice.id });
+    await getInvoiceQueue().add('generate-invoice-pdf', { invoiceId: invoice.id });
 
     res.json(updated);
   } catch (err) {
@@ -113,7 +125,7 @@ router.post('/webhook', async (req, res) => {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(
+    event = getStripe().webhooks.constructEvent(
       JSON.stringify(req.body),
       sig,
       process.env.STRIPE_WEBHOOK_SECRET!

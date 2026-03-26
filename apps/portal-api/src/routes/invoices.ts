@@ -2,12 +2,11 @@ import { Router } from 'express';
 import { eq, and } from 'drizzle-orm';
 import { db, invoices, projects } from '@buildkit/shared';
 import { portalAuthMiddleware } from '../middleware/portalAuth.js';
-import Stripe from 'stripe';
+import { getStripe } from '../lib/stripe.js';
 
 const router = Router();
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-02-24.acacia' as Stripe.LatestApiVersion,
-});
+
+function stripe() { return getStripe(); }
 
 router.use(portalAuthMiddleware);
 
@@ -59,7 +58,7 @@ router.post('/:id/pay', async (req, res) => {
   }
 
   try {
-    const stripeInvoice = await stripe.invoices.retrieve(invoice.stripeInvoiceId);
+    const stripeInvoice = await stripe().invoices.retrieve(invoice.stripeInvoiceId);
     const paymentUrl = stripeInvoice.hosted_invoice_url;
 
     if (!paymentUrl) {
