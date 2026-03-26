@@ -10,12 +10,16 @@ interface DataTableProps<T> {
   columns: Column<T>[];
   data: T[];
   onRowClick?: (row: T) => void;
+  emptyMessage?: string;
+  emptyAction?: { label: string; onClick: () => void };
 }
 
 export default function DataTable<T>({
   columns,
   data,
   onRowClick,
+  emptyMessage = 'No data found',
+  emptyAction,
 }: DataTableProps<T>) {
   return (
     <div className="overflow-x-auto rounded-lg border border-border">
