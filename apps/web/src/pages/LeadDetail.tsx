@@ -6,6 +6,7 @@ import Badge from '../components/ui/Badge.js';
 import Modal from '../components/ui/Modal.js';
 import WebsiteAuditCard, { type WebsiteAudit } from '../components/ui/WebsiteAuditCard.js';
 import CompanyTimeline from '../components/ui/CompanyTimeline.js';
+import SendSmsModal from '../components/ui/SendSmsModal.js';
 
 interface Deal {
   id: string;
@@ -66,6 +67,8 @@ export default function LeadDetail() {
   const [contactForm, setContactForm] = useState({ firstName: '', lastName: '', email: '', phone: '', title: '', isPrimary: false });
   const [contactSubmitting, setContactSubmitting] = useState(false);
   const [showCreateDeal, setShowCreateDeal] = useState(false);
+  const [showSmsModal, setShowSmsModal] = useState(false);
+  const [smsContact, setSmsContact] = useState<Contact | null>(null);
   const [pipelines, setPipelines] = useState<Pipeline[]>([]);
   const [dealForm, setDealForm] = useState({ title: '', value: '', pipelineId: '', stageId: '', contactId: '' });
   const [dealSubmitting, setDealSubmitting] = useState(false);
@@ -249,12 +252,21 @@ export default function LeadDetail() {
                       <p className="mt-0.5 text-xs text-gray-500">{contact.title}</p>
                     )}
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex flex-col items-end gap-1">
                     {contact.email && (
                       <p className="text-xs text-gray-500">{contact.email}</p>
                     )}
                     {contact.phone && (
                       <p className="text-xs text-gray-500 mt-0.5">{contact.phone}</p>
+                    )}
+                    {contact.phone && (
+                      <button
+                        onClick={() => { setSmsContact(contact); setShowSmsModal(true); }}
+                        className="mt-1 flex items-center gap-1 rounded-md bg-orange-50 border border-orange-200 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-orange-700 hover:bg-orange-100 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-xs">sms</span>
+                        SMS
+                      </button>
                     )}
                   </div>
                 </div>
@@ -357,6 +369,18 @@ export default function LeadDetail() {
           </div>
         </div>
       </Modal>
+
+      {/* SMS Modal */}
+      {smsContact && (
+        <SendSmsModal
+          open={showSmsModal}
+          onClose={() => { setShowSmsModal(false); setSmsContact(null); }}
+          contactId={smsContact.id}
+          contactName={`${smsContact.firstName} ${smsContact.lastName ?? ''}`.trim()}
+          contactPhone={smsContact.phone ?? ''}
+          onSent={() => {}}
+        />
+      )}
 
       {/* Add Contact Modal */}
       <Modal open={showAddContact} onClose={() => setShowAddContact(false)} title="Add Contact">

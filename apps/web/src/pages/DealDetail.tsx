@@ -6,6 +6,7 @@ import TopBar from '../components/layout/TopBar.js';
 import Modal from '../components/ui/Modal.js';
 import ComposeEmailModal from '../components/email/ComposeEmailModal.js';
 import EnrollSequenceModal from '../components/email/EnrollSequenceModal.js';
+import SendSmsModal from '../components/ui/SendSmsModal.js';
 
 interface DealResult {
   deal: {
@@ -106,6 +107,7 @@ export default function DealDetail() {
   const [submitting, setSubmitting] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showSequenceModal, setShowSequenceModal] = useState(false);
+  const [showSmsModal, setShowSmsModal] = useState(false);
   const [pipelineStages, setPipelineStages] = useState<StageOption[]>([]);
   const [stageChanging, setStageChanging] = useState(false);
   const [showStageModal, setShowStageModal] = useState(false);
@@ -398,6 +400,7 @@ export default function DealDetail() {
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Deal Actions</h3>
               <div className="space-y-3">
                 <ActionButton icon="mail" label="Send Email" onClick={() => setShowEmailModal(true)} />
+                <ActionButton icon="sms" label="Send SMS" onClick={() => setShowSmsModal(true)} />
                 <ActionButton icon="automation" label="Start Sequence" onClick={() => setShowSequenceModal(true)} />
                 <ActionButton icon="history_edu" label="Log Activity" onClick={() => setModalOpen(true)} />
                 <ActionButton icon="rebase_edit" label="Move Stage" onClick={() => { setSelectedStageId(deal.stageId); setShowStageModal(true); }} />
@@ -550,6 +553,15 @@ export default function DealDetail() {
         dealId={deal.id}
         contactId={deal.contactId || ''}
         onEnrolled={() => { loadData(); }}
+      />
+      <SendSmsModal
+        open={showSmsModal}
+        onClose={() => setShowSmsModal(false)}
+        contactId={deal.contactId || ''}
+        contactName={result.contactName || 'Unknown'}
+        contactPhone={''}
+        dealId={deal.id}
+        onSent={() => { loadData(); }}
       />
     </div>
   );

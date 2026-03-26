@@ -5,19 +5,21 @@ import {
   SCRAPE_QUEUE_NAME,
   WEBSITE_AUDIT_QUEUE,
   OUTREACH_PIPELINE_QUEUE,
+  SMS_SEND_QUEUE,
   getRedisConnection,
   createOutreachPipelineQueue,
   db,
   outreachCampaigns,
 } from '@buildkit/shared';
 import { eq } from 'drizzle-orm';
-import type { ScrapeJobData, WebsiteAuditJobData, OutreachPipelineJobData } from '@buildkit/shared';
+import type { ScrapeJobData, WebsiteAuditJobData, OutreachPipelineJobData, SmsJobData } from '@buildkit/shared';
 import { processScrapeJob } from './processors/scrape.js';
 import { processWebsiteAudit } from './processors/website-audit.js';
 import { processOutreachPipeline } from './processors/outreach-pipeline.js';
 import { processInvoicePdf } from './jobs/invoicePdf.js';
 import { processInvoiceReminders } from './jobs/invoiceReminder.js';
 import { setupEmailQueues } from './setup-email-queues.js';
+import { processSmsSend } from './processors/sms-send.js';
 import { checkStaleDeals } from './jobs/staleDealChecker.js';
 import { sendDailyDigest } from './jobs/dailyDigest.js';
 
@@ -189,3 +191,26 @@ console.log('[Worker] Stale deal checker and daily digest crons registered');
 // Start email workers (send, sequence-tick, gmail-sync)
 setupEmailQueues();
 console.log('[Worker] Email workers started (send, sequence-tick, gmail-sync)');
+
+// SMS send worker
+const smsSendWorker = new Worker<SmsJobData>(
+  SMS_SEND_QUEUE,
+  async (job) => {
+    console.log(`[Worker] Processing sms-send job ${job.id} — messageId: ${job.data.messageId}`);
+    await processSmsSend(job);
+  },
+  {
+    connection,
+    concurrency: 5,
+  }
+);
+
+smsSendWorker.on('completed', (job) => {
+  console.log(`[Worker] SMS send job ${job.id} completed`);
+});
+
+smsSendWorker.on('failed', (job, err) => {
+  console.error(`[Worker] SMS send job ${job?.id} failed:`, err.message);
+});
+
+console.log(`[Worker] SMS send worker started — listening on queue "${SMS_SEND_QUEUE}"`);

@@ -31,6 +31,7 @@ import CallPrepView from './pages/CallPrepView.js';
 import ReportsList from './pages/ReportsList.js';
 import SalesPerformance from './pages/SalesPerformance.js';
 import ROICalculator from './pages/ROICalculator.js';
+import Inbox from './pages/Inbox.js';
 
 function AuthCallback() {
   const { user, loading } = useAuth();
@@ -86,6 +87,7 @@ export default function App() {
         <Route path="/reports" element={<ReportsList />} />
         <Route path="/reports/sales" element={<SalesPerformance />} />
         <Route path="/reports/roi" element={<ROICalculator />} />
+        <Route path="/inbox" element={<Inbox />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
     </Routes>

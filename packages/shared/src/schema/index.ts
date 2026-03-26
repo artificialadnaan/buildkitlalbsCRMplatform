@@ -25,3 +25,4 @@ export * from './outreach-campaigns.js';
 export * from './satisfaction-surveys.js';
 export * from './change-requests.js';
 export * from './report-schedules.js';
+export * from './conversations.js';

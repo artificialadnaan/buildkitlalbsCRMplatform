@@ -1,6 +1,15 @@
 import { Queue } from 'bullmq';
 import type { WebsiteAuditJobData, OutreachPipelineJobData, NotificationJobData, ReportJobData } from './types/index.js';
 
+// SMS queues
+export const SMS_SEND_QUEUE = 'sms-send';
+
+export interface SmsJobData {
+  messageId: string;
+  to: string;
+  body: string;
+}
+
 // Email queues
 export const EMAIL_SEND_QUEUE = 'email-send';
 export const SEQUENCE_TICK_QUEUE = 'email-sequence-tick';

@@ -31,6 +31,7 @@ import notificationRoutes from './routes/notifications.js';
 import searchRoutes from './routes/search.js';
 import reportsRoutes from './routes/reports.js';
 import changeRequestsRoutes from './routes/change-requests.js';
+import smsRoutes from './routes/sms.js';
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/dist/queueAdapters/bullMQ.js';
 import { ExpressAdapter } from '@bull-board/express';
@@ -78,6 +79,10 @@ export function createApp() {
   app.use('/api/search', searchRoutes);
   app.use('/api/reports', reportsRoutes);
   app.use('/api/change-requests', changeRequestsRoutes);
+
+  // SMS + conversations (authenticated) and Twilio inbound webhook (no auth)
+  app.use('/api/sms', smsRoutes);
+  app.use('/webhook/sms', smsRoutes);
 
   // Bull Board admin UI (only when Redis is available)
   if (process.env.REDIS_URL) {

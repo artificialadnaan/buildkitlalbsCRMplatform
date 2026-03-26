@@ -1,7 +1,7 @@
 {
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"ls -la /Users/adnaaniqbal/Developer/Consulting/buildkit-crm/apps/api/src/lib/audit.ts /Users/adnaaniqbal/Developer/Consulting/buildkit-crm/apps/api/src/lib/csv.ts /Users/adnaaniqbal/Develo...",
-  "error": "Exit code 1\nls: /Users/adnaaniqbal/Developer/Consulting/buildkit-crm/apps/api/src/lib/audit.ts: No such file or directory\nls: /Users/adnaaniqbal/Developer/Consulting/buildkit-crm/apps/api/src/lib/csv.ts: No such file or directory\nls: /Users/adnaaniqbal/Developer/Consulting/buildkit-crm/apps/api/src/routes/audit.ts: No such file or directory\nls: /Users/adnaaniqbal/Developer/Consulting/buildkit-crm/apps/api/src/routes/export.ts: No such file or directory\nls: /Users/adnaaniqbal/Developer/Consulting...",
-  "timestamp": "2026-03-26T07:06:13.094Z",
-  "retry_count": 2
+  "tool_name": "Read",
+  "tool_input_preview": "{\"file_path\":\"/Users/adnaaniqbal/Developer/Consulting/buildkit-crm/apps/web/src/lib\"}",
+  "error": "EISDIR: illegal operation on a directory, read '/Users/adnaaniqbal/Developer/Consulting/buildkit-crm/apps/web/src/lib'",
+  "timestamp": "2026-03-26T20:54:21.051Z",
+  "retry_count": 4
 }
