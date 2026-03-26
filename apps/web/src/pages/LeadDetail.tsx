@@ -91,7 +91,12 @@ export default function LeadDetail() {
             Contacts ({contacts.length})
           </h2>
           {contacts.length === 0 ? (
-            <p className="text-sm text-gray-500 py-4">No contacts found</p>
+            <div className="flex flex-col items-center gap-2 py-8 text-center">
+              <svg className="h-8 w-8 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+              </svg>
+              <p className="text-sm text-gray-500">No contacts yet — add a contact to start reaching out</p>
+            </div>
           ) : (
             <div className="space-y-3">
               {contacts.map((contact) => (

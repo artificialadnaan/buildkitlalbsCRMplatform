@@ -39,8 +39,21 @@ export default function DataTable<T>({
         <tbody>
           {data.length === 0 ? (
             <tr>
-              <td colSpan={columns.length} className="px-4 py-8 text-center text-gray-500">
-                No data found
+              <td colSpan={columns.length} className="px-4 py-12 text-center">
+                <div className="flex flex-col items-center gap-2">
+                  <svg className="h-8 w-8 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z" />
+                  </svg>
+                  <p className="text-sm text-gray-500">{emptyMessage}</p>
+                  {emptyAction && (
+                    <button
+                      onClick={emptyAction.onClick}
+                      className="mt-1 rounded-md bg-gray-800 px-3 py-1.5 text-xs font-medium text-gray-300 transition-colors hover:bg-gray-700"
+                    >
+                      {emptyAction.label}
+                    </button>
+                  )}
+                </div>
               </td>
             </tr>
           ) : (

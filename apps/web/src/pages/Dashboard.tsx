@@ -131,7 +131,12 @@ export default function Dashboard() {
             </h2>
             <div className="border-t border-border">
               {myTasks.length === 0 ? (
-                <p className="text-sm text-gray-600 py-4 text-center">No tasks assigned to you</p>
+                <div className="flex flex-col items-center gap-2 py-8 text-center">
+                  <svg className="h-8 w-8 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                  <p className="text-sm text-gray-500">No tasks due — you're all caught up!</p>
+                </div>
               ) : (
                 myTasks.map(task => (
                   <div key={task.id} className="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
