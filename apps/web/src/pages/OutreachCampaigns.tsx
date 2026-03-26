@@ -33,8 +33,8 @@ export default function OutreachCampaigns() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api<Campaign[]>('/api/outreach')
-      .then(setCampaigns)
+    api<{ data: Campaign[] } | Campaign[]>('/api/outreach')
+      .then(r => setCampaigns(Array.isArray(r) ? r : r.data ?? []))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
