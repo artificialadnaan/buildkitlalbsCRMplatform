@@ -95,16 +95,14 @@ export default function Scraper() {
       setError('Enter at least one valid 5-digit zip code');
       return;
     }
-    if (!searchQuery.trim()) {
-      setError('Enter a search query (e.g., "plumbers", "roofing contractors")');
-      return;
-    }
-
     setSubmitting(true);
     try {
       await api('/api/scrape', {
         method: 'POST',
-        body: JSON.stringify({ zipCodes, searchQuery: searchQuery.trim() }),
+        body: JSON.stringify({
+          zipCodes,
+          searchQuery: searchQuery.trim() || 'local businesses',
+        }),
       });
       setZipInput('');
       setSearchQuery('');

@@ -27,10 +27,9 @@ router.post('/', async (req, res) => {
     return;
   }
 
-  if (!searchQuery || typeof searchQuery !== 'string' || searchQuery.trim().length === 0) {
-    res.status(400).json({ error: 'searchQuery is required' });
-    return;
-  }
+  const resolvedQuery = (typeof searchQuery === 'string' && searchQuery.trim().length > 0)
+    ? searchQuery.trim()
+    : 'local businesses';
 
   // Validate zip codes are strings of 5 digits
   const validZips = zipCodes.every((z: unknown) =>
@@ -45,14 +44,14 @@ router.post('/', async (req, res) => {
   const [job] = await db.insert(scrapeJobs).values({
     startedBy: req.user!.userId,
     zipCodes,
-    searchQuery: searchQuery.trim(),
+    searchQuery: resolvedQuery,
   }).returning();
 
   // Enqueue BullMQ job
   const jobData: ScrapeJobData = {
     jobId: job.id,
     zipCodes,
-    searchQuery: searchQuery.trim(),
+    searchQuery: resolvedQuery,
     startedBy: req.user!.userId,
   };
 
