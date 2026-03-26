@@ -1,0 +1,125 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { api } from '../lib/api.js';
+import { formatCurrency, formatRelativeTime } from '../lib/format.js';
+import TopBar from '../components/layout/TopBar.js';
+import StatCard from '../components/ui/StatCard.js';
+import ActivityItem from '../components/ui/ActivityItem.js';
+
+interface DashboardStats {
+  activeDeals: number;
+  pipelineValue: number;
+  wonDeals: number;
+  wonValue: number;
+}
+
+interface ActivityRow {
+  activity: {
+    id: string;
+    type: string;
+    subject: string | null;
+    body: string | null;
+    createdAt: string;
+  };
+  userName: string | null;
+}
+
+export default function Dashboard() {
+  const navigate = useNavigate();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [activity, setActivity] = useState<ActivityRow[]>([]);
+
+  useEffect(() => {
+    api<DashboardStats>('/api/dashboard/stats').then(setStats).catch(console.error);
+    api<ActivityRow[]>('/api/dashboard/activity?limit=10').then(setActivity).catch(console.error);
+  }, []);
+
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+
+  return (
+    <div>
+      <TopBar
+        title="Dashboard"
+        subtitle={today}
+        actions={
+          <>
+            <button
+              onClick={() => navigate('/leads')}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+            >
+              New Lead
+            </button>
+            <button
+              className="rounded-lg border border-border bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
+            >
+              Scrape Leads
+            </button>
+          </>
+        }
+      />
+
+      <div className="p-6">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            label="Active Deals"
+            value={stats?.activeDeals ?? '--'}
+          />
+          <StatCard
+            label="Emails Sent"
+            value="--"
+            trend="Coming soon"
+            trendColor="gray"
+          />
+          <StatCard
+            label="Pipeline Value"
+            value={stats ? formatCurrency(stats.pipelineValue) : '--'}
+          />
+          <StatCard
+            label="Deals Won"
+            value={stats?.wonDeals ?? '--'}
+            trend={stats ? formatCurrency(stats.wonValue) + ' total' : undefined}
+            trendColor="green"
+          />
+        </div>
+
+        {/* Two Column: Activity + Tasks */}
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Recent Activity */}
+          <div className="rounded-lg border border-border bg-surface p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">
+              Recent Activity
+            </h2>
+            {activity.length === 0 ? (
+              <p className="text-sm text-gray-500 py-4">No recent activity</p>
+            ) : (
+              <div className="divide-y divide-border">
+                {activity.map((row) => (
+                  <ActivityItem
+                    key={row.activity.id}
+                    type={row.activity.type}
+                    description={row.activity.subject ?? `${row.activity.type} logged`}
+                    meta={`${row.userName ?? 'Unknown'} - ${formatRelativeTime(row.activity.createdAt)}`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* My Tasks */}
+          <div className="rounded-lg border border-border bg-surface p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">
+              My Tasks Due
+            </h2>
+            <p className="text-sm text-gray-500 py-4">Task management coming in Phase 2</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
