@@ -6,6 +6,14 @@ import TopBar from '../components/layout/TopBar.js';
 import LoadingSpinner from '../components/ui/LoadingSpinner.js';
 import ForecastWidget from '../components/ui/ForecastWidget.js';
 
+interface MyStats {
+  myActiveDeals: number;
+  myActiveDealValue: number;
+  myTasksDueToday: number;
+  myEmailsThisWeek: number;
+  myWinRate: number;
+}
+
 interface DashboardStats {
   activeDeals: number;
   pipelineValue: number;
@@ -53,6 +61,7 @@ function getActivityStyle(type: string) {
 export default function Dashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [myStats, setMyStats] = useState<MyStats | null>(null);
   const [activity, setActivity] = useState<ActivityRow[]>([]);
   const [myTasks, setMyTasks] = useState<MyTask[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,6 +69,7 @@ export default function Dashboard() {
   useEffect(() => {
     Promise.all([
       api<DashboardStats>('/api/dashboard/stats').then(setStats),
+      api<MyStats>('/api/dashboard/my-stats').then(setMyStats),
       api<ActivityRow[]>('/api/dashboard/activity?limit=10').then(setActivity),
       api<MyTask[]>('/api/dashboard/my-tasks').then(setMyTasks),
     ])
@@ -118,6 +128,42 @@ export default function Dashboard() {
               trendColor="text-slate-600"
             />
           </section>
+
+          {/* Personal Stats */}
+          <div className="mt-4">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Personal Stats</p>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-[#e7eeff] p-6 relative overflow-hidden border-l-4 border-purple-500">
+                <p className="text-xs font-label uppercase tracking-[0.15em] text-slate-500 mb-1">My Active Deals</p>
+                <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{myStats?.myActiveDeals ?? '--'}</h3>
+                <p className="mt-2 text-xs font-bold text-slate-500">{myStats ? formatCurrency(myStats.myActiveDealValue) : '--'}</p>
+              </div>
+              <div className="bg-[#e7eeff] p-6 relative overflow-hidden border-l-4 border-purple-500">
+                <p className="text-xs font-label uppercase tracking-[0.15em] text-slate-500 mb-1">Tasks Due Today</p>
+                <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{myStats?.myTasksDueToday ?? '--'}</h3>
+                <div className="mt-2 flex items-center text-xs font-bold text-slate-500">
+                  <span className="material-symbols-outlined text-sm mr-1">task_alt</span>
+                  pending
+                </div>
+              </div>
+              <div className="bg-[#e7eeff] p-6 relative overflow-hidden border-l-4 border-purple-500">
+                <p className="text-xs font-label uppercase tracking-[0.15em] text-slate-500 mb-1">Emails This Week</p>
+                <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{myStats?.myEmailsThisWeek ?? '--'}</h3>
+                <div className="mt-2 flex items-center text-xs font-bold text-slate-500">
+                  <span className="material-symbols-outlined text-sm mr-1">mail</span>
+                  since Sunday
+                </div>
+              </div>
+              <div className="bg-[#e7eeff] p-6 relative overflow-hidden border-l-4 border-purple-500">
+                <p className="text-xs font-label uppercase tracking-[0.15em] text-slate-500 mb-1">Win Rate</p>
+                <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{myStats != null ? `${myStats.myWinRate}%` : '--'}</h3>
+                <div className="mt-2 flex items-center text-xs font-bold text-slate-500">
+                  <span className="material-symbols-outlined text-sm mr-1">emoji_events</span>
+                  last 90 days
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Main Grid: Activity + Tasks */}
           <div className="grid grid-cols-12 gap-8">

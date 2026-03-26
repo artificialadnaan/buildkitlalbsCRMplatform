@@ -89,4 +89,56 @@ router.get('/activity', async (req, res) => {
   res.json(data);
 });
 
+// My Pipeline personal stats
+router.get('/my-stats', async (req, res) => {
+  const userId = req.user!.userId;
+
+  const weekStart = new Date();
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  weekStart.setHours(0, 0, 0, 0);
+
+  const ninetyDaysAgo = new Date();
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+  const [dealStats] = await db.select({
+    myActiveDeals: sql<number>`count(*) filter (where ${deals.status} = 'open')::int`,
+    myActiveDealValue: sql<number>`coalesce(sum(${deals.value}) filter (where ${deals.status} = 'open'), 0)::int`,
+    wonCount: sql<number>`count(*) filter (where ${deals.status} = 'won' and ${deals.closedAt} >= ${ninetyDaysAgo})::int`,
+    lostCount: sql<number>`count(*) filter (where ${deals.status} = 'lost' and ${deals.closedAt} >= ${ninetyDaysAgo})::int`,
+  })
+    .from(deals)
+    .where(eq(deals.assignedTo, userId));
+
+  const [taskStats] = await db.select({
+    myTasksDueToday: sql<number>`count(*)::int`,
+  })
+    .from(tasks)
+    .where(and(
+      eq(tasks.assignedTo, userId),
+      sql`${tasks.status} != 'done'`,
+      sql`${tasks.dueDate}::date <= current_date`,
+    ));
+
+  const [emailStats] = await db.select({
+    myEmailsThisWeek: sql<number>`count(*)::int`,
+  })
+    .from(emailSends)
+    .where(and(
+      eq(emailSends.sentBy, userId),
+      gte(emailSends.sentAt, weekStart),
+    ));
+
+  const won = dealStats.wonCount ?? 0;
+  const lost = dealStats.lostCount ?? 0;
+  const myWinRate = won + lost > 0 ? Math.round((won / (won + lost)) * 100) : 0;
+
+  res.json({
+    myActiveDeals: dealStats.myActiveDeals,
+    myActiveDealValue: dealStats.myActiveDealValue,
+    myTasksDueToday: taskStats.myTasksDueToday,
+    myEmailsThisWeek: emailStats.myEmailsThisWeek,
+    myWinRate,
+  });
+});
+
 export default router;
