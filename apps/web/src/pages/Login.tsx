@@ -15,7 +15,7 @@ export default function Login() {
 
         {/* Google Sign In */}
         <a
-          href="/auth/google"
+          href={`${import.meta.env.VITE_API_URL || ''}/auth/google`}
           className="mt-6 flex w-full items-center justify-center gap-3 rounded-lg border border-border bg-gray-800 px-4 py-3 text-sm font-medium text-gray-200 transition-colors hover:bg-gray-700"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
