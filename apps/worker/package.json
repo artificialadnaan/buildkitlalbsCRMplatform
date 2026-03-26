@@ -5,7 +5,7 @@
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "local": "tsx watch src/index.ts",
     "build": "echo 'build ok'",
     "start": "tsx src/index.ts",
     "test": "vitest run",

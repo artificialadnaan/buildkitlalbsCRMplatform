@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "local": "tsx watch src/index.ts",
     "build": "echo 'build ok'",
     "start": "tsx src/index.ts",
     "test": "vitest run",

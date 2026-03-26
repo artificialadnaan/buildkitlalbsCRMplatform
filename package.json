@@ -6,15 +6,15 @@
     "apps/*"
   ],
   "scripts": {
-    "dev:api": "npm run dev -w apps/api",
-    "dev:web": "npm run dev -w apps/web",
-    "dev:portal": "npm run dev -w apps/portal",
-    "dev:portal-api": "npm run dev -w apps/portal-api",
+    "dev:api": "npm run local -w apps/api",
+    "dev:web": "npm run local -w apps/web",
+    "dev:portal": "npm run local -w apps/portal",
+    "dev:portal-api": "npm run local -w apps/portal-api",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:seed": "npx tsx packages/shared/src/seed.ts",
-    "dev:worker": "npm run dev -w apps/worker",
+    "dev:worker": "npm run local -w apps/worker",
     "test": "npm run test -w apps/api"
   },
   "devDependencies": {
