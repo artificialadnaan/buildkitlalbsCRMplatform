@@ -20,6 +20,7 @@ import invoicesRoutes from './routes/invoices.js';
 import invoicesStripeRoutes from './routes/invoices-stripe.js';
 import filesRoutes from './routes/files.js';
 import messagesRoutes from './routes/messages.js';
+import usersRoutes from './routes/users.js';
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/dist/queueAdapters/bullMQ.js';
 import { ExpressAdapter } from '@bull-board/express';
@@ -54,6 +55,7 @@ export function createApp() {
   app.use('/api/invoices', invoicesStripeRoutes);
   app.use('/api/files', filesRoutes);
   app.use('/api/messages', messagesRoutes);
+  app.use('/api/users', usersRoutes);
 
   // Bull Board admin UI (only when Redis is available)
   if (process.env.REDIS_URL) {

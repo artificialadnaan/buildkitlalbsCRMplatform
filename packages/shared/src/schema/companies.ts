@@ -18,5 +18,6 @@ export const companies = pgTable('companies', {
   industry: varchar('industry', { length: 100 }),
   employeeCount: integer('employee_count'),
   source: companySourceEnum('source').notNull().default('manual'),
+  score: integer('score').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
