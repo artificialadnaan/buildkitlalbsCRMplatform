@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { eq, and, sql } from 'drizzle-orm';
-import { db, projects, companies, users } from '@buildkit/shared';
+import { db, projects, companies, users, contacts } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
 import type { ProjectStatus } from '@buildkit/shared';
 
@@ -21,6 +21,9 @@ router.get('/', async (req, res) => {
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
+  // Alias for primary contact join
+  const primaryContact = contacts;
+
   const [data, countResult] = await Promise.all([
     db.select({
       id: projects.id,
@@ -36,10 +39,21 @@ router.get('/', async (req, res) => {
       createdAt: projects.createdAt,
       companyName: companies.name,
       assignedToName: users.name,
+      contactFirstName: primaryContact.firstName,
+      contactLastName: primaryContact.lastName,
+      contactPhone: primaryContact.phone,
+      contactEmail: primaryContact.email,
     })
       .from(projects)
       .leftJoin(companies, eq(projects.companyId, companies.id))
       .leftJoin(users, eq(projects.assignedTo, users.id))
+      .leftJoin(
+        primaryContact,
+        and(
+          eq(primaryContact.companyId, projects.companyId),
+          eq(primaryContact.isPrimary, true),
+        ),
+      )
       .where(where)
       .limit(limit)
       .offset(offset)
@@ -52,14 +66,30 @@ router.get('/', async (req, res) => {
 
 // Get single project with related data
 router.get('/:id', async (req, res) => {
+  const primaryContact = contacts;
+
   const [result] = await db.select({
     project: projects,
     companyName: companies.name,
+    companyPhone: companies.phone,
+    companyWebsite: companies.website,
     assignedToName: users.name,
+    contactFirstName: primaryContact.firstName,
+    contactLastName: primaryContact.lastName,
+    contactPhone: primaryContact.phone,
+    contactEmail: primaryContact.email,
+    contactId: primaryContact.id,
   })
     .from(projects)
     .leftJoin(companies, eq(projects.companyId, companies.id))
     .leftJoin(users, eq(projects.assignedTo, users.id))
+    .leftJoin(
+      primaryContact,
+      and(
+        eq(primaryContact.companyId, projects.companyId),
+        eq(primaryContact.isPrimary, true),
+      ),
+    )
     .where(eq(projects.id, req.params.id))
     .limit(1);
 

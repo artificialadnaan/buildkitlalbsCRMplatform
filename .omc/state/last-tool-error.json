@@ -1,7 +1,7 @@
 {
-  "tool_name": "Read",
-  "tool_input_preview": "{\"file_path\":\"/Users/adnaaniqbal/Developer/Consulting/buildkit-crm\"}",
-  "error": "EISDIR: illegal operation on a directory, read '/Users/adnaaniqbal/Developer/Consulting/buildkit-crm'",
-  "timestamp": "2026-03-26T21:03:12.585Z",
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"cd /Users/adnaaniqbal/Developer/Consulting/buildkit-crm/apps/web && npx tsc --noEmit 2>&1\",\"timeout\":60000,\"description\":\"Type-check web package\"}",
+  "error": "Exit code 2\nsrc/pages/Inbox.tsx(122,38): error TS2339: Property 'subject' does not exist on type 'Conversation'.",
+  "timestamp": "2026-03-26T21:34:43.657Z",
   "retry_count": 1
 }

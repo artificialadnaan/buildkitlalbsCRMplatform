@@ -7,6 +7,8 @@ import MilestoneTimeline from '../components/ui/MilestoneTimeline.js';
 import TaskList from '../components/ui/TaskList.js';
 import TimeEntryForm from '../components/ui/TimeEntryForm.js';
 import Modal from '../components/ui/Modal.js';
+import ClickToCall from '../components/ui/ClickToCall.js';
+import SendSmsModal from '../components/ui/SendSmsModal.js';
 import { api } from '../lib/api.js';
 
 interface ProjectData {
@@ -19,9 +21,26 @@ interface ProjectData {
     startDate: string | null;
     targetLaunchDate: string | null;
     createdAt: string;
+    companyId: string;
   };
   companyName: string;
+  companyPhone: string | null;
+  companyWebsite: string | null;
   assignedToName: string | null;
+  contactId: string | null;
+  contactFirstName: string | null;
+  contactLastName: string | null;
+  contactPhone: string | null;
+  contactEmail: string | null;
+}
+
+interface Conversation {
+  id: string;
+  channel: 'sms' | 'call' | 'email' | 'internal';
+  contactName: string;
+  lastMessagePreview: string;
+  lastMessageAt: string | null;
+  subject: string | null;
 }
 
 interface Milestone {
@@ -72,15 +91,24 @@ export default function ProjectDetail() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [timeSummary, setTimeSummary] = useState<TimeSummary | null>(null);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [showAddTask, setShowAddTask] = useState(false);
   const [showLogTime, setShowLogTime] = useState(false);
+  const [showSms, setShowSms] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskPriority, setNewTaskPriority] = useState('medium');
   const [newTaskDueDate, setNewTaskDueDate] = useState('');
 
   const loadProject = useCallback(() => {
     if (!id) return;
-    api<ProjectData>(`/api/projects/${id}`).then(setProject);
+    api<ProjectData>(`/api/projects/${id}`).then(data => {
+      setProject(data);
+      if (data.project.companyId) {
+        api<{ data: Conversation[] }>(`/api/sms/conversations?companyId=${data.project.companyId}`)
+          .then(r => setConversations(r.data))
+          .catch(() => setConversations([]));
+      }
+    });
     api<Milestone[]>(`/api/projects/${id}/milestones`).then(data => {
       setMilestones(data);
       const active = data.find(m => m.status === 'in_progress') || data.find(m => m.status === 'pending');
@@ -156,6 +184,71 @@ export default function ProjectDetail() {
         </div>
       </div>
 
+      {/* Contact Card */}
+      {(project.contactId || project.companyPhone || project.companyWebsite) && (
+        <div className="bg-surface border border-border rounded-lg p-4 mb-6">
+          <div className="text-xs font-black uppercase tracking-widest text-gray-500 mb-3">Client Contact</div>
+          <div className="flex flex-wrap items-start gap-6">
+            <div className="min-w-0">
+              <div className="text-xs uppercase text-gray-500 mb-0.5">Company</div>
+              <div className="font-bold text-gray-900 text-sm">
+                {project.companyWebsite ? (
+                  <a href={project.companyWebsite} target="_blank" rel="noopener noreferrer" className="hover:text-orange-600 transition-colors">
+                    {project.companyName}
+                  </a>
+                ) : project.companyName}
+              </div>
+              {project.companyPhone && (
+                <div className="text-xs text-gray-500 mt-0.5">{project.companyPhone}</div>
+              )}
+            </div>
+
+            {(project.contactFirstName || project.contactLastName) && (
+              <div className="min-w-0">
+                <div className="text-xs uppercase text-gray-500 mb-0.5">Primary Contact</div>
+                <div className="font-bold text-gray-900 text-sm">
+                  {[project.contactFirstName, project.contactLastName].filter(Boolean).join(' ')}
+                </div>
+                {project.contactEmail && (
+                  <a href={`mailto:${project.contactEmail}`} className="text-xs text-blue-500 hover:text-blue-600 block mt-0.5">
+                    {project.contactEmail}
+                  </a>
+                )}
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 mt-auto ml-auto flex-wrap">
+              {project.contactId && project.contactPhone && (
+                <ClickToCall
+                  contactId={project.contactId}
+                  phone={project.contactPhone}
+                  contactName={[project.contactFirstName, project.contactLastName].filter(Boolean).join(' ') || undefined}
+                  size="md"
+                />
+              )}
+              {project.contactId && project.contactPhone && (
+                <button
+                  onClick={() => setShowSms(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-bold transition-all"
+                >
+                  <span className="material-symbols-outlined text-sm">sms</span>
+                  Send SMS
+                </button>
+              )}
+              {project.contactEmail && (
+                <a
+                  href={`mailto:${project.contactEmail}`}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-all"
+                >
+                  <span className="material-symbols-outlined text-sm">mail</span>
+                  Send Email
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-surface border border-border rounded-lg p-4 mb-6">
         <ProgressBar percent={milestoneProgress} label={`${doneMilestones} of ${milestones.length} milestones complete`} color={milestoneProgress === 100 ? 'bg-green-500' : 'bg-blue-500'} />
       </div>
@@ -203,6 +296,58 @@ export default function ProjectDetail() {
         </div>
       </div>
 
+      {/* Communications Section */}
+      <div className="bg-surface border border-border rounded-lg p-4 mt-6">
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="font-semibold text-gray-900">Communications</h3>
+          <a href="/inbox" className="text-sm text-blue-500 hover:text-blue-600">View in Comms →</a>
+        </div>
+        <div className="border-t border-border">
+          {conversations.length === 0 ? (
+            <p className="text-sm text-gray-600 py-4 text-center">No communications yet</p>
+          ) : (
+            <div className="divide-y divide-border">
+              {conversations.map(conv => (
+                <div key={conv.id} className="flex items-start gap-3 py-3">
+                  <div className="mt-0.5 shrink-0">
+                    {conv.channel === 'sms' && (
+                      <span className="material-symbols-outlined text-base text-orange-500">sms</span>
+                    )}
+                    {conv.channel === 'call' && (
+                      <span className="material-symbols-outlined text-base text-green-500">call</span>
+                    )}
+                    {conv.channel === 'email' && (
+                      <span className="material-symbols-outlined text-base text-blue-500">mail</span>
+                    )}
+                    {conv.channel === 'internal' && (
+                      <span className="material-symbols-outlined text-base text-gray-400">chat</span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-black uppercase tracking-widest text-gray-500">{conv.channel}</span>
+                      <span className="text-xs text-gray-400">·</span>
+                      <span className="text-xs text-gray-500">{conv.contactName}</span>
+                    </div>
+                    <p className="text-sm text-gray-700 truncate mt-0.5">
+                      {conv.subject || conv.lastMessagePreview || '(no preview)'}
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    {conv.lastMessageAt && (
+                      <div className="text-xs text-gray-400">
+                        {new Date(conv.lastMessageAt).toLocaleDateString()}
+                      </div>
+                    )}
+                    <a href="/inbox" className="text-xs text-blue-500 hover:text-blue-600">View</a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       <Modal open={showAddTask} onClose={() => setShowAddTask(false)} title="Add Task">
         <div className="space-y-3">
           <input placeholder="Task title" value={newTaskTitle} onChange={e => setNewTaskTitle(e.target.value)} className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 placeholder-gray-400" />
@@ -217,6 +362,20 @@ export default function ProjectDetail() {
       <Modal open={showLogTime} onClose={() => setShowLogTime(false)} title="Log Time">
         <TimeEntryForm projectId={id!} onSubmit={handleLogTime} onCancel={() => setShowLogTime(false)} tasks={tasks.filter(t => t.status !== 'done').map(t => ({ id: t.id, title: t.title }))} />
       </Modal>
+
+      {project.contactId && project.contactPhone && (
+        <SendSmsModal
+          open={showSms}
+          onClose={() => setShowSms(false)}
+          contactId={project.contactId}
+          contactName={[project.contactFirstName, project.contactLastName].filter(Boolean).join(' ') || 'Contact'}
+          contactPhone={project.contactPhone}
+          onSent={() => {
+            setShowSms(false);
+            loadProject();
+          }}
+        />
+      )}
     </div>
   );
 }

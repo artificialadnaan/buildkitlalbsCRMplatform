@@ -14,6 +14,10 @@ interface ProjectRow {
   companyName: string;
   assignedToName: string | null;
   createdAt: string;
+  contactFirstName: string | null;
+  contactLastName: string | null;
+  contactPhone: string | null;
+  contactEmail: string | null;
 }
 
 const statusVariant: Record<string, 'green' | 'amber' | 'red' | 'blue' | 'gray' | 'purple'> = {
@@ -63,6 +67,33 @@ export default function Projects() {
       key: 'companyName',
       label: 'Client',
       render: (row: ProjectRow) => row.companyName || '---',
+    },
+    {
+      key: 'contact',
+      label: 'Primary Contact',
+      render: (row: ProjectRow) => {
+        const name = [row.contactFirstName, row.contactLastName].filter(Boolean).join(' ');
+        return name || '---';
+      },
+    },
+    {
+      key: 'contactPhone',
+      label: 'Phone',
+      render: (row: ProjectRow) => {
+        if (!row.contactPhone) return <span className="text-gray-400">---</span>;
+        // ClickToCall requires contactId; we don't have it on the list row,
+        // so render a plain tel link here. Full call button is on detail page.
+        return (
+          <a
+            href={`tel:${row.contactPhone}`}
+            onClick={e => e.stopPropagation()}
+            className="inline-flex items-center gap-1 text-green-600 hover:text-green-700 text-xs font-bold"
+          >
+            <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>call</span>
+            {row.contactPhone}
+          </a>
+        );
+      },
     },
     {
       key: 'assignedToName',
