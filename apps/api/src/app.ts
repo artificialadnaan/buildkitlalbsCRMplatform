@@ -16,6 +16,10 @@ import milestonesRoutes from './routes/milestones.js';
 import tasksRoutes from './routes/tasks.js';
 import timeEntriesRoutes from './routes/time-entries.js';
 import scrapeRoutes from './routes/scrape.js';
+import invoicesRoutes from './routes/invoices.js';
+import invoicesStripeRoutes from './routes/invoices-stripe.js';
+import filesRoutes from './routes/files.js';
+import messagesRoutes from './routes/messages.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 export function createApp() {
@@ -41,6 +45,10 @@ export function createApp() {
   app.use('/api/milestones/:milestoneId/tasks', tasksRoutes);
   app.use('/api/time-entries', timeEntriesRoutes);
   app.use('/api/scrape', scrapeRoutes);
+  app.use('/api/invoices', invoicesRoutes);
+  app.use('/api/invoices', invoicesStripeRoutes);
+  app.use('/api/files', filesRoutes);
+  app.use('/api/messages', messagesRoutes);
 
   // Health check
   app.get('/health', (req, res) => {
