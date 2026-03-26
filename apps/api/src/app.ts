@@ -80,9 +80,10 @@ export function createApp() {
   app.use('/api/reports', reportsRoutes);
   app.use('/api/change-requests', changeRequestsRoutes);
 
-  // SMS + conversations (authenticated) and Twilio inbound webhook (no auth)
+  // SMS + conversations (authenticated) and Twilio webhooks (no auth)
   app.use('/api/sms', smsRoutes);
   app.use('/webhook/sms', smsRoutes);
+  app.use('/webhook/voice', smsRoutes);
 
   // Bull Board admin UI (only when Redis is available)
   if (process.env.REDIS_URL) {

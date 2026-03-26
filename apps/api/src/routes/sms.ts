@@ -294,4 +294,104 @@ router.post('/webhook/inbound', async (req, res) => {
   res.type('text/xml').send('<Response/>');
 });
 
+// ──── Voice Webhooks ────
+
+// POST /webhook/voice — Inbound call (no auth)
+router.post('/webhook/voice', async (req, res) => {
+  try {
+    const from = req.body.From || req.body.Caller || '';
+    const callSid = req.body.CallSid || '';
+    const normalizedFrom = from.replace(/\D/g, '').slice(-10);
+
+    // Match caller to contact
+    const allContacts = await db.select({
+      id: contacts.id,
+      phone: contacts.phone,
+      firstName: contacts.firstName,
+      lastName: contacts.lastName,
+      companyId: contacts.companyId,
+    }).from(contacts);
+
+    const matchedContact = allContacts.find(c => c.phone?.replace(/\D/g, '').slice(-10) === normalizedFrom);
+    const contactName = matchedContact ? `${matchedContact.firstName} ${matchedContact.lastName ?? ''}`.trim() : from;
+
+    // Find or create conversation
+    const [conversation] = matchedContact
+      ? await db.select().from(conversations).where(and(eq(conversations.contactId, matchedContact.id), eq(conversations.channel, 'call'))).limit(1)
+      : [];
+
+    let conversationId: string;
+    if (conversation) {
+      conversationId = conversation.id;
+      await db.update(conversations).set({ lastMessageAt: new Date() }).where(eq(conversations.id, conversationId));
+    } else {
+      const [newConv] = await db.insert(conversations).values({
+        companyId: matchedContact?.companyId ?? null,
+        contactId: matchedContact?.id ?? null,
+        channel: 'call',
+        subject: `Call from ${contactName}`,
+        lastMessageAt: new Date(),
+      }).returning();
+      conversationId = newConv.id;
+    }
+
+    // Log the call
+    await db.insert(conversationMessages).values({
+      conversationId,
+      direction: 'inbound',
+      channel: 'call',
+      body: `Inbound call from ${contactName}`,
+      senderName: contactName,
+      senderPhone: from,
+      twilioSid: callSid,
+      status: 'received',
+    });
+
+    // Auto-create follow-up task
+    const { createFollowUpTask } = await import('../lib/auto-task.js');
+    let dealId: string | undefined;
+    if (matchedContact) {
+      const [deal] = await db.select({ id: deals.id }).from(deals).where(eq(deals.companyId, matchedContact.companyId)).limit(1);
+      dealId = deal?.id;
+    }
+    await createFollowUpTask({
+      dealId,
+      title: `Follow up: Missed call from ${contactName}`,
+      source: 'system',
+      priority: 'high',
+    });
+
+    console.log(`[voice/webhook] Inbound call from ${from} — logged`);
+  } catch (err) {
+    console.error('[voice/webhook] Error:', err instanceof Error ? err.message : err);
+  }
+
+  // TwiML response — greeting then hangup
+  res.type('text/xml').send(`<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Say voice="alice">Thank you for calling BuildKit Labs. We'll get back to you shortly.</Say>
+</Response>`);
+});
+
+// POST /webhook/voice/status — Call status updates (no auth)
+router.post('/webhook/voice/status', async (req, res) => {
+  try {
+    const callSid = req.body.CallSid;
+    const duration = req.body.CallDuration;
+    const status = req.body.CallStatus;
+
+    if (callSid && duration) {
+      const [msg] = await db.select().from(conversationMessages).where(eq(conversationMessages.twilioSid, callSid)).limit(1);
+      if (msg) {
+        await db.update(conversationMessages).set({
+          metadata: { duration: parseInt(duration), status },
+        }).where(eq(conversationMessages.id, msg.id));
+      }
+    }
+  } catch (err) {
+    console.error('[voice/status] Error:', err instanceof Error ? err.message : err);
+  }
+  res.sendStatus(200);
+});
+
 export default router;
