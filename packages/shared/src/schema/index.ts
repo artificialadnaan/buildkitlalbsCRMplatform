@@ -4,3 +4,7 @@ export * from './contacts.js';
 export * from './pipelines.js';
 export * from './deals.js';
 export * from './activities.js';
+export * from './email-templates.js';
+export * from './email-sequences.js';
+export * from './sequence-enrollments.js';
+export * from './email-sends.js';
