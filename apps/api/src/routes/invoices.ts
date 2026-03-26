@@ -130,7 +130,7 @@ router.post('/', async (req, res) => {
     invoiceNumber,
     amountCents,
     status: 'draft',
-    dueDate: new Date(dueDate),
+    dueDate: typeof dueDate === 'string' ? dueDate : new Date(dueDate).toISOString().split('T')[0],
     lineItems,
   }).returning();
 

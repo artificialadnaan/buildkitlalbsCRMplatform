@@ -89,7 +89,7 @@ export default function Dashboard() {
             label="Active Projects"
             value={stats?.activeProjects ?? '--'}
             trend={stats?.openTasks ? `${stats.openTasks} open tasks` : undefined}
-            trendColor="text-blue-500"
+            trendColor="blue"
           />
           <StatCard
             label="Pipeline Value"

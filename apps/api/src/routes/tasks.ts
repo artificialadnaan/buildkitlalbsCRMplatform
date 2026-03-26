@@ -1,14 +1,16 @@
-import { Router } from 'express';
+import { Router, type Request } from 'express';
 import { eq, sql } from 'drizzle-orm';
 import { db, tasks, milestones, users } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
+
+type MilestoneParams = { milestoneId: string };
 
 const router = Router({ mergeParams: true });
 
 router.use(authMiddleware);
 
 // List tasks for a milestone
-router.get('/', async (req, res) => {
+router.get('/', async (req: Request<MilestoneParams>, res) => {
   const { milestoneId } = req.params;
 
   const data = await db.select({
@@ -32,7 +34,7 @@ router.get('/', async (req, res) => {
 });
 
 // Create task
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request<MilestoneParams>, res) => {
   const { milestoneId } = req.params;
 
   const [task] = await db.insert(tasks).values({

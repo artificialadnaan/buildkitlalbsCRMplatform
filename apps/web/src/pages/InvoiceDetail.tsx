@@ -114,7 +114,7 @@ export default function InvoiceDetail() {
 
   if (!invoice) return <div className="text-gray-500">Loading...</div>;
 
-  const statusVariant: Record<string, string> = { draft: 'gray', sent: 'blue', paid: 'green', overdue: 'red' };
+  const statusVariant: Record<string, 'green' | 'amber' | 'red' | 'blue' | 'gray' | 'purple'> = { draft: 'gray', sent: 'blue', paid: 'green', overdue: 'red' };
 
   return (
     <div>

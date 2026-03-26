@@ -77,7 +77,7 @@ export default function EnrollSequenceModal({
     api<{ data: Enrollment[] }>(`/api/sequence-enrollments?dealId=${dealId}`).then(r => setEnrollments(r.data));
   }
 
-  const statusVariant: Record<string, string> = {
+  const statusVariant: Record<string, 'green' | 'amber' | 'red' | 'blue' | 'gray' | 'purple'> = {
     active: 'green',
     paused: 'amber',
     completed: 'blue',

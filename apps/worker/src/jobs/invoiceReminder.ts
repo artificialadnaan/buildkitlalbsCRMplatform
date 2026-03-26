@@ -27,7 +27,7 @@ export async function processInvoiceReminders(): Promise<void> {
     .where(
       and(
         or(eq(invoices.status, 'sent'), eq(invoices.status, 'overdue')),
-        lt(invoices.dueDate, now)
+        lt(invoices.dueDate, now.toISOString().split('T')[0])
       )
     );
 

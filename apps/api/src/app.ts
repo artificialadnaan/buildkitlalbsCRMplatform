@@ -21,7 +21,7 @@ import invoicesStripeRoutes from './routes/invoices-stripe.js';
 import filesRoutes from './routes/files.js';
 import messagesRoutes from './routes/messages.js';
 import { createBullBoard } from '@bull-board/api';
-import { BullMQAdapter } from '@bull-board/api/bullMQAdapter.js';
+import { BullMQAdapter } from '@bull-board/api/dist/queueAdapters/bullMQ.js';
 import { ExpressAdapter } from '@bull-board/express';
 import { createScrapeQueue } from '@buildkit/shared';
 import { errorHandler } from './middleware/errorHandler.js';

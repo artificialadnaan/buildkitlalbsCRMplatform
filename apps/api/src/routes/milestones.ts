@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Request } from 'express';
 import { eq, asc } from 'drizzle-orm';
 import { db, milestones } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
@@ -8,7 +8,7 @@ const router = Router({ mergeParams: true });
 router.use(authMiddleware);
 
 // List milestones for a project (sorted by position)
-router.get('/', async (req, res) => {
+router.get('/', async (req: Request<{ projectId: string }>, res) => {
   const { projectId } = req.params;
 
   const data = await db.select()
@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
 });
 
 // Create milestone
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request<{ projectId: string }>, res) => {
   const { projectId } = req.params;
 
   const [milestone] = await db.insert(milestones).values({

@@ -1,6 +1,8 @@
+export type BadgeVariant = 'green' | 'amber' | 'red' | 'blue' | 'gray' | 'purple';
+
 interface BadgeProps {
   label: string;
-  variant?: 'green' | 'amber' | 'red' | 'blue' | 'gray' | 'purple';
+  variant?: BadgeVariant;
 }
 
 const variantStyles: Record<string, string> = {
