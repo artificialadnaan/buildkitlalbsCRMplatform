@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth.js';
+import companiesRoutes from './routes/companies.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 export function createApp() {
@@ -11,6 +12,7 @@ export function createApp() {
 
   // Routes
   app.use('/auth', authRoutes);
+  app.use('/api/companies', companiesRoutes);
 
   // Health check
   app.get('/health', (req, res) => {
