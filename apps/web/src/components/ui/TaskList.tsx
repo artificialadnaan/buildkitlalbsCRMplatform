@@ -44,7 +44,6 @@ export default function TaskList({ tasks, onToggleStatus, onTaskClick }: TaskLis
           key={task.id}
           className="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-white/5 group"
         >
-          {/* Status toggle checkbox */}
           <button
             onClick={() => onToggleStatus(task.id, statusCycle[task.status])}
             className={`w-5 h-5 rounded border flex-shrink-0 flex items-center justify-center transition ${
@@ -65,7 +64,6 @@ export default function TaskList({ tasks, onToggleStatus, onTaskClick }: TaskLis
             )}
           </button>
 
-          {/* Task info */}
           <div
             className={`flex-1 min-w-0 ${onTaskClick ? 'cursor-pointer' : ''}`}
             onClick={() => onTaskClick?.(task)}

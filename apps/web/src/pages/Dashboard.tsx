@@ -11,6 +11,9 @@ interface DashboardStats {
   pipelineValue: number;
   wonDeals: number;
   wonValue: number;
+  activeProjects: number;
+  openTasks: number;
+  dueSoonTasks: number;
 }
 
 interface ActivityRow {
@@ -24,14 +27,26 @@ interface ActivityRow {
   userName: string | null;
 }
 
+interface MyTask {
+  id: string;
+  title: string;
+  status: string;
+  priority: string;
+  dueDate: string | null;
+  milestoneName: string;
+  projectName: string;
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [activity, setActivity] = useState<ActivityRow[]>([]);
+  const [myTasks, setMyTasks] = useState<MyTask[]>([]);
 
   useEffect(() => {
     api<DashboardStats>('/api/dashboard/stats').then(setStats).catch(console.error);
     api<ActivityRow[]>('/api/dashboard/activity?limit=10').then(setActivity).catch(console.error);
+    api<MyTask[]>('/api/dashboard/my-tasks').then(setMyTasks).catch(console.error);
   }, []);
 
   const today = new Date().toLocaleDateString('en-US', {
@@ -71,10 +86,10 @@ export default function Dashboard() {
             value={stats?.activeDeals ?? '--'}
           />
           <StatCard
-            label="Emails Sent"
-            value="--"
-            trend="Coming soon"
-            trendColor="gray"
+            label="Active Projects"
+            value={stats?.activeProjects ?? '--'}
+            trend={stats?.openTasks ? `${stats.openTasks} open tasks` : undefined}
+            trendColor="text-blue-500"
           />
           <StatCard
             label="Pipeline Value"
@@ -116,7 +131,27 @@ export default function Dashboard() {
             <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-3">
               My Tasks Due
             </h2>
-            <p className="text-sm text-gray-500 py-4">Task management coming in Phase 2</p>
+            <div className="border-t border-border">
+              {myTasks.length === 0 ? (
+                <p className="text-sm text-gray-600 py-4 text-center">No tasks assigned to you</p>
+              ) : (
+                myTasks.map(task => (
+                  <div key={task.id} className="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
+                    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                      task.priority === 'high' ? 'bg-red-500' :
+                      task.priority === 'medium' ? 'bg-amber-500' : 'bg-gray-500'
+                    }`} />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-gray-300">{task.title}</div>
+                      <div className="text-xs text-gray-600">
+                        {task.projectName} · {task.milestoneName}
+                        {task.dueDate && ` · Due ${new Date(task.dueDate).toLocaleDateString()}`}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>

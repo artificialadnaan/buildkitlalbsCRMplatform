@@ -15,3 +15,6 @@ export * from './tasks.js';
 export * from './time-entries.js';
 export * from './portal-users.js';
 export * from './milestone-templates.js';
+export * from './messages.js';
+export * from './files.js';
+export * from './invoices.js';

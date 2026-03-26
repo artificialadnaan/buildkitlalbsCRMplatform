@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"git checkout -b feat/plan5-portal 2>&1\",\"description\":\"Create feature branch for Plan 5\"}",
+  "error": "Exit code 128\nfatal: a branch named 'feat/plan5-portal' already exists",
+  "timestamp": "2026-03-26T03:06:15.495Z",
+  "retry_count": 1
+}

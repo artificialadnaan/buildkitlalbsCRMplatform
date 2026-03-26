@@ -1,12 +1,12 @@
 import { Router } from 'express';
-import { eq, sql, desc } from 'drizzle-orm';
-import { db, deals, activities, users } from '@buildkit/shared';
+import { eq, and, sql, desc } from 'drizzle-orm';
+import { db, deals, activities, users, projects, tasks, milestones as milestonesTable } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 router.use(authMiddleware);
 
-// Aggregate deal stats
+// Aggregate deal + project stats
 router.get('/stats', async (req, res) => {
   const [dealStats] = await db.select({
     activeDeals: sql<number>`count(*) filter (where ${deals.status} = 'open')::int`,
@@ -15,7 +15,48 @@ router.get('/stats', async (req, res) => {
     wonValue: sql<number>`coalesce(sum(${deals.value}) filter (where ${deals.status} = 'won'), 0)::int`,
   }).from(deals);
 
-  res.json(dealStats);
+  const [projectStats] = await db.select({
+    activeProjects: sql<number>`count(*) filter (where ${projects.status} = 'active')::int`,
+    totalProjects: sql<number>`count(*)::int`,
+  }).from(projects);
+
+  const [taskStats] = await db.select({
+    openTasks: sql<number>`count(*) filter (where ${tasks.status} != 'done')::int`,
+    dueSoonTasks: sql<number>`count(*) filter (where ${tasks.status} != 'done' and ${tasks.dueDate} <= current_date + interval '7 days')::int`,
+  }).from(tasks);
+
+  res.json({
+    ...dealStats,
+    ...projectStats,
+    ...taskStats,
+  });
+});
+
+// My upcoming tasks
+router.get('/my-tasks', async (req, res) => {
+  const userId = req.user!.userId;
+  const limit = parseInt(req.query.limit as string) || 10;
+
+  const data = await db.select({
+    id: tasks.id,
+    title: tasks.title,
+    status: tasks.status,
+    priority: tasks.priority,
+    dueDate: tasks.dueDate,
+    milestoneName: milestonesTable.name,
+    projectName: projects.name,
+  })
+    .from(tasks)
+    .innerJoin(milestonesTable, eq(tasks.milestoneId, milestonesTable.id))
+    .innerJoin(projects, eq(milestonesTable.projectId, projects.id))
+    .where(and(
+      eq(tasks.assignedTo, userId),
+      sql`${tasks.status} != 'done'`
+    ))
+    .orderBy(tasks.dueDate)
+    .limit(limit);
+
+  res.json(data);
 });
 
 // Recent activity feed with user names

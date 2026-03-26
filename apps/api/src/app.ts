@@ -7,6 +7,23 @@ import pipelinesRoutes from './routes/pipelines.js';
 import dealsRoutes from './routes/deals.js';
 import activitiesRoutes from './routes/activities.js';
 import dashboardRoutes from './routes/dashboard.js';
+import emailTemplatesRoutes from './routes/email-templates.js';
+import emailSequencesRoutes from './routes/email-sequences.js';
+import emailSendsRoutes from './routes/email-sends.js';
+import sequenceEnrollmentsRoutes from './routes/sequence-enrollments.js';
+import projectsRoutes from './routes/projects.js';
+import milestonesRoutes from './routes/milestones.js';
+import tasksRoutes from './routes/tasks.js';
+import timeEntriesRoutes from './routes/time-entries.js';
+import scrapeRoutes from './routes/scrape.js';
+import invoicesRoutes from './routes/invoices.js';
+import invoicesStripeRoutes from './routes/invoices-stripe.js';
+import filesRoutes from './routes/files.js';
+import messagesRoutes from './routes/messages.js';
+import { createBullBoard } from '@bull-board/api';
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter.js';
+import { ExpressAdapter } from '@bull-board/express';
+import { createScrapeQueue } from '@buildkit/shared';
 import { errorHandler } from './middleware/errorHandler.js';
 
 export function createApp() {
@@ -23,6 +40,30 @@ export function createApp() {
   app.use('/api/deals', dealsRoutes);
   app.use('/api/activities', activitiesRoutes);
   app.use('/api/dashboard', dashboardRoutes);
+  app.use('/api/email-templates', emailTemplatesRoutes);
+  app.use('/api/email-sequences', emailSequencesRoutes);
+  app.use('/api/email-sends', emailSendsRoutes);
+  app.use('/api/sequence-enrollments', sequenceEnrollmentsRoutes);
+  app.use('/api/projects', projectsRoutes);
+  app.use('/api/projects/:projectId/milestones', milestonesRoutes);
+  app.use('/api/milestones/:milestoneId/tasks', tasksRoutes);
+  app.use('/api/time-entries', timeEntriesRoutes);
+  app.use('/api/scrape', scrapeRoutes);
+  app.use('/api/invoices', invoicesRoutes);
+  app.use('/api/invoices', invoicesStripeRoutes);
+  app.use('/api/files', filesRoutes);
+  app.use('/api/messages', messagesRoutes);
+
+  // Bull Board admin UI (only in development or for admin)
+  const serverAdapter = new ExpressAdapter();
+  serverAdapter.setBasePath('/admin/queues');
+
+  createBullBoard({
+    queues: [new BullMQAdapter(createScrapeQueue())],
+    serverAdapter,
+  });
+
+  app.use('/admin/queues', serverAdapter.getRouter());
 
   // Health check
   app.get('/health', (req, res) => {

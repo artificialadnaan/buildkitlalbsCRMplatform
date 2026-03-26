@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { eq, and, sql } from 'drizzle-orm';
-import { db, deals, companies, contacts, pipelineStages } from '@buildkit/shared';
+import { db, deals, companies, contacts, pipelineStages, projects, milestones, portalUsers, milestoneTemplates, milestoneTemplateItems, pipelines } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
@@ -75,17 +75,104 @@ router.post('/', async (req, res) => {
   res.status(201).json(deal);
 });
 
-// Update deal — auto-sets closedAt when status changes to won/lost
+// Update deal
 router.patch('/:id', async (req, res) => {
   const updates = { ...req.body };
+
+  // Auto-set closedAt when status changes to won/lost
   if (updates.status === 'won' || updates.status === 'lost') {
     updates.closedAt = new Date();
   }
-  const [deal] = await db.update(deals).set(updates).where(eq(deals.id, req.params.id as string)).returning();
+
+  const [deal] = await db.update(deals)
+    .set(updates)
+    .where(eq(deals.id, req.params.id))
+    .returning();
+
   if (!deal) {
     res.status(404).json({ error: 'Deal not found' });
     return;
   }
+
+  // Deal -> Project conversion when status changes to "won"
+  if (updates.status === 'won') {
+    // Check if a project already exists for this deal (prevent duplicates)
+    const existing = await db.select().from(projects).where(eq(projects.dealId, deal.id)).limit(1);
+
+    if (existing.length === 0) {
+      // Determine project type based on pipeline name
+      const [pipeline] = await db.select().from(pipelines).where(eq(pipelines.id, deal.pipelineId)).limit(1);
+      const projectType = pipeline?.name === 'Construction' ? 'software' as const : 'website' as const;
+
+      // Create the project
+      const [project] = await db.insert(projects).values({
+        dealId: deal.id,
+        companyId: deal.companyId,
+        assignedTo: deal.assignedTo || req.user!.userId,
+        name: deal.title,
+        type: projectType,
+        status: 'active',
+        budget: deal.value,
+      }).returning();
+
+      // Copy milestone template items as milestones
+      const [template] = await db.select()
+        .from(milestoneTemplates)
+        .where(eq(milestoneTemplates.projectType, projectType))
+        .limit(1);
+
+      if (template) {
+        const templateItems = await db.select()
+          .from(milestoneTemplateItems)
+          .where(eq(milestoneTemplateItems.templateId, template.id))
+          .orderBy(milestoneTemplateItems.position);
+
+        if (templateItems.length > 0) {
+          await db.insert(milestones).values(
+            templateItems.map(item => ({
+              projectId: project.id,
+              name: item.name,
+              position: item.position,
+              status: 'pending' as const,
+            }))
+          );
+        }
+      }
+
+      // Create portal_user for the primary contact
+      if (deal.contactId) {
+        const [contact] = await db.select()
+          .from(contacts)
+          .where(and(eq(contacts.id, deal.contactId), eq(contacts.isPrimary, true)))
+          .limit(1);
+
+        // If the linked contact is not primary, still try to find a primary contact for the company
+        const primaryContact = contact || (
+          await db.select()
+            .from(contacts)
+            .where(and(eq(contacts.companyId, deal.companyId), eq(contacts.isPrimary, true)))
+            .limit(1)
+        )[0];
+
+        if (primaryContact?.email) {
+          // Check if portal user already exists for this contact
+          const existingPortalUser = await db.select()
+            .from(portalUsers)
+            .where(eq(portalUsers.contactId, primaryContact.id))
+            .limit(1);
+
+          if (existingPortalUser.length === 0) {
+            await db.insert(portalUsers).values({
+              contactId: primaryContact.id,
+              companyId: deal.companyId,
+              email: primaryContact.email,
+            });
+          }
+        }
+      }
+    }
+  }
+
   res.json(deal);
 });
 

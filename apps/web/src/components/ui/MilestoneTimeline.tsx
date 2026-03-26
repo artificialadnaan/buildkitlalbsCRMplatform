@@ -37,7 +37,6 @@ export default function MilestoneTimeline({ milestones, activeMilestoneId, onMil
 
         return (
           <div key={milestone.id} className="flex gap-3">
-            {/* Timeline line + dot */}
             <div className="flex flex-col items-center">
               <div
                 className={`w-3 h-3 rounded-full flex-shrink-0 ${
@@ -55,7 +54,6 @@ export default function MilestoneTimeline({ milestones, activeMilestoneId, onMil
               )}
             </div>
 
-            {/* Content */}
             <div
               onClick={() => onMilestoneClick?.(milestone)}
               className={`flex-1 pb-3 -mt-0.5 ${

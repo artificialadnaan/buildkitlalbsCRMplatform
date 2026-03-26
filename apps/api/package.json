@@ -11,7 +11,11 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@buildkit/email": "^0.0.1",
     "@buildkit/shared": "*",
+    "@bull-board/api": "^6.20.6",
+    "@bull-board/express": "^6.20.6",
+    "bullmq": "^5.71.1",
     "cors": "^2.8.5",
     "dotenv": "^17.3.1",
     "express": "^5.0.0",

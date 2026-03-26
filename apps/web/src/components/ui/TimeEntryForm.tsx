@@ -36,7 +36,6 @@ export default function TimeEntryForm({ projectId, onSubmit, onCancel, tasks }: 
       billable,
     });
 
-    // Reset form
     setDescription('');
     setHours('');
     setMinutes('');
