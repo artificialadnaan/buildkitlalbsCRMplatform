@@ -40,7 +40,7 @@ export default function EmailTemplates() {
       render: (row: Template) => (
         <Badge
           label={row.pipelineType === 'construction' ? 'Construction' : 'Local Business'}
-          variant={row.pipelineType === 'construction' ? 'gray' : 'blue'}
+          variant={row.pipelineType === 'construction' ? 'purple' : 'blue'}
         />
       ),
     },
@@ -55,7 +55,7 @@ export default function EmailTemplates() {
       render: (row: Template) => (
         <button
           onClick={(e) => { e.stopPropagation(); deleteTemplate(row.id); }}
-          className="text-red-500 hover:text-red-600 text-xs"
+          className="text-red-400 hover:text-red-600 text-xs transition-colors"
         >
           Delete
         </button>
@@ -67,30 +67,32 @@ export default function EmailTemplates() {
     <div>
       <TopBar
         title="Email Templates"
-        subtitle="Create and manage reusable email templates"
+        subtitle="Create emails that sound like you, not a robot"
         actions={
           <button
             onClick={() => navigate('/email/templates/new')}
-            className="bg-blue-600 px-3 py-2 rounded-md text-sm text-white hover:bg-blue-500"
+            className="btn-primary"
           >
             + New Template
           </button>
         }
       />
 
-      <div className="flex gap-3 mb-4">
-        <select
-          value={typeFilter}
-          onChange={e => setTypeFilter(e.target.value)}
-          className="bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500"
-        >
-          <option value="">All Pipelines</option>
-          <option value="local">Local Business</option>
-          <option value="construction">Construction</option>
-        </select>
-      </div>
+      <div className="p-8">
+        <div className="flex gap-3 mb-5">
+          <select
+            value={typeFilter}
+            onChange={e => setTypeFilter(e.target.value)}
+            className="input-field w-auto"
+          >
+            <option value="">All Pipelines</option>
+            <option value="local">Local Business</option>
+            <option value="construction">Construction</option>
+          </select>
+        </div>
 
-      <DataTable columns={columns} data={templates} onRowClick={row => navigate(`/email/templates/${row.id}`)} />
+        <DataTable columns={columns} data={templates} onRowClick={row => navigate(`/email/templates/${row.id}`)} />
+      </div>
     </div>
   );
 }

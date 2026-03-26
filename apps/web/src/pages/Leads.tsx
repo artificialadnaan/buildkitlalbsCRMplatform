@@ -266,7 +266,7 @@ export default function Leads() {
             </button>
             <button
               onClick={() => setShowCreate(true)}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
+              className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
             >
               + New Lead
             </button>
@@ -282,12 +282,12 @@ export default function Leads() {
             placeholder="Search companies..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-64 rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+            className="w-64 rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
           />
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
+            className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none"
           >
             <option value="">All Types</option>
             <option value="local">Local</option>
@@ -297,7 +297,7 @@ export default function Leads() {
             onClick={() => setSortByScore((v) => !v)}
             className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
               sortByScore
-                ? 'border-blue-300 bg-blue-50 text-blue-700'
+                ? 'border-brand-300 bg-brand-50 text-brand-700'
                 : 'border-border bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
@@ -332,7 +332,7 @@ export default function Leads() {
                   }
                 }}
                 onFocus={loadUsers}
-                className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm text-gray-700 focus:border-blue-500 focus:outline-none"
+                className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm text-gray-700 focus:border-brand-500 focus:outline-none"
               >
                 <option value="" disabled>Assign to...</option>
                 {usersList.map((u) => (
@@ -377,12 +377,12 @@ export default function Leads() {
             placeholder="Company Name *"
             value={newLead.name}
             onChange={e => setNewLead(p => ({ ...p, name: e.target.value }))}
-            className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
           />
           <select
             value={newLead.type}
             onChange={e => setNewLead(p => ({ ...p, type: e.target.value }))}
-            className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none"
           >
             <option value="local">Local Business</option>
             <option value="construction">Construction</option>
@@ -392,51 +392,51 @@ export default function Leads() {
               placeholder="Phone"
               value={newLead.phone}
               onChange={e => setNewLead(p => ({ ...p, phone: e.target.value }))}
-              className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+              className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
             />
             <input
               placeholder="Website"
               value={newLead.website}
               onChange={e => setNewLead(p => ({ ...p, website: e.target.value }))}
-              className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+              className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
             />
           </div>
           <input
             placeholder="Address"
             value={newLead.address}
             onChange={e => setNewLead(p => ({ ...p, address: e.target.value }))}
-            className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
           />
           <div className="grid grid-cols-3 gap-3">
             <input
               placeholder="City"
               value={newLead.city}
               onChange={e => setNewLead(p => ({ ...p, city: e.target.value }))}
-              className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+              className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
             />
             <input
               placeholder="State"
               value={newLead.state}
               onChange={e => setNewLead(p => ({ ...p, state: e.target.value }))}
-              className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+              className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
             />
             <input
               placeholder="Zip"
               value={newLead.zip}
               onChange={e => setNewLead(p => ({ ...p, zip: e.target.value }))}
-              className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+              className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
             />
           </div>
           <input
             placeholder="Industry"
             value={newLead.industry}
             onChange={e => setNewLead(p => ({ ...p, industry: e.target.value }))}
-            className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
           />
           <button
             onClick={handleCreateLead}
             disabled={saving || !newLead.name.trim()}
-            className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+            className="w-full rounded-lg bg-brand-500 py-2.5 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-50"
           >
             {saving ? 'Creating...' : 'Create Lead'}
           </button>

@@ -101,7 +101,7 @@ export default function EmailSequenceBuilder() {
             <button
               onClick={handleSave}
               disabled={saving || !name || steps.length === 0}
-              className="bg-blue-600 px-3 py-2 rounded-md text-sm text-white hover:bg-blue-500 disabled:opacity-50"
+              className="bg-brand-500 px-3 py-2 rounded-md text-sm text-white hover:bg-brand-600 disabled:opacity-50"
             >
               {saving ? 'Saving...' : 'Save Sequence'}
             </button>
@@ -124,7 +124,7 @@ export default function EmailSequenceBuilder() {
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="e.g., Construction 3-Touch Outreach"
-              className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500"
+              className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-brand-500"
             />
           </div>
           <div>
@@ -146,7 +146,7 @@ export default function EmailSequenceBuilder() {
             <h3 className="text-sm font-medium text-gray-700">Steps</h3>
             <button
               onClick={addStep}
-              className="text-xs text-blue-600 hover:text-blue-700"
+              className="text-xs text-brand-600 hover:text-brand-700"
             >
               + Add Step
             </button>

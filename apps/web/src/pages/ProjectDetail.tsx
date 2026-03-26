@@ -157,7 +157,7 @@ export default function ProjectDetail() {
       </div>
 
       <div className="bg-surface border border-border rounded-lg p-4 mb-6">
-        <ProgressBar percent={milestoneProgress} label={`${doneMilestones} of ${milestones.length} milestones complete`} color={milestoneProgress === 100 ? 'bg-green-500' : 'bg-blue-500'} />
+        <ProgressBar percent={milestoneProgress} label={`${doneMilestones} of ${milestones.length} milestones complete`} color={milestoneProgress === 100 ? 'bg-green-500' : 'bg-brand-500'} />
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-6">
@@ -168,7 +168,7 @@ export default function ProjectDetail() {
         <div className="bg-surface border border-border rounded-lg p-4 col-span-2">
           <div className="flex justify-between items-center mb-3">
             <h3 className="font-semibold text-gray-900">Tasks{activeMilestoneId && <span className="text-gray-500 font-normal text-sm ml-2">{milestones.find(m => m.id === activeMilestoneId)?.name}</span>}</h3>
-            {activeMilestoneId && <button onClick={() => setShowAddTask(true)} className="text-sm text-blue-500 hover:text-blue-600">+ Add Task</button>}
+            {activeMilestoneId && <button onClick={() => setShowAddTask(true)} className="text-sm text-blue-500 hover:text-brand-600">+ Add Task</button>}
           </div>
           {!activeMilestoneId ? <p className="text-sm text-gray-600 py-4 text-center">Select a milestone to view its tasks</p> : <TaskList tasks={tasks} onToggleStatus={handleToggleTaskStatus} />}
         </div>
@@ -177,7 +177,7 @@ export default function ProjectDetail() {
       <div className="bg-surface border border-border rounded-lg p-4">
         <div className="flex justify-between items-center mb-3">
           <h3 className="font-semibold text-gray-900">Recent Time Entries</h3>
-          <button onClick={() => setShowLogTime(true)} className="text-sm text-blue-500 hover:text-blue-600">+ Log Time</button>
+          <button onClick={() => setShowLogTime(true)} className="text-sm text-blue-500 hover:text-brand-600">+ Log Time</button>
         </div>
         <div className="border-t border-border">
           {timeEntries.length === 0 ? <p className="text-sm text-gray-600 py-4 text-center">No time logged yet</p> : (
@@ -210,7 +210,7 @@ export default function ProjectDetail() {
             <div><label className="block text-xs text-gray-500 mb-1">Priority</label><select value={newTaskPriority} onChange={e => setNewTaskPriority(e.target.value)} className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></div>
             <div><label className="block text-xs text-gray-500 mb-1">Due Date</label><input type="date" value={newTaskDueDate} onChange={e => setNewTaskDueDate(e.target.value)} className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900" /></div>
           </div>
-          <button onClick={handleAddTask} className="w-full bg-blue-600 text-white rounded-md py-2 text-sm font-medium hover:bg-blue-500">Add Task</button>
+          <button onClick={handleAddTask} className="w-full bg-brand-500 text-white rounded-md py-2 text-sm font-medium hover:bg-brand-600">Add Task</button>
         </div>
       </Modal>
 

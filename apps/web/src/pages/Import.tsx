@@ -161,7 +161,7 @@ export default function Import() {
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
             className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors ${
-              dragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+              dragOver ? 'border-blue-500 bg-brand-50' : 'border-gray-300 hover:border-gray-400'
             }`}
           >
             <div className="text-gray-400 mb-2">
@@ -187,8 +187,8 @@ export default function Import() {
             {/* File info */}
             <div className="flex items-center justify-between bg-surface border border-border rounded-lg p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                  <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="h-10 w-10 rounded-lg bg-brand-100 flex items-center justify-center">
+                  <svg className="h-5 w-5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
@@ -316,7 +316,7 @@ export default function Import() {
               <button
                 onClick={handleImport}
                 disabled={loading || !dryRunResult || dryRunResult.newCount === 0}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+                className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-50"
               >
                 {loading && dryRunResult ? 'Importing...' : `Import ${dryRunResult?.newCount ?? 0} Companies`}
               </button>

@@ -73,7 +73,7 @@ export default function TimeTracking() {
           >
             Export CSV
           </button>
-          <button onClick={() => setShowLogTime(true)} className="bg-blue-600 px-3 py-2 rounded-md text-sm text-white hover:bg-blue-500">+ Log Time</button>
+          <button onClick={() => setShowLogTime(true)} className="bg-brand-500 px-3 py-2 rounded-md text-sm text-white hover:bg-brand-600">+ Log Time</button>
         </div>
       } />
 

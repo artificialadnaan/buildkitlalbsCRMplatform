@@ -65,7 +65,7 @@ export default function Invoices() {
         actions={
           <button
             onClick={() => navigate('/invoices/new')}
-            className="bg-blue-600 px-3 py-2 rounded-md text-sm text-white hover:bg-blue-500"
+            className="bg-brand-500 px-3 py-2 rounded-md text-sm text-white hover:bg-brand-600"
           >
             + New Invoice
           </button>

@@ -128,7 +128,7 @@ export default function Analytics() {
             <select
               value={selectedPipeline}
               onChange={(e) => setSelectedPipeline(e.target.value)}
-              className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
+              className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none"
             >
               {pipelines.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
@@ -152,7 +152,7 @@ export default function Analytics() {
                       </span>
                       <div className="flex-1 h-8 bg-gray-100 rounded-md overflow-hidden relative">
                         <div
-                          className="h-full rounded-md bg-blue-500 transition-all duration-500"
+                          className="h-full rounded-md bg-brand-500 transition-all duration-500"
                           style={{ width: `${width}%` }}
                         />
                         <span className="absolute inset-0 flex items-center px-3 text-xs font-semibold text-gray-700">

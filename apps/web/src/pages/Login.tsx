@@ -1,22 +1,22 @@
 export default function Login() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-8 text-center shadow-lg">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800 px-4">
+      <div className="w-full max-w-sm rounded-2xl bg-white p-10 text-center shadow-2xl">
         {/* Logo */}
-        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-[#1F4D78]">
-          <span className="text-lg font-bold text-white">BK</span>
+        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-glow">
+          <span className="text-xl font-bold text-white">BK</span>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          BuildKit CRM
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+          BuildKit <span className="font-light text-brand-500">CRM</span>
         </h1>
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="mt-2 text-sm text-gray-400">
           Sign in to manage your pipeline
         </p>
 
         {/* Google Sign In */}
         <a
           href={`${import.meta.env.VITE_API_URL || ''}/auth/google`}
-          className="mt-6 flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+          className="mt-8 flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm active:scale-[0.98]"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path

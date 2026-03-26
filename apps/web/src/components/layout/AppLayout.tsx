@@ -19,7 +19,10 @@ export default function AppLayout() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
+          <p className="text-sm text-gray-400 animate-pulse">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -29,7 +32,7 @@ export default function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50/80">
       <Sidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
@@ -40,7 +43,7 @@ export default function AppLayout() {
       {/* Mobile hamburger button */}
       <button
         onClick={() => setSidebarOpen(true)}
-        className="fixed left-3 top-4 z-30 flex h-10 w-10 items-center justify-center rounded-lg bg-[#1F4D78] text-white shadow-lg md:hidden"
+        className="fixed left-3 top-4 z-30 flex h-10 w-10 items-center justify-center rounded-xl bg-navy-900 text-white shadow-lg md:hidden"
         aria-label="Open menu"
       >
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -48,7 +51,7 @@ export default function AppLayout() {
         </svg>
       </button>
 
-      <main className={`min-h-screen transition-all duration-200 ${collapsed ? 'md:ml-16' : 'md:ml-56'}`}>
+      <main className={`min-h-screen transition-all duration-200 ${collapsed ? 'md:ml-16' : 'md:ml-60'}`}>
         <Outlet />
       </main>
     </div>

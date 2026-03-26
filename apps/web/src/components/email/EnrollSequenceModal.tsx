@@ -143,7 +143,7 @@ export default function EnrollSequenceModal({
           <button
             onClick={handleEnroll}
             disabled={enrolling || !selectedSequenceId}
-            className="w-full bg-blue-600 text-white rounded-md py-2 text-sm font-medium hover:bg-blue-500 disabled:opacity-50"
+            className="w-full bg-brand-500 text-white rounded-md py-2 text-sm font-medium hover:bg-brand-600 disabled:opacity-50"
           >
             {enrolling ? 'Enrolling...' : 'Start Sequence'}
           </button>

@@ -137,7 +137,7 @@ export default function AuditLog() {
             <select
               value={entityFilter}
               onChange={(e) => { setEntityFilter(e.target.value); setPage(1); }}
-              className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
+              className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none"
             >
               <option value="">All Entities</option>
               <option value="company">Company</option>

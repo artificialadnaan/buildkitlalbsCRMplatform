@@ -73,13 +73,13 @@ export default function ComposeEmailModal({
         <div className="flex gap-2">
           <button
             onClick={() => setUseTemplate(true)}
-            className={`px-3 py-1.5 rounded-md text-xs ${useTemplate ? 'bg-blue-600 text-white' : 'bg-surface border border-border text-gray-500'}`}
+            className={`px-3 py-1.5 rounded-md text-xs ${useTemplate ? 'bg-brand-500 text-white' : 'bg-surface border border-border text-gray-500'}`}
           >
             Use Template
           </button>
           <button
             onClick={() => setUseTemplate(false)}
-            className={`px-3 py-1.5 rounded-md text-xs ${!useTemplate ? 'bg-blue-600 text-white' : 'bg-surface border border-border text-gray-500'}`}
+            className={`px-3 py-1.5 rounded-md text-xs ${!useTemplate ? 'bg-brand-500 text-white' : 'bg-surface border border-border text-gray-500'}`}
           >
             Custom Email
           </button>
@@ -117,7 +117,7 @@ export default function ComposeEmailModal({
         <button
           onClick={handleSend}
           disabled={sending || (useTemplate ? !selectedTemplateId : !subject)}
-          className="w-full bg-blue-600 text-white rounded-md py-2 text-sm font-medium hover:bg-blue-500 disabled:opacity-50"
+          className="w-full bg-brand-500 text-white rounded-md py-2 text-sm font-medium hover:bg-brand-600 disabled:opacity-50"
         >
           {sending ? 'Sending...' : 'Send Email'}
         </button>

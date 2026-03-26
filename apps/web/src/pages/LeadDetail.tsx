@@ -197,7 +197,7 @@ export default function LeadDetail() {
             </h2>
             <button
               onClick={() => setShowAddContact(true)}
-              className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-500"
+              className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-brand-600"
             >
               + Add Contact
             </button>
@@ -252,7 +252,7 @@ export default function LeadDetail() {
               value={dealForm.title}
               onChange={(e) => setDealForm({ ...dealForm, title: e.target.value })}
               placeholder="Deal title"
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
             />
           </div>
           <div>
@@ -262,7 +262,7 @@ export default function LeadDetail() {
               value={dealForm.value}
               onChange={(e) => setDealForm({ ...dealForm, value: e.target.value })}
               placeholder="0"
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
             />
           </div>
           <div>
@@ -270,7 +270,7 @@ export default function LeadDetail() {
             <select
               value={dealForm.pipelineId}
               onChange={(e) => handlePipelineChange(e.target.value)}
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none"
             >
               <option value="">Select pipeline...</option>
               {pipelines.map((p) => (
@@ -284,7 +284,7 @@ export default function LeadDetail() {
               <select
                 value={dealForm.stageId}
                 onChange={(e) => setDealForm({ ...dealForm, stageId: e.target.value })}
-                className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none"
               >
                 {pipelines.find((p) => p.id === dealForm.pipelineId)?.stages.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
@@ -298,7 +298,7 @@ export default function LeadDetail() {
               <select
                 value={dealForm.contactId}
                 onChange={(e) => setDealForm({ ...dealForm, contactId: e.target.value })}
-                className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none"
               >
                 <option value="">None</option>
                 {contacts.map((c) => (
@@ -317,7 +317,7 @@ export default function LeadDetail() {
             <button
               onClick={handleCreateDeal}
               disabled={dealSubmitting || !dealForm.title.trim() || !dealForm.pipelineId || !dealForm.stageId}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {dealSubmitting ? 'Creating...' : 'Create Deal'}
             </button>
@@ -336,7 +336,7 @@ export default function LeadDetail() {
                 value={contactForm.firstName}
                 onChange={(e) => setContactForm({ ...contactForm, firstName: e.target.value })}
                 placeholder="First name"
-                className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
               />
             </div>
             <div>
@@ -346,7 +346,7 @@ export default function LeadDetail() {
                 value={contactForm.lastName}
                 onChange={(e) => setContactForm({ ...contactForm, lastName: e.target.value })}
                 placeholder="Last name"
-                className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
               />
             </div>
           </div>
@@ -357,7 +357,7 @@ export default function LeadDetail() {
               value={contactForm.email}
               onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
               placeholder="email@example.com"
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
             />
           </div>
           <div>
@@ -367,7 +367,7 @@ export default function LeadDetail() {
               value={contactForm.phone}
               onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
               placeholder="(555) 123-4567"
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
             />
           </div>
           <div>
@@ -377,7 +377,7 @@ export default function LeadDetail() {
               value={contactForm.title}
               onChange={(e) => setContactForm({ ...contactForm, title: e.target.value })}
               placeholder="e.g. Project Manager"
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
             />
           </div>
           <label className="flex items-center gap-2 cursor-pointer">
@@ -385,7 +385,7 @@ export default function LeadDetail() {
               type="checkbox"
               checked={contactForm.isPrimary}
               onChange={(e) => setContactForm({ ...contactForm, isPrimary: e.target.checked })}
-              className="h-4 w-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-500"
+              className="h-4 w-4 rounded border-gray-300 bg-white text-brand-600 focus:ring-brand-500"
             />
             <span className="text-sm text-gray-500">Primary contact</span>
           </label>
@@ -399,7 +399,7 @@ export default function LeadDetail() {
             <button
               onClick={handleAddContact}
               disabled={contactSubmitting || !contactForm.firstName.trim()}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {contactSubmitting ? 'Saving...' : 'Add Contact'}
             </button>

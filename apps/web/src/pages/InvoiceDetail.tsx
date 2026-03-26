@@ -127,7 +127,7 @@ export default function InvoiceDetail() {
               <button
                 onClick={sendInvoice}
                 disabled={sending}
-                className="bg-blue-600 px-3 py-2 rounded-md text-sm text-white hover:bg-blue-500 disabled:opacity-50"
+                className="bg-brand-500 px-3 py-2 rounded-md text-sm text-white hover:bg-brand-600 disabled:opacity-50"
               >
                 {sending ? 'Sending...' : 'Send Invoice'}
               </button>

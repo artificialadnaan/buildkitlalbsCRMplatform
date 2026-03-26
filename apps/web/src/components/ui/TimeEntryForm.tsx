@@ -120,7 +120,7 @@ export default function TimeEntryForm({ projectId, onSubmit, onCancel, tasks }: 
       <div className="flex gap-2">
         <button
           type="submit"
-          className="flex-1 bg-blue-600 text-white rounded-md py-2 text-sm font-medium hover:bg-blue-500"
+          className="flex-1 bg-brand-500 text-white rounded-md py-2 text-sm font-medium hover:bg-brand-600"
         >
           Log Time
         </button>

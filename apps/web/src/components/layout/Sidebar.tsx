@@ -115,7 +115,6 @@ const navItems = [
 export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }: SidebarProps) {
   const { user, logout } = useAuth();
 
-  // Close mobile sidebar on Escape key
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -126,14 +125,14 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
     }
   }, [isOpen, onClose]);
 
-  const sidebarWidth = collapsed ? 'w-16' : 'w-56';
+  const sidebarWidth = collapsed ? 'w-16' : 'w-60';
 
   return (
     <>
       {/* Mobile backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
           onClick={onClose}
         />
       )}
@@ -141,28 +140,33 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
       {/* Sidebar */}
       <aside
         className={`
-          fixed left-0 top-0 z-50 flex h-screen flex-col bg-[#1F4D78] border-r border-[#1F4D78]
-          transition-all duration-200
+          fixed left-0 top-0 z-50 flex h-screen flex-col
+          bg-gradient-to-b from-navy-900 to-navy-950
+          transition-all duration-200 ease-out
           ${sidebarWidth}
-          ${/* Mobile: translate off-screen unless open */''}
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
           md:translate-x-0
         `}
       >
         {/* Logo */}
-        <div className="flex items-center gap-2 px-5 py-5">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/20">
+        <div className="flex items-center gap-3 px-5 py-6">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-glow">
             <span className="text-sm font-bold text-white">BK</span>
           </div>
           {!collapsed && (
-            <span className="text-base font-semibold text-white whitespace-nowrap">
-              BuildKit CRM
-            </span>
+            <div>
+              <span className="text-base font-semibold text-white whitespace-nowrap tracking-tight">
+                BuildKit
+              </span>
+              <span className="text-base font-light text-brand-400 whitespace-nowrap ml-1">
+                CRM
+              </span>
+            </div>
           )}
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-2 overflow-y-auto">
+        <nav className="flex-1 px-3 py-1 overflow-y-auto space-y-0.5">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -171,20 +175,22 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
               onClick={onClose}
               title={collapsed ? item.label : undefined}
               className={({ isActive }) =>
-                `flex items-center ${collapsed ? 'justify-center' : 'gap-3'} rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-150 ease-out ${
+                `group flex items-center ${collapsed ? 'justify-center' : 'gap-3'} rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ease-out ${
                   isActive
-                    ? 'border-l-2 border-white bg-white/20 text-white'
-                    : 'border-l-2 border-transparent text-white/70 hover:bg-white/10 hover:text-white'
+                    ? 'bg-brand-500/15 text-brand-400 shadow-sm'
+                    : 'text-navy-300 hover:bg-white/5 hover:text-white'
                 }`
               }
             >
               {collapsed ? (
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-xs font-semibold text-white">
-                  {item.label.charAt(0)}
+                <div className="flex h-7 w-7 items-center justify-center">
+                  {item.icon}
                 </div>
               ) : (
                 <>
-                  {item.icon}
+                  <span className="opacity-75 group-hover:opacity-100 transition-opacity">
+                    {item.icon}
+                  </span>
                   {item.label}
                 </>
               )}
@@ -193,10 +199,10 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
         </nav>
 
         {/* Collapse toggle (desktop only) */}
-        <div className="hidden md:block border-t border-white/20 px-3 py-2">
+        <div className="hidden md:block border-t border-white/10 px-3 py-2">
           <button
             onClick={onToggleCollapse}
-            className="flex w-full items-center justify-center rounded-md px-3 py-2 text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+            className="flex w-full items-center justify-center rounded-lg px-3 py-2 text-navy-400 hover:bg-white/5 hover:text-white transition-colors"
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {collapsed ? (
@@ -213,9 +219,9 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
 
         {/* User */}
         {user && (
-          <div className="border-t border-white/20 px-4 py-3">
+          <div className="border-t border-white/10 px-4 py-4">
             <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20 text-xs font-medium text-white">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-brand-600 text-xs font-semibold text-white">
                 {user.name.charAt(0).toUpperCase()}
               </div>
               {!collapsed && (
@@ -223,7 +229,7 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
                   <p className="text-sm font-medium text-white truncate">{user.name}</p>
                   <button
                     onClick={logout}
-                    className="text-xs text-white/60 hover:text-red-300 transition-colors"
+                    className="text-xs text-navy-400 hover:text-red-400 transition-colors"
                   >
                     Sign out
                   </button>

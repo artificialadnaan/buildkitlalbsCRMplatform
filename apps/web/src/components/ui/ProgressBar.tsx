@@ -10,7 +10,7 @@ export default function ProgressBar({
   value,
   percent,
   label,
-  color = 'bg-blue-500',
+  color = 'bg-brand-500',
   showPercentage = true,
 }: ProgressBarProps) {
   const clamped = Math.min(100, Math.max(0, value ?? percent ?? 0));

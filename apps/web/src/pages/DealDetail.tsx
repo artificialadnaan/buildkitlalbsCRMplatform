@@ -220,7 +220,7 @@ export default function DealDetail() {
           value={deal.stageId}
           onChange={(e) => handleStageChange(e.target.value)}
           disabled={stageChanging}
-          className="rounded-md border border-border bg-white px-2 py-1 text-sm text-gray-900 focus:border-blue-500 focus:outline-none disabled:opacity-50"
+          className="rounded-md border border-border bg-white px-2 py-1 text-sm text-gray-900 focus:border-brand-500 focus:outline-none disabled:opacity-50"
         >
           {pipelineStages.map((s) => (
             <option key={s.id} value={s.id}>{s.name}</option>
@@ -243,7 +243,7 @@ export default function DealDetail() {
         actions={
           <button
             onClick={() => setModalOpen(true)}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+            className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-600"
           >
             Log Activity
           </button>
@@ -372,7 +372,7 @@ export default function DealDetail() {
                           </svg>
                           {stats.openCount > 0 ? `Opened ${stats.openCount}x` : 'Not opened'}
                         </span>
-                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${stats.clickCount > 0 ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${stats.clickCount > 0 ? 'bg-brand-100 text-brand-700' : 'bg-gray-100 text-gray-500'}`}>
                           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.172 13.828a4 4 0 015.656 0l4-4a4 4 0 00-5.656-5.656l-1.102 1.101" />
@@ -401,7 +401,7 @@ export default function DealDetail() {
             <select
               value={selectedStageId}
               onChange={(e) => setSelectedStageId(e.target.value)}
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none"
             >
               {pipelineStages.map((s) => (
                 <option key={s.id} value={s.id}>{s.name}</option>
@@ -418,7 +418,7 @@ export default function DealDetail() {
             <button
               onClick={() => handleStageChange(selectedStageId)}
               disabled={stageChanging || selectedStageId === deal.stageId}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {stageChanging ? 'Moving...' : 'Move'}
             </button>
@@ -434,7 +434,7 @@ export default function DealDetail() {
             <select
               value={activityType}
               onChange={(e) => setActivityType(e.target.value)}
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none"
             >
               <option value="note">Note</option>
               <option value="email">Email</option>
@@ -450,7 +450,7 @@ export default function DealDetail() {
               value={activitySubject}
               onChange={(e) => setActivitySubject(e.target.value)}
               placeholder="Activity subject..."
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
             />
           </div>
           <div>
@@ -460,7 +460,7 @@ export default function DealDetail() {
               onChange={(e) => setActivityBody(e.target.value)}
               placeholder="Additional details..."
               rows={3}
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none resize-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none resize-none"
             />
           </div>
           <div className="flex justify-end gap-3 pt-2">
@@ -473,7 +473,7 @@ export default function DealDetail() {
             <button
               onClick={handleLogActivity}
               disabled={submitting || !activitySubject.trim()}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? 'Saving...' : 'Save Activity'}
             </button>
