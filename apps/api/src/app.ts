@@ -20,6 +20,10 @@ import invoicesRoutes from './routes/invoices.js';
 import invoicesStripeRoutes from './routes/invoices-stripe.js';
 import filesRoutes from './routes/files.js';
 import messagesRoutes from './routes/messages.js';
+import { createBullBoard } from '@bull-board/api';
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter.js';
+import { ExpressAdapter } from '@bull-board/express';
+import { createScrapeQueue } from '@buildkit/shared';
 import { errorHandler } from './middleware/errorHandler.js';
 
 export function createApp() {
@@ -49,6 +53,17 @@ export function createApp() {
   app.use('/api/invoices', invoicesStripeRoutes);
   app.use('/api/files', filesRoutes);
   app.use('/api/messages', messagesRoutes);
+
+  // Bull Board admin UI (only in development or for admin)
+  const serverAdapter = new ExpressAdapter();
+  serverAdapter.setBasePath('/admin/queues');
+
+  createBullBoard({
+    queues: [new BullMQAdapter(createScrapeQueue())],
+    serverAdapter,
+  });
+
+  app.use('/admin/queues', serverAdapter.getRouter());
 
   // Health check
   app.get('/health', (req, res) => {
