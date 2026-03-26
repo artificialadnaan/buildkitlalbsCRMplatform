@@ -62,7 +62,9 @@ function generateSpecificObservation(audit: WebsiteAudit | null): string {
   return `I noticed your website ${issues.join(', ')} and ${last}`;
 }
 
-const redisConnection = { host: process.env.REDIS_HOST || 'localhost', port: parseInt(process.env.REDIS_PORT || '6379') };
+import { getRedisConnection } from '@buildkit/shared';
+
+const redisConnection = getRedisConnection();
 
 export async function processSequenceTick(job: Job) {
   console.log('[sequence-tick] Checking for enrollments ready to send...');
