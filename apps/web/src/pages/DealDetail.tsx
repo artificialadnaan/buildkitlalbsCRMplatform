@@ -16,6 +16,7 @@ interface DealResult {
     value: number | null;
     status: 'open' | 'won' | 'lost';
     stageId: string;
+    pipelineId: string;
     companyId: string;
     contactId: string | null;
     assignedTo: string | null;
@@ -27,6 +28,19 @@ interface DealResult {
   contactName: string | null;
   contactEmail: string | null;
   stageName: string | null;
+}
+
+interface StageOption {
+  id: string;
+  name: string;
+  position: number;
+  pipelineId: string;
+}
+
+interface PipelineWithStages {
+  id: string;
+  name: string;
+  stages: StageOption[];
 }
 
 interface Activity {
@@ -60,11 +74,41 @@ export default function DealDetail() {
   const [submitting, setSubmitting] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showSequenceModal, setShowSequenceModal] = useState(false);
+  const [pipelineStages, setPipelineStages] = useState<StageOption[]>([]);
+  const [stageChanging, setStageChanging] = useState(false);
+  const [showStageModal, setShowStageModal] = useState(false);
+  const [selectedStageId, setSelectedStageId] = useState('');
 
   const loadData = () => {
     if (!id) return;
-    api<DealResult>(`/api/deals/${id}`).then(setResult).catch(console.error);
+    api<DealResult>(`/api/deals/${id}`).then((r) => {
+      setResult(r);
+      // Load pipeline stages for stage selector
+      api<PipelineWithStages[]>('/api/pipelines').then((pipelines) => {
+        const pipeline = pipelines.find((p) => p.id === r.deal.pipelineId);
+        if (pipeline) {
+          setPipelineStages(pipeline.stages);
+        }
+      }).catch(console.error);
+    }).catch(console.error);
     api<ActivitiesResponse>(`/api/activities?dealId=${id}`).then((res) => setActivities(res.data)).catch(console.error);
+  };
+
+  const handleStageChange = async (stageId: string) => {
+    if (!id || !stageId) return;
+    setStageChanging(true);
+    try {
+      await api(`/api/deals/${id}/stage`, {
+        method: 'PATCH',
+        body: JSON.stringify({ stageId }),
+      });
+      setShowStageModal(false);
+      loadData();
+    } catch (err) {
+      console.error('Failed to change stage:', err);
+    } finally {
+      setStageChanging(false);
+    }
   };
 
   useEffect(() => {
@@ -122,7 +166,23 @@ export default function DealDetail() {
   const infoFields = [
     { label: 'Status', value: <Badge label={deal.status} variant={statusVariants[deal.status] ?? 'gray'} /> },
     { label: 'Value', value: formatCurrency(deal.value) },
-    { label: 'Stage', value: result.stageName ?? '--' },
+    {
+      label: 'Stage',
+      value: pipelineStages.length > 0 ? (
+        <select
+          value={deal.stageId}
+          onChange={(e) => handleStageChange(e.target.value)}
+          disabled={stageChanging}
+          className="rounded-md border border-border bg-gray-900 px-2 py-1 text-sm text-gray-200 focus:border-blue-500 focus:outline-none disabled:opacity-50"
+        >
+          {pipelineStages.map((s) => (
+            <option key={s.id} value={s.id}>{s.name}</option>
+          ))}
+        </select>
+      ) : (
+        result.stageName ?? '--'
+      ),
+    },
     { label: 'Contact', value: result.contactName ?? '--' },
     { label: 'Close Date', value: formatDate(deal.expectedCloseDate) },
     { label: 'Created', value: formatDate(deal.createdAt) },
@@ -183,6 +243,15 @@ export default function DealDetail() {
             >
               Log Activity
             </button>
+            <button
+              onClick={() => {
+                setSelectedStageId(deal.stageId);
+                setShowStageModal(true);
+              }}
+              className="w-full rounded-lg border border-border bg-gray-800 px-4 py-2.5 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
+            >
+              Move Stage
+            </button>
             {deal.status === 'open' && (
               <>
                 <div className="my-1 border-t border-border" />
@@ -226,6 +295,39 @@ export default function DealDetail() {
           )}
         </div>
       </div>
+
+      {/* Move Stage Modal */}
+      <Modal open={showStageModal} onClose={() => setShowStageModal(false)} title="Move Stage">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium uppercase text-gray-500 mb-1">Select Stage</label>
+            <select
+              value={selectedStageId}
+              onChange={(e) => setSelectedStageId(e.target.value)}
+              className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+            >
+              {pipelineStages.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              onClick={() => setShowStageModal(false)}
+              className="rounded-lg border border-border bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => handleStageChange(selectedStageId)}
+              disabled={stageChanging || selectedStageId === deal.stageId}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {stageChanging ? 'Moving...' : 'Move'}
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Log Activity Modal */}
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Log Activity">

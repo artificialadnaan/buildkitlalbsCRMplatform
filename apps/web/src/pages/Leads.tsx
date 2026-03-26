@@ -5,6 +5,8 @@ import TopBar from '../components/layout/TopBar.js';
 import DataTable, { type Column } from '../components/ui/DataTable.js';
 import Badge from '../components/ui/Badge.js';
 import Modal from '../components/ui/Modal.js';
+import LoadingSpinner from '../components/ui/LoadingSpinner.js';
+import { useToast } from '../components/ui/Toast.js';
 
 interface Company {
   id: string;
@@ -47,6 +49,8 @@ export default function Leads() {
     address: '', city: '', state: 'TX', zip: '', industry: '',
   });
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { showError, showSuccess, ToastComponent } = useToast();
 
   async function handleCreateLead() {
     if (!newLead.name.trim()) return;
@@ -58,11 +62,13 @@ export default function Leads() {
       });
       setShowCreate(false);
       setNewLead({ name: '', type: 'local', phone: '', website: '', address: '', city: '', state: 'TX', zip: '', industry: '' });
+      showSuccess('Lead created successfully');
       // Refresh list
       const res = await api<CompanyResponse>('/api/companies');
       setCompanies(res.data);
     } catch (err) {
       console.error('Failed to create lead:', err);
+      showError(err instanceof Error ? err.message : 'Failed to create lead');
     } finally {
       setSaving(false);
     }
@@ -76,7 +82,8 @@ export default function Leads() {
 
     api<CompanyResponse>(`/api/companies${qs ? '?' + qs : ''}`)
       .then((res) => setCompanies(res.data))
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, [search, typeFilter]);
 
   const columns: Column<Company>[] = [
@@ -119,7 +126,7 @@ export default function Leads() {
         }
       />
 
-      <div className="p-6">
+      {loading ? <LoadingSpinner /> : <div className="p-6">
         {/* Filters */}
         <div className="mb-4 flex items-center gap-3">
           <input
@@ -145,7 +152,7 @@ export default function Leads() {
           data={companies}
           onRowClick={(row) => navigate(`/leads/${row.id}`)}
         />
-      </div>
+      </div>}
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add New Lead">
         <div className="space-y-3">
@@ -218,6 +225,7 @@ export default function Leads() {
           </button>
         </div>
       </Modal>
+      {ToastComponent}
     </div>
   );
 }

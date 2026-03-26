@@ -5,6 +5,7 @@ import { formatCurrency, formatRelativeTime } from '../lib/format.js';
 import TopBar from '../components/layout/TopBar.js';
 import StatCard from '../components/ui/StatCard.js';
 import ActivityItem from '../components/ui/ActivityItem.js';
+import LoadingSpinner from '../components/ui/LoadingSpinner.js';
 
 interface DashboardStats {
   activeDeals: number;
@@ -42,11 +43,16 @@ export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [activity, setActivity] = useState<ActivityRow[]>([]);
   const [myTasks, setMyTasks] = useState<MyTask[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api<DashboardStats>('/api/dashboard/stats').then(setStats).catch(console.error);
-    api<ActivityRow[]>('/api/dashboard/activity?limit=10').then(setActivity).catch(console.error);
-    api<MyTask[]>('/api/dashboard/my-tasks').then(setMyTasks).catch(console.error);
+    Promise.all([
+      api<DashboardStats>('/api/dashboard/stats').then(setStats),
+      api<ActivityRow[]>('/api/dashboard/activity?limit=10').then(setActivity),
+      api<MyTask[]>('/api/dashboard/my-tasks').then(setMyTasks),
+    ])
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   const today = new Date().toLocaleDateString('en-US', {
@@ -71,7 +77,8 @@ export default function Dashboard() {
         }
       />
 
-      <div className="p-6">
+      {loading && <LoadingSpinner />}
+      {!loading && <div className="p-6">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-3">
           {/* Hero stat — Pipeline Value spans 1 of 3 columns but is visually dominant */}
@@ -164,7 +171,7 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-      </div>
+      </div>}
     </div>
   );
 }

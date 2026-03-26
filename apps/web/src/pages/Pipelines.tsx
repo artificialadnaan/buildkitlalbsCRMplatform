@@ -3,6 +3,7 @@ import { api } from '../lib/api.js';
 import TopBar from '../components/layout/TopBar.js';
 import KanbanBoard from '../components/ui/KanbanBoard.js';
 import Modal from '../components/ui/Modal.js';
+import LoadingSpinner from '../components/ui/LoadingSpinner.js';
 
 interface Stage {
   id: string;
@@ -70,6 +71,7 @@ export default function Pipelines() {
   const [companySearch, setCompanySearch] = useState('');
   const [companyOptions, setCompanyOptions] = useState<CompanyOption[]>([]);
   const [contactOptions, setContactOptions] = useState<ContactOption[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const loadDeals = () => {
     if (!activePipelineId) return;
@@ -86,7 +88,8 @@ export default function Pipelines() {
           setActivePipelineId(data[0].id);
         }
       })
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
@@ -180,7 +183,7 @@ export default function Pipelines() {
         }
       />
 
-      <div className="p-6">
+      {loading ? <LoadingSpinner /> : <div className="p-6">
         {/* Pipeline Tabs */}
         {pipelines.length > 1 && (
           <div className="mb-4 flex gap-2">
@@ -204,7 +207,7 @@ export default function Pipelines() {
         {activePipeline && (
           <KanbanBoard stages={activePipeline.stages} deals={deals} />
         )}
-      </div>
+      </div>}
 
       {/* Create Deal Modal */}
       <Modal open={showCreateDeal} onClose={() => setShowCreateDeal(false)} title="Create Deal">
@@ -216,7 +219,7 @@ export default function Pipelines() {
               value={dealForm.title}
               onChange={(e) => setDealForm({ ...dealForm, title: e.target.value })}
               placeholder="Deal title"
-              className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-slate-800 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
             />
           </div>
           <div>
@@ -226,7 +229,7 @@ export default function Pipelines() {
               value={dealForm.value}
               onChange={(e) => setDealForm({ ...dealForm, value: e.target.value })}
               placeholder="0"
-              className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-slate-800 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
             />
           </div>
           <div>
@@ -239,10 +242,10 @@ export default function Pipelines() {
                 if (!e.target.value) setDealForm({ ...dealForm, companyId: '', contactId: '' });
               }}
               placeholder="Search companies..."
-              className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-slate-800 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
             />
             {companyOptions.length > 0 && !dealForm.companyId && (
-              <div className="mt-1 max-h-32 overflow-y-auto rounded-lg border border-border bg-gray-900">
+              <div className="mt-1 max-h-32 overflow-y-auto rounded-lg border border-border bg-slate-800">
                 {companyOptions.map((c) => (
                   <button
                     key={c.id}
@@ -264,7 +267,7 @@ export default function Pipelines() {
             <select
               value={dealForm.pipelineId}
               onChange={(e) => handlePipelineChangeDeal(e.target.value)}
-              className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-slate-800 px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
             >
               <option value="">Select pipeline...</option>
               {pipelines.map((p) => (
@@ -278,7 +281,7 @@ export default function Pipelines() {
               <select
                 value={dealForm.stageId}
                 onChange={(e) => setDealForm({ ...dealForm, stageId: e.target.value })}
-                className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-border bg-slate-800 px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
               >
                 {pipelines.find((p) => p.id === dealForm.pipelineId)?.stages.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
@@ -292,7 +295,7 @@ export default function Pipelines() {
               <select
                 value={dealForm.contactId}
                 onChange={(e) => setDealForm({ ...dealForm, contactId: e.target.value })}
-                className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-border bg-slate-800 px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
               >
                 <option value="">None</option>
                 {contactOptions.map((c) => (
