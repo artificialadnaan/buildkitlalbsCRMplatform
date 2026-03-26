@@ -1,0 +1,17 @@
+{
+  "name": "buildkit-crm",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev -w apps/api",
+    "dev:web": "npm run dev -w apps/web",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:seed": "npx tsx packages/shared/src/seed.ts",
+    "test": "npm run test -w apps/api"
+  }
+}
