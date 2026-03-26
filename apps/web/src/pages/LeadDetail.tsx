@@ -19,6 +19,7 @@ interface Company {
   googleRating: string | null;
   employeeCount: number | null;
   source: string;
+  score: number;
 }
 
 interface Contact {
@@ -157,6 +158,7 @@ export default function LeadDetail() {
     { label: 'Rating', value: company.googleRating ? `${company.googleRating} / 5` : null },
     { label: 'Employees', value: company.employeeCount },
     { label: 'Source', value: company.source },
+    { label: 'Lead Score', value: company.score },
   ];
 
   return (
