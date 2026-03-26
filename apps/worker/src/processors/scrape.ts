@@ -75,6 +75,7 @@ export async function processScrapeJob(job: Job<ScrapeJobData>): Promise<void> {
           googleRating: parsed.googleRating?.toString() ?? null,
           industry: parsed.industry,
           source: 'scraped',
+          scrapeJobId: jobId,
         }).returning();
 
         // Auto-create contact if email or phone was found

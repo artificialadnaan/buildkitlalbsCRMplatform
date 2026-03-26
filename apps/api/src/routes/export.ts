@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { db, companies, deals, contacts, timeEntries, pipelineStages, users, projects } from '@buildkit/shared';
+import { db, companies, deals, contacts, timeEntries, pipelineStages, users, projects, scrapeJobs } from '@buildkit/shared';
 import { eq } from 'drizzle-orm';
 import { authMiddleware } from '../middleware/auth.js';
 
@@ -72,6 +72,42 @@ router.get('/time-entries', async (req, res) => {
   const date = new Date().toISOString().split('T')[0];
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', `attachment; filename="time-entries-${date}.csv"`);
+  res.send(csv);
+});
+
+router.get('/scrape/:jobId', async (req, res) => {
+  const { jobId } = req.params;
+
+  const [job] = await db.select().from(scrapeJobs).where(eq(scrapeJobs.id, jobId)).limit(1);
+  if (!job) {
+    res.status(404).json({ error: 'Scrape job not found' });
+    return;
+  }
+
+  const data = await db.select({
+    name: companies.name,
+    phone: companies.phone,
+    email: contacts.email,
+    website: companies.website,
+    city: companies.city,
+    state: companies.state,
+    zip: companies.zip,
+    industry: companies.industry,
+    score: companies.score,
+    websiteScore: companies.websiteScore,
+  }).from(companies)
+    .leftJoin(contacts, eq(contacts.companyId, companies.id))
+    .where(eq(companies.scrapeJobId, jobId));
+
+  const csv = toCSV(
+    ['name', 'phone', 'email', 'website', 'city', 'state', 'zip', 'industry', 'score', 'websiteScore'],
+    data as Record<string, unknown>[]
+  );
+
+  const slug = job.searchQuery.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const date = new Date().toISOString().split('T')[0];
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename="scrape-${slug}-${date}.csv"`);
   res.send(csv);
 });
 

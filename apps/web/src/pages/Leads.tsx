@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../lib/api.js';
 import { useAuth } from '../lib/auth.js';
 import TopBar from '../components/layout/TopBar.js';
@@ -80,10 +80,12 @@ function WebsiteScoreBadge({ audit }: { audit: { score: number } | null }) {
 
 export default function Leads() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const scrapeJobId = searchParams.get('scrapeJobId') ?? undefined;
   const [sortByScore, setSortByScore] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [newLead, setNewLead] = useState({
@@ -126,6 +128,7 @@ export default function Leads() {
     if (search) params.set('search', search);
     if (typeFilter) params.set('type', typeFilter);
     if (sortByScore) params.set('sort', 'score');
+    if (scrapeJobId) params.set('scrapeJobId', scrapeJobId);
     const qs = params.toString();
 
     try {
@@ -139,7 +142,7 @@ export default function Leads() {
   useEffect(() => {
     setLoading(true);
     loadCompanies().finally(() => setLoading(false));
-  }, [search, typeFilter, sortByScore]);
+  }, [search, typeFilter, sortByScore, scrapeJobId]);
 
   async function handleRescore() {
     setRescoring(true);
@@ -332,6 +335,20 @@ export default function Leads() {
             Sort by Score
           </button>
         </div>
+
+        {scrapeJobId && (
+          <div className="mb-4 flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+            <span className="text-sm text-blue-700">
+              Showing leads from scrape job: <span className="font-mono font-medium">{scrapeJobId}</span>
+            </span>
+            <button
+              onClick={() => setSearchParams({})}
+              className="ml-auto rounded-lg border border-blue-300 bg-white px-3 py-1 text-sm font-medium text-blue-700 hover:bg-blue-50"
+            >
+              Clear filter
+            </button>
+          </div>
+        )}
 
         <DataTable<Company>
           columns={columns}

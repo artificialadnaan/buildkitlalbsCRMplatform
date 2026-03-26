@@ -1,4 +1,5 @@
 import { pgTable, uuid, varchar, integer, numeric, jsonb, timestamp, pgEnum } from 'drizzle-orm/pg-core';
+import { scrapeJobs } from './scrape-jobs.js';
 
 export const companyTypeEnum = pgEnum('company_type', ['local', 'construction']);
 export const companySourceEnum = pgEnum('company_source', ['scraped', 'manual']);
@@ -19,6 +20,7 @@ export const companies = pgTable('companies', {
   employeeCount: integer('employee_count'),
   source: companySourceEnum('source').notNull().default('manual'),
   score: integer('score').notNull().default(0),
+  scrapeJobId: uuid('scrape_job_id').references(() => scrapeJobs.id),
   websiteAudit: jsonb('website_audit'),
   websiteScore: integer('website_score').default(0),
   websiteAuditedAt: timestamp('website_audited_at', { withTimezone: true }),

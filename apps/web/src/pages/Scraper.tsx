@@ -15,6 +15,7 @@ interface ScrapeJob {
   startedAt: string | null;
   completedAt: string | null;
   createdAt: string;
+  userName: string | null;
 }
 
 interface RecentLead {
@@ -321,8 +322,13 @@ export default function Scraper() {
                         <td className="px-8 py-5">
                           <p className="font-bold text-slate-900">{job.searchQuery}</p>
                           <p className="text-[10px] text-slate-400">
-                            {new Date(job.createdAt).toLocaleDateString()}
+                            {new Date(job.createdAt).toLocaleString()}
                           </p>
+                          {job.userName && (
+                            <p className="text-[10px] text-slate-400 mt-0.5">
+                              Started by {job.userName}
+                            </p>
+                          )}
                         </td>
                         <td className="px-4 py-5">
                           <div className="flex gap-1 flex-wrap">
@@ -339,12 +345,26 @@ export default function Scraper() {
                         <td className="px-4 py-5">{getStatusDisplay(job)}</td>
                         <td className="px-4 py-5 font-mono font-bold text-slate-900">{job.newLeads}</td>
                         <td className="px-8 py-5 text-right">
-                          <button
-                            onClick={() => navigate('/leads')}
-                            className="bg-[#d5e3fd] text-slate-700 px-4 py-2 rounded text-[10px] font-bold uppercase tracking-widest group-hover:bg-orange-600 group-hover:text-white transition-all"
-                          >
-                            View Results
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            {job.status === 'done' && (
+                              <button
+                                onClick={() => {
+                                  const token = localStorage.getItem('token');
+                                  const baseUrl = import.meta.env.VITE_API_URL || '';
+                                  window.open(`${baseUrl}/api/export/scrape/${job.id}?token=${token}`, '_blank');
+                                }}
+                                className="border border-slate-300 text-slate-600 px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest hover:border-orange-500 hover:text-orange-600 transition-all"
+                              >
+                                Export CSV
+                              </button>
+                            )}
+                            <button
+                              onClick={() => navigate(`/leads?scrapeJobId=${job.id}`)}
+                              className="bg-[#d5e3fd] text-slate-700 px-4 py-2 rounded text-[10px] font-bold uppercase tracking-widest group-hover:bg-orange-600 group-hover:text-white transition-all"
+                            >
+                              View Results
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

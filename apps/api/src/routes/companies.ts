@@ -27,10 +27,12 @@ router.get('/', async (req, res) => {
   const search = req.query.search as string | undefined;
   const type = req.query.type as CompanyType | undefined;
   const sort = req.query.sort as string | undefined;
+  const scrapeJobId = req.query.scrapeJobId as string | undefined;
 
   const conditions = [];
   if (search) conditions.push(ilike(companies.name, `%${search}%`));
   if (type) conditions.push(eq(companies.type, type));
+  if (scrapeJobId) conditions.push(eq(companies.scrapeJobId, scrapeJobId));
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 

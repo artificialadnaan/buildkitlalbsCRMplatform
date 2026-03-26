@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { eq, desc, sql } from 'drizzle-orm';
-import { db, scrapeJobs, createScrapeQueue } from '@buildkit/shared';
+import { db, scrapeJobs, users, auditLog, createScrapeQueue } from '@buildkit/shared';
 import type { ScrapeJobData } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
 
@@ -48,6 +48,15 @@ router.post('/', async (req, res) => {
     searchQuery: resolvedQuery,
   }).returning();
 
+  // Audit log
+  await db.insert(auditLog).values({
+    userId: req.user!.userId,
+    action: 'scrape_started',
+    entity: 'scrape_job',
+    entityId: job.id,
+    changes: { zipCodes, searchQuery: resolvedQuery, maxLeads: leadLimit },
+  });
+
   // Enqueue BullMQ job
   const jobData: ScrapeJobData = {
     jobId: job.id,
@@ -76,7 +85,27 @@ router.get('/jobs', async (req, res) => {
   const offset = (page - 1) * limit;
 
   const [data, countResult] = await Promise.all([
-    db.select().from(scrapeJobs).orderBy(desc(scrapeJobs.createdAt)).limit(limit).offset(offset),
+    db
+      .select({
+        id: scrapeJobs.id,
+        startedBy: scrapeJobs.startedBy,
+        zipCodes: scrapeJobs.zipCodes,
+        searchQuery: scrapeJobs.searchQuery,
+        status: scrapeJobs.status,
+        totalFound: scrapeJobs.totalFound,
+        newLeads: scrapeJobs.newLeads,
+        duplicatesSkipped: scrapeJobs.duplicatesSkipped,
+        errorMessage: scrapeJobs.errorMessage,
+        startedAt: scrapeJobs.startedAt,
+        completedAt: scrapeJobs.completedAt,
+        createdAt: scrapeJobs.createdAt,
+        userName: users.name,
+      })
+      .from(scrapeJobs)
+      .leftJoin(users, eq(scrapeJobs.startedBy, users.id))
+      .orderBy(desc(scrapeJobs.createdAt))
+      .limit(limit)
+      .offset(offset),
     db.select({ count: sql<number>`count(*)::int` }).from(scrapeJobs),
   ]);
 
