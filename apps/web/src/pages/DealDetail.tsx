@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api.js';
 import { formatCurrency, formatDate, formatRelativeTime } from '../lib/format.js';
 import TopBar from '../components/layout/TopBar.js';
-import Badge from '../components/ui/Badge.js';
-import ActivityItem from '../components/ui/ActivityItem.js';
 import Modal from '../components/ui/Modal.js';
 import ComposeEmailModal from '../components/email/ComposeEmailModal.js';
 import EnrollSequenceModal from '../components/email/EnrollSequenceModal.js';
@@ -81,16 +79,26 @@ interface EmailEventsResponse {
   summary: EmailEventsSummary;
 }
 
-const statusVariants: Record<string, 'blue' | 'green' | 'red'> = {
-  open: 'blue',
-  won: 'green',
-  lost: 'red',
+const activityIcons: Record<string, string> = {
+  email: 'mail',
+  call: 'call',
+  meeting: 'calendar_today',
+  note: 'edit_note',
+  text: 'sms',
+};
+
+const statusLabels: Record<string, { text: string; bg: string; border: string }> = {
+  open: { text: 'IN PROGRESS', bg: 'bg-orange-100 text-orange-700', border: 'border-orange-600' },
+  won: { text: 'WON', bg: 'bg-green-100 text-green-700', border: 'border-green-600' },
+  lost: { text: 'LOST', bg: 'bg-red-100 text-red-700', border: 'border-red-600' },
 };
 
 export default function DealDetail() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [result, setResult] = useState<DealResult | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [pipelineName, setPipelineName] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [activityType, setActivityType] = useState<string>('note');
   const [activitySubject, setActivitySubject] = useState('');
@@ -110,16 +118,12 @@ export default function DealDetail() {
       setEmailSends(res.data);
       const stats: Record<string, EmailEventsSummary> = {};
       await Promise.all(
-        res.data
-          .filter((s) => s.status === 'sent')
-          .map(async (s) => {
-            try {
-              const evts = await api<EmailEventsResponse>(`/api/email-sends/${s.id}/events`);
-              stats[s.id] = evts.summary;
-            } catch {
-              // tracking data may not exist yet
-            }
-          })
+        res.data.filter((s) => s.status === 'sent').map(async (s) => {
+          try {
+            const evts = await api<EmailEventsResponse>(`/api/email-sends/${s.id}/events`);
+            stats[s.id] = evts.summary;
+          } catch { /* tracking data may not exist */ }
+        })
       );
       setEmailStats(stats);
     }).catch(console.error);
@@ -129,11 +133,11 @@ export default function DealDetail() {
     if (!id) return;
     api<DealResult>(`/api/deals/${id}`).then((r) => {
       setResult(r);
-      // Load pipeline stages for stage selector
       api<PipelineWithStages[]>('/api/pipelines').then((pipelines) => {
         const pipeline = pipelines.find((p) => p.id === r.deal.pipelineId);
         if (pipeline) {
           setPipelineStages(pipeline.stages);
+          setPipelineName(pipeline.name);
         }
       }).catch(console.error);
     }).catch(console.error);
@@ -145,22 +149,14 @@ export default function DealDetail() {
     if (!id || !stageId) return;
     setStageChanging(true);
     try {
-      await api(`/api/deals/${id}/stage`, {
-        method: 'PATCH',
-        body: JSON.stringify({ stageId }),
-      });
+      await api(`/api/deals/${id}/stage`, { method: 'PATCH', body: JSON.stringify({ stageId }) });
       setShowStageModal(false);
       loadData();
-    } catch (err) {
-      console.error('Failed to change stage:', err);
-    } finally {
-      setStageChanging(false);
-    }
+    } catch (err) { console.error('Failed to change stage:', err); }
+    finally { setStageChanging(false); }
   };
 
-  useEffect(() => {
-    loadData();
-  }, [id]);
+  useEffect(() => { loadData(); }, [id]);
 
   const handleLogActivity = async () => {
     if (!id || !activitySubject.trim()) return;
@@ -168,257 +164,320 @@ export default function DealDetail() {
     try {
       await api('/api/activities', {
         method: 'POST',
-        body: JSON.stringify({
-          dealId: id,
-          type: activityType,
-          subject: activitySubject,
-          body: activityBody || null,
-        }),
+        body: JSON.stringify({ dealId: id, type: activityType, subject: activitySubject, body: activityBody || null }),
       });
       setModalOpen(false);
       setActivitySubject('');
       setActivityBody('');
       setActivityType('note');
       loadData();
-    } catch (err) {
-      console.error('Failed to log activity:', err);
-    } finally {
-      setSubmitting(false);
-    }
+    } catch (err) { console.error('Failed to log activity:', err); }
+    finally { setSubmitting(false); }
   };
 
   const handleStatusChange = async (status: 'won' | 'lost') => {
     if (!id) return;
     try {
-      await api(`/api/deals/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status }),
-      });
+      await api(`/api/deals/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
       loadData();
-    } catch (err) {
-      console.error('Failed to update deal status:', err);
-    }
+    } catch (err) { console.error('Failed to update deal status:', err); }
   };
 
   if (!result) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
       </div>
     );
   }
 
   const { deal } = result;
+  const statusStyle = statusLabels[deal.status] ?? statusLabels.open;
+  const currentStage = pipelineStages.find(s => s.id === deal.stageId);
+  const stageProgress = currentStage && pipelineStages.length > 0
+    ? Math.round((currentStage.position / pipelineStages.length) * 100)
+    : 0;
 
-  const infoFields = [
-    { label: 'Status', value: <Badge label={deal.status} variant={statusVariants[deal.status] ?? 'gray'} /> },
-    { label: 'Value', value: formatCurrency(deal.value) },
-    {
-      label: 'Stage',
-      value: pipelineStages.length > 0 ? (
-        <select
-          value={deal.stageId}
-          onChange={(e) => handleStageChange(e.target.value)}
-          disabled={stageChanging}
-          className="rounded-md border border-border bg-white px-2 py-1 text-sm text-gray-900 focus:border-blue-500 focus:outline-none disabled:opacity-50"
-        >
-          {pipelineStages.map((s) => (
-            <option key={s.id} value={s.id}>{s.name}</option>
-          ))}
-        </select>
-      ) : (
-        result.stageName ?? '--'
-      ),
-    },
-    { label: 'Contact', value: result.contactName ?? '--' },
-    { label: 'Close Date', value: formatDate(deal.expectedCloseDate) },
-    { label: 'Created', value: formatDate(deal.createdAt) },
-  ];
+  // Combine activities + emails into unified timeline
+  const timelineItems = [
+    ...activities.map(a => ({
+      id: a.id,
+      type: a.type,
+      title: a.subject ?? `${a.type} logged`,
+      body: a.body,
+      timestamp: a.createdAt,
+      icon: activityIcons[a.type] || 'info',
+    })),
+    ...emailSends.map(e => ({
+      id: e.id,
+      type: 'email_sent',
+      title: e.subject || '(no subject)',
+      body: e.status === 'sent'
+        ? `${emailStats[e.id]?.openCount ?? 0} opens, ${emailStats[e.id]?.clickCount ?? 0} clicks`
+        : e.status,
+      timestamp: e.sentAt || e.createdAt,
+      icon: 'send',
+    })),
+  ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+  const contactInitials = result.contactName
+    ? result.contactName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+    : 'N/A';
 
   return (
     <div>
-      <TopBar
-        title={deal.title}
-        subtitle={result.companyName ?? undefined}
-        actions={
-          <button
-            onClick={() => setModalOpen(true)}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500"
-          >
-            Log Activity
-          </button>
-        }
-      />
+      <TopBar title="Deal Details" />
 
-      <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-3">
-        {/* Deal Info */}
-        <div className="lg:col-span-2 rounded-lg border border-border bg-surface p-5">
-          <h2 className="mb-4 text-base font-semibold text-gray-900">
-            Deal Information
-          </h2>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            {infoFields.map((field) => (
-              <div key={field.label}>
-                <p className="text-xs font-medium uppercase text-gray-500">{field.label}</p>
-                <div className="mt-1 text-sm text-gray-900">{field.value}</div>
-              </div>
-            ))}
+      <div className="p-8 max-w-7xl mx-auto w-full space-y-8">
+        {/* Deal Header */}
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-2">
+            <nav className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+              <button onClick={() => navigate('/pipelines')} className="hover:text-orange-600 transition-colors">Pipelines</button>
+              <span className="material-symbols-outlined text-[10px]">chevron_right</span>
+              <span className="text-orange-700">{pipelineName || 'Pipeline'}</span>
+            </nav>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tighter">{deal.title}</h2>
+            <div className="flex items-center gap-3 pt-2">
+              <span className={`px-3 py-1 ${statusStyle.bg} text-[10px] font-black tracking-widest uppercase rounded border-l-4 ${statusStyle.border}`}>
+                {result.stageName ?? statusStyle.text}
+              </span>
+              <span className="text-slate-400 text-sm font-medium">
+                {activities.length > 0
+                  ? `Last activity: ${formatRelativeTime(activities[0]?.createdAt)}`
+                  : `Created ${formatRelativeTime(deal.createdAt)}`}
+              </span>
+            </div>
           </div>
-        </div>
+          <div className="bg-white p-6 rounded-xl border-l-8 border-orange-600 shadow-sm min-w-[240px]">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total Quoted Value</p>
+            <p className="text-4xl font-black text-slate-900 tracking-tight">
+              {deal.value != null ? formatCurrency(deal.value) : '$0'}
+              <span className="text-slate-300 text-lg ml-1">USD</span>
+            </p>
+          </div>
+        </section>
 
-        {/* Quick Actions */}
-        <div className="rounded-lg border border-border bg-surface p-5">
-          <h2 className="mb-4 text-base font-semibold text-gray-900">
-            Quick Actions
-          </h2>
-          <div className="flex flex-col gap-2">
-            <button
-              onClick={() => setShowEmailModal(true)}
-              className="w-full rounded-lg border border-border bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
-            >
-              Send Email
-            </button>
-            <button
-              onClick={() => setShowSequenceModal(true)}
-              className="w-full rounded-lg border border-border bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
-            >
-              Start Sequence
-            </button>
-            <button
-              onClick={() => setModalOpen(true)}
-              className="w-full rounded-lg border border-border bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
-            >
-              Log Activity
-            </button>
-            <button
-              onClick={() => {
-                setSelectedStageId(deal.stageId);
-                setShowStageModal(true);
-              }}
-              className="w-full rounded-lg border border-border bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
-            >
-              Move Stage
-            </button>
-            {deal.status === 'open' && (
-              <>
-                <div className="my-1 border-t border-border" />
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Deal Information */}
+            <div className="bg-[#f0f3ff] p-8 rounded-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full -mr-16 -mt-16" />
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
+                <span className="material-symbols-outlined text-sm">info</span>
+                Deal Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Primary Contact</label>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded bg-slate-200 flex items-center justify-center font-bold text-slate-600">{contactInitials}</div>
+                    <div>
+                      <p className="text-sm font-extrabold text-slate-900">{result.contactName ?? 'No contact'}</p>
+                      <p className="text-xs text-slate-500">{result.contactEmail ?? ''}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Company</label>
+                  <p className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-slate-400">domain</span>
+                    {result.companyName ?? '--'}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Lead Source</label>
+                  <p className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-slate-400">travel_explore</span>
+                    BuildKit CRM
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Expected Close Date</label>
+                  <p className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-slate-400">event</span>
+                    {deal.expectedCloseDate ? formatDate(deal.expectedCloseDate) : 'Not set'}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Current Stage</label>
+                  <p className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-slate-400">view_kanban</span>
+                    {result.stageName ?? '--'}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Pipeline Progress</label>
+                  <div className="flex gap-1 mt-1">
+                    {pipelineStages.map((s) => (
+                      <div
+                        key={s.id}
+                        className={`h-1.5 flex-1 rounded-full ${s.position <= (currentStage?.position ?? 0) ? 'bg-orange-600' : 'bg-slate-200'}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Email Tracking */}
+            {emailSends.length > 0 && (
+              <div className="bg-white p-8 rounded-xl border border-slate-100 shadow-sm">
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm">mark_email_read</span>
+                  Email Tracking
+                </h3>
+                <div className="space-y-3">
+                  {emailSends.map((send) => {
+                    const stats = emailStats[send.id];
+                    return (
+                      <div key={send.id} className="p-4 bg-[#f0f3ff] rounded-lg flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">{send.subject || '(no subject)'}</p>
+                          <p className="text-xs text-slate-500">
+                            {send.status === 'sent' ? `Sent ${formatRelativeTime(send.sentAt || send.createdAt)}` : send.status}
+                          </p>
+                        </div>
+                        {send.status === 'sent' && stats && (
+                          <div className="flex gap-3">
+                            <span className={`px-2 py-1 rounded text-[10px] font-bold ${stats.openCount > 0 ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-400'}`}>
+                              {stats.openCount > 0 ? `${stats.openCount} opens` : 'Not opened'}
+                            </span>
+                            <span className={`px-2 py-1 rounded text-[10px] font-bold ${stats.clickCount > 0 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-400'}`}>
+                              {stats.clickCount > 0 ? `${stats.clickCount} clicks` : 'No clicks'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Activity Timeline */}
+            <div className="space-y-6">
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] px-2 flex items-center gap-2">
+                <span className="material-symbols-outlined text-sm">history</span>
+                Deal Activity History
+              </h3>
+              {timelineItems.length === 0 ? (
+                <div className="text-center py-12">
+                  <span className="material-symbols-outlined text-4xl text-slate-300">history</span>
+                  <p className="text-sm text-slate-400 mt-2">No activity yet — send an email or log a call to get started</p>
+                </div>
+              ) : (
+                <div className="relative ml-4 pl-8 border-l-2 border-slate-200 space-y-6">
+                  {timelineItems.map((item, i) => (
+                    <div key={item.id} className="relative">
+                      <div className={`absolute -left-[41px] top-0 w-4 h-4 rounded-full bg-white border-4 ${i === 0 ? 'border-orange-600' : 'border-slate-300'}`} />
+                      <div className={`bg-white p-4 rounded-lg shadow-sm border border-slate-100 ${i > 2 ? 'opacity-50' : ''}`}>
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-sm text-slate-400">{item.icon}</span>
+                            <p className="text-sm font-bold text-slate-900">{item.title}</p>
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter shrink-0 ml-4">
+                            {formatRelativeTime(item.timestamp)}
+                          </span>
+                        </div>
+                        {item.body && <p className="text-xs text-slate-500">{item.body}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column: Quick Actions */}
+          <div className="space-y-6">
+            <div className="bg-slate-900 text-white p-8 rounded-xl space-y-6 sticky top-24">
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Deal Actions</h3>
+              <div className="space-y-3">
+                <ActionButton icon="mail" label="Send Email" onClick={() => setShowEmailModal(true)} />
+                <ActionButton icon="automation" label="Start Sequence" onClick={() => setShowSequenceModal(true)} />
+                <ActionButton icon="history_edu" label="Log Activity" onClick={() => setModalOpen(true)} />
+                <ActionButton icon="rebase_edit" label="Move Stage" onClick={() => { setSelectedStageId(deal.stageId); setShowStageModal(true); }} />
+                <ActionButton icon="description" label="Call Prep" onClick={() => navigate(`/deals/${id}/call-prep`)} />
+              </div>
+              {deal.status === 'open' && (
+                <>
+                  <div className="h-px bg-white/10" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => handleStatusChange('won')}
+                      className="bg-green-600/20 hover:bg-green-600 text-green-400 hover:text-white font-black py-3 rounded-lg text-xs uppercase tracking-widest transition-all"
+                    >
+                      Mark Won
+                    </button>
+                    <button
+                      onClick={() => handleStatusChange('lost')}
+                      className="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white font-black py-3 rounded-lg text-xs uppercase tracking-widest transition-all"
+                    >
+                      Mark Lost
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Deal Score */}
+            <div className="bg-[#e7eeff] p-6 rounded-xl space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Pipeline Progress</h4>
+                <span className="text-xl font-black text-slate-900">{stageProgress}%</span>
+              </div>
+              <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                <div className="bg-orange-600 h-full rounded-full transition-all" style={{ width: `${stageProgress}%` }} />
+              </div>
+              <p className="text-[10px] text-slate-500">
+                Stage {currentStage?.position ?? 0} of {pipelineStages.length} — {result.stageName}
+              </p>
+            </div>
+
+            {/* Company Card */}
+            {result.companyName && (
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Company</h4>
                 <button
-                  onClick={() => handleStatusChange('won')}
-                  className="w-full rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-2.5 text-sm font-medium text-emerald-600 transition-colors hover:bg-emerald-100"
+                  onClick={() => navigate(`/leads/${deal.companyId}`)}
+                  className="flex items-center gap-3 w-full text-left hover:bg-slate-50 p-2 -m-2 rounded-lg transition-colors"
                 >
-                  Mark Won
+                  <div className="w-10 h-10 rounded bg-orange-100 flex items-center justify-center font-bold text-orange-700">
+                    {result.companyName.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">{result.companyName}</p>
+                    <p className="text-xs text-slate-500">View company profile</p>
+                  </div>
                 </button>
-                <button
-                  onClick={() => handleStatusChange('lost')}
-                  className="w-full rounded-lg bg-red-50 border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-100"
-                >
-                  Mark Lost
-                </button>
-              </>
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Activity Timeline */}
-      <div className="px-6 pb-6">
-        <div className="rounded-lg border border-border bg-surface p-5">
-          <h2 className="mb-3 text-base font-semibold text-gray-900">
-            Activity Timeline
-          </h2>
-          {activities.length === 0 ? (
-            <p className="text-sm text-gray-500 py-4">No activities yet</p>
-          ) : (
-            <div className="divide-y divide-border">
-              {activities.map((a) => (
-                <ActivityItem
-                  key={a.id}
-                  type={a.type}
-                  description={a.subject ?? `${a.type} logged`}
-                  meta={formatRelativeTime(a.createdAt)}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Email Tracking */}
-      {emailSends.length > 0 && (
-        <div className="px-6 pb-6">
-          <div className="rounded-lg border border-border bg-surface p-5">
-            <h2 className="mb-3 text-base font-semibold text-gray-900">
-              Email Tracking
-            </h2>
-            <div className="divide-y divide-border">
-              {emailSends.map((send) => {
-                const stats = emailStats[send.id];
-                return (
-                  <div key={send.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {send.subject || '(no subject)'}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {send.status === 'sent' ? `Sent ${formatRelativeTime(send.sentAt || send.createdAt)}` : send.status}
-                      </p>
-                    </div>
-                    {send.status === 'sent' && stats ? (
-                      <div className="flex items-center gap-3 ml-4 shrink-0">
-                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${stats.openCount > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
-                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                          {stats.openCount > 0 ? `Opened ${stats.openCount}x` : 'Not opened'}
-                        </span>
-                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${stats.clickCount > 0 ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
-                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.172 13.828a4 4 0 015.656 0l4-4a4 4 0 00-5.656-5.656l-1.102 1.101" />
-                          </svg>
-                          {stats.clickCount > 0 ? `${stats.clickCount} clicks` : 'No clicks'}
-                        </span>
-                      </div>
-                    ) : send.status === 'sent' ? (
-                      <span className="text-xs text-gray-400 ml-4">Loading...</span>
-                    ) : (
-                      <Badge label={send.status} variant={send.status === 'failed' ? 'red' : 'amber'} />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Move Stage Modal */}
       <Modal open={showStageModal} onClose={() => setShowStageModal(false)} title="Move Stage">
         <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-medium uppercase text-gray-500 mb-1">Select Stage</label>
-            <select
-              value={selectedStageId}
-              onChange={(e) => setSelectedStageId(e.target.value)}
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
-            >
-              {pipelineStages.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
-          </div>
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              onClick={() => setShowStageModal(false)}
-              className="rounded-lg border border-border bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
-            >
-              Cancel
-            </button>
+          <select
+            value={selectedStageId}
+            onChange={(e) => setSelectedStageId(e.target.value)}
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none"
+          >
+            {pipelineStages.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+          <div className="flex justify-end gap-3">
+            <button onClick={() => setShowStageModal(false)} className="rounded-lg bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-600">Cancel</button>
             <button
               onClick={() => handleStageChange(selectedStageId)}
               disabled={stageChanging || selectedStageId === deal.stageId}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-lg bg-gradient-to-r from-orange-700 to-orange-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg disabled:opacity-50"
             >
               {stageChanging ? 'Moving...' : 'Move'}
             </button>
@@ -430,11 +489,11 @@ export default function DealDetail() {
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Log Activity">
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-medium uppercase text-gray-500 mb-1">Type</label>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Type</label>
             <select
               value={activityType}
               onChange={(e) => setActivityType(e.target.value)}
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none"
             >
               <option value="note">Note</option>
               <option value="email">Email</option>
@@ -444,36 +503,31 @@ export default function DealDetail() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium uppercase text-gray-500 mb-1">Subject</label>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Subject</label>
             <input
               type="text"
               value={activitySubject}
               onChange={(e) => setActivitySubject(e.target.value)}
               placeholder="Activity subject..."
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm placeholder-slate-400 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium uppercase text-gray-500 mb-1">Details</label>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Details</label>
             <textarea
               value={activityBody}
               onChange={(e) => setActivityBody(e.target.value)}
               placeholder="Additional details..."
               rows={3}
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none resize-none"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm placeholder-slate-400 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none resize-none"
             />
           </div>
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              onClick={() => setModalOpen(false)}
-              className="rounded-lg border border-border bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
-            >
-              Cancel
-            </button>
+          <div className="flex justify-end gap-3">
+            <button onClick={() => setModalOpen(false)} className="rounded-lg bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-600">Cancel</button>
             <button
               onClick={handleLogActivity}
               disabled={submitting || !activitySubject.trim()}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-lg bg-gradient-to-r from-orange-700 to-orange-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg disabled:opacity-50"
             >
               {submitting ? 'Saving...' : 'Save Activity'}
             </button>
@@ -488,19 +542,28 @@ export default function DealDetail() {
         contactId={deal.contactId || ''}
         contactName={result.contactName || 'Unknown'}
         contactEmail={result.contactEmail || ''}
-        onSent={() => {
-          api<ActivitiesResponse>(`/api/activities?dealId=${id}`).then((res) => setActivities(res.data));
-        }}
+        onSent={() => { loadData(); }}
       />
       <EnrollSequenceModal
         open={showSequenceModal}
         onClose={() => setShowSequenceModal(false)}
         dealId={deal.id}
         contactId={deal.contactId || ''}
-        onEnrolled={() => {
-          api<ActivitiesResponse>(`/api/activities?dealId=${id}`).then((res) => setActivities(res.data));
-        }}
+        onEnrolled={() => { loadData(); }}
       />
     </div>
+  );
+}
+
+function ActionButton({ icon, label, onClick }: { icon: string; label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-3 px-4 rounded-lg text-left flex items-center transition-all group"
+    >
+      <span className="material-symbols-outlined mr-3 text-orange-500">{icon}</span>
+      <span className="text-sm tracking-wide uppercase">{label}</span>
+      <span className="material-symbols-outlined ml-auto text-xs opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all">chevron_right</span>
+    </button>
   );
 }
