@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"railway redeploy --service \\\"@buildkit/web\\\" 2>&1 && railway redeploy --service \\\"@buildkit/api\\\" 2>&1 && railway redeploy --service \\\"@buildkit/worker\\\" 2>&1 && railway redeploy --service...",
-  "error": "Exit code 1\nCannot prompt for confirmation in non-interactive mode. Use --yes to skip confirmation.",
-  "timestamp": "2026-03-26T04:37:18.717Z",
+  "tool_input_preview": "{\"command\":\"railway variable delete RAILWAY_START_COMMAND --service \\\"@buildkit/web\\\" --yes 2>&1 && railway variable delete RAILWAY_START_COMMAND --service \\\"@buildkit/portal\\\" --yes 2>&1 && railway v...",
+  "error": "Exit code 2\nerror: unexpected argument '--yes' found\n\n  tip: to pass '--yes' as a value, use '-- --yes'\n\nUsage: railway variable delete --service <SERVICE> <KEY>\n\nFor more information, try '--help'.",
+  "timestamp": "2026-03-26T05:20:57.059Z",
   "retry_count": 1
 }
