@@ -194,11 +194,13 @@
       "agent_type": "oh-my-claudecode:executor",
       "started_at": "2026-03-26T21:03:09.568Z",
       "parent_mode": "none",
-      "status": "running"
+      "status": "completed",
+      "completed_at": "2026-03-26T21:06:29.483Z",
+      "duration_ms": 199915
     }
   ],
   "total_spawned": 22,
-  "total_completed": 21,
+  "total_completed": 22,
   "total_failed": 0,
-  "last_updated": "2026-03-26T21:04:22.807Z"
+  "last_updated": "2026-03-26T21:06:29.586Z"
 }

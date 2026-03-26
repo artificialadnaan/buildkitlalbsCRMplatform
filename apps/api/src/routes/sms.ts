@@ -366,10 +366,13 @@ router.post('/webhook/voice', async (req, res) => {
     console.error('[voice/webhook] Error:', err instanceof Error ? err.message : err);
   }
 
-  // TwiML response — greeting then hangup
+  // TwiML response — ring the team then voicemail
   res.type('text/xml').send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="alice">Thank you for calling BuildKit Labs. We'll get back to you shortly.</Say>
+  <Dial timeout="25" callerId="+14698888214" action="/webhook/voice/status">
+    <Number>+14696902240</Number>
+  </Dial>
+  <Say voice="alice">Sorry we missed your call. Please leave a message and we'll get back to you as soon as possible.</Say>
 </Response>`);
 });
 
