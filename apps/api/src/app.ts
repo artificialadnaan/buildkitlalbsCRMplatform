@@ -35,6 +35,10 @@ export function createApp() {
   app.use('/api/email-sequences', emailSequencesRoutes);
   app.use('/api/email-sends', emailSendsRoutes);
   app.use('/api/sequence-enrollments', sequenceEnrollmentsRoutes);
+  app.use('/api/projects', projectsRoutes);
+  app.use('/api/projects/:projectId/milestones', milestonesRoutes);
+  app.use('/api/milestones/:milestoneId/tasks', tasksRoutes);
+  app.use('/api/time-entries', timeEntriesRoutes);
 
   // Health check
   app.get('/health', (req, res) => {
