@@ -1,7 +1,7 @@
 {
   "tool_name": "Read",
-  "tool_input_preview": "{\"file_path\":\"/Users/adnaaniqbal/Developer/Consulting/buildkit-crm/apps/web/src/lib\"}",
-  "error": "EISDIR: illegal operation on a directory, read '/Users/adnaaniqbal/Developer/Consulting/buildkit-crm/apps/web/src/lib'",
-  "timestamp": "2026-03-26T20:54:21.051Z",
-  "retry_count": 4
+  "tool_input_preview": "{\"file_path\":\"/Users/adnaaniqbal/Developer/Consulting/buildkit-crm\"}",
+  "error": "EISDIR: illegal operation on a directory, read '/Users/adnaaniqbal/Developer/Consulting/buildkit-crm'",
+  "timestamp": "2026-03-26T21:03:12.585Z",
+  "retry_count": 1
 }

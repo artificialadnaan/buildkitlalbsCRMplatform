@@ -1,10 +1,11 @@
 import type { Job } from 'bullmq';
 import { eq, and, lte } from 'drizzle-orm';
-import { db, sequenceEnrollments, sequenceSteps, emailSends, emailTemplates, contacts, companies } from '@buildkit/shared';
+import { db, sequenceEnrollments, sequenceSteps, emailSends, emailTemplates, contacts, companies, conversations, conversationMessages } from '@buildkit/shared';
 import { resolveVariables } from '@buildkit/email';
 import { Queue } from 'bullmq';
 import { EMAIL_SEND_QUEUE } from '@buildkit/shared';
 import type { EmailJobPayload, WebsiteAudit } from '@buildkit/shared';
+import { sendSms } from '../lib/twilio.js';
 
 function getTopIssue(audit: WebsiteAudit | null): string {
   if (!audit) return '';
@@ -142,25 +143,85 @@ export async function processSequenceTick(job: Job) {
         'audit.specific_observation': generateSpecificObservation(audit),
       };
 
-      const resolvedSubject = resolveVariables(step.templateSubject || '', variables);
-      const resolvedBody = resolveVariables(step.templateBody || '', variables);
+      const channel = step.step.channel ?? 'email';
 
-      // Create email send record
-      const [emailSend] = await db.insert(emailSends).values({
-        dealId: enrollment.dealId,
-        contactId: enrollment.contactId,
-        templateId: step.step.templateId,
-        sentBy: enrollment.enrolledBy!,
-        subject: resolvedSubject,
-        bodyHtml: resolvedBody,
-        status: 'queued',
-      }).returning();
+      if (channel === 'sms') {
+        // SMS branch — send via Twilio and log to conversation_messages
+        const resolvedSmsBody = resolveVariables(step.step.smsBody || '', variables);
 
-      // Enqueue the email send job
-      await emailSendQueue.add('send', {
-        emailSendId: emailSend.id,
-        userId: enrollment.enrolledBy!,
-      });
+        if (!resolvedSmsBody) {
+          console.warn(`[sequence-tick] SMS step has no smsBody for enrollment ${enrollment.id}, skipping`);
+        } else if (!contact?.email) {
+          // email field used as identity check; look up phone separately
+          console.warn(`[sequence-tick] Contact not found for enrollment ${enrollment.id}, skipping SMS`);
+        } else {
+          // Re-fetch contact phone (not included in the earlier select)
+          const [contactWithPhone] = await db
+            .select({ phone: contacts.phone })
+            .from(contacts)
+            .where(eq(contacts.id, enrollment.contactId))
+            .limit(1);
+
+          if (!contactWithPhone?.phone) {
+            console.warn(`[sequence-tick] Contact ${enrollment.contactId} has no phone number, skipping SMS`);
+          } else {
+            const { sid, status } = await sendSms(contactWithPhone.phone, resolvedSmsBody);
+
+            // Find or create SMS conversation
+            const existingConv = await db
+              .select({ id: conversations.id })
+              .from(conversations)
+              .where(and(eq(conversations.contactId, enrollment.contactId), eq(conversations.channel, 'sms')))
+              .limit(1);
+
+            let conversationId: string;
+            if (existingConv.length > 0) {
+              conversationId = existingConv[0].id;
+              await db.update(conversations).set({ lastMessageAt: new Date() }).where(eq(conversations.id, conversationId));
+            } else {
+              const [newConv] = await db.insert(conversations).values({
+                contactId: enrollment.contactId,
+                dealId: enrollment.dealId,
+                channel: 'sms',
+                lastMessageAt: new Date(),
+              }).returning();
+              conversationId = newConv.id;
+            }
+
+            await db.insert(conversationMessages).values({
+              conversationId,
+              direction: 'outbound',
+              channel: 'sms',
+              body: resolvedSmsBody,
+              twilioSid: sid,
+              status: status as 'queued' | 'sent' | 'delivered' | 'failed' | 'received',
+            });
+
+            console.log(`[sequence-tick] Sent SMS step ${enrollment.currentStep} for enrollment ${enrollment.id} — Twilio SID ${sid}`);
+          }
+        }
+      } else {
+        // Email branch — existing logic unchanged
+        const resolvedSubject = resolveVariables(step.templateSubject || '', variables);
+        const resolvedBody = resolveVariables(step.templateBody || '', variables);
+
+        // Create email send record
+        const [emailSend] = await db.insert(emailSends).values({
+          dealId: enrollment.dealId,
+          contactId: enrollment.contactId,
+          templateId: step.step.templateId,
+          sentBy: enrollment.enrolledBy!,
+          subject: resolvedSubject,
+          bodyHtml: resolvedBody,
+          status: 'queued',
+        }).returning();
+
+        // Enqueue the email send job
+        await emailSendQueue.add('send', {
+          emailSendId: emailSend.id,
+          userId: enrollment.enrolledBy!,
+        });
+      }
 
       // Advance to next step
       const [nextStep] = await db.select().from(sequenceSteps)

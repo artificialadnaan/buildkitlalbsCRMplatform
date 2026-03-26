@@ -6,10 +6,11 @@ import {
   conversations,
   conversationMessages,
   companies,
-  tasks,
+  deals,
 } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
-import { sendSms } from '../lib/twilio.js';
+import { sendSms, twilioClient, TWILIO_PHONE_NUMBER } from '../lib/twilio.js';
+import { createFollowUpTask } from '../lib/auto-task.js';
 
 const router = Router();
 
@@ -19,6 +20,7 @@ const router = Router();
 
 router.use('/send', authMiddleware);
 router.use('/conversations', authMiddleware);
+router.use('/call', authMiddleware);
 
 // POST /send — Send SMS to a contact
 router.post('/send', async (req, res) => {
@@ -210,6 +212,7 @@ router.post('/webhook/inbound', async (req, res) => {
 
     // Find or create conversation
     let conversationId: string;
+    let conversationExisted = false;
 
     if (contactId) {
       const existing = await db.select({ id: conversations.id })
@@ -224,6 +227,7 @@ router.post('/webhook/inbound', async (req, res) => {
 
       if (existing.length > 0) {
         conversationId = existing[0].id;
+        conversationExisted = true;
         await db.update(conversations)
           .set({ lastMessageAt: new Date() })
           .where(eq(conversations.id, conversationId));
@@ -257,13 +261,27 @@ router.post('/webhook/inbound', async (req, res) => {
       status: 'received',
     });
 
-    // Auto-create task for the assigned rep if contact is known
+    // Auto-create follow-up task if contact is known
     if (contactId) {
-      await db.insert(tasks).values({
-        title: `Follow up: SMS from ${contactName}`,
+      // Look up the contact's most recent open deal
+      const [deal] = await db
+        .select({ id: deals.id })
+        .from(deals)
+        .where(and(eq(deals.contactId, contactId), eq(deals.status, 'open')))
+        .limit(1);
+
+      const dealId = deal?.id;
+
+      // High priority if replying to an existing conversation thread
+      const isReply = conversationExisted;
+
+      const bodyPreview = body.length > 50 ? body.slice(0, 50) + '…' : body;
+
+      await createFollowUpTask({
+        dealId,
+        title: `Follow up: SMS from ${contactName} — ${bodyPreview}`,
         source: 'system',
-        status: 'todo',
-        priority: 'medium',
+        priority: isReply ? 'high' : 'medium',
       });
     }
 

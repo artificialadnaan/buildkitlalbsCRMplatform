@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-03-26T20:56:54.988Z",
+  "updatedAt": "2026-03-26T21:04:22.705Z",
   "missions": [
     {
       "id": "session:6f8e61cb-3605-4bc1-9818-5b363d7e29a6:none",
@@ -7,15 +7,15 @@
       "name": "none",
       "objective": "Session mission",
       "createdAt": "2026-03-26T07:30:59.371Z",
-      "updatedAt": "2026-03-26T20:56:54.988Z",
-      "status": "done",
-      "workerCount": 20,
+      "updatedAt": "2026-03-26T21:04:22.705Z",
+      "status": "running",
+      "workerCount": 22,
       "taskCounts": {
-        "total": 20,
+        "total": 22,
         "pending": 0,
         "blocked": 0,
-        "inProgress": 0,
-        "completed": 20,
+        "inProgress": 1,
+        "completed": 21,
         "failed": 0
       },
       "agents": [
@@ -218,41 +218,29 @@
           "latestUpdate": "completed",
           "completedSummary": null,
           "updatedAt": "2026-03-26T20:56:51.741Z"
+        },
+        {
+          "name": "executor:ac252f0",
+          "role": "executor",
+          "ownership": "ac252f060fd8e4246",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-03-26T21:04:22.705Z"
+        },
+        {
+          "name": "executor:aa8d516",
+          "role": "executor",
+          "ownership": "aa8d51664f6f4e316",
+          "status": "running",
+          "currentStep": null,
+          "latestUpdate": null,
+          "completedSummary": null,
+          "updatedAt": "2026-03-26T21:03:09.568Z"
         }
       ],
       "timeline": [
-        {
-          "id": "session-stop:a1f922fbe2af1f1f9:2026-03-26T20:44:27.497Z",
-          "at": "2026-03-26T20:44:27.497Z",
-          "kind": "completion",
-          "agent": "planner:a1f922f",
-          "detail": "completed",
-          "sourceKey": "session-stop:a1f922fbe2af1f1f9"
-        },
-        {
-          "id": "session-start:a52267ee892a67988:2026-03-26T20:53:52.912Z",
-          "at": "2026-03-26T20:53:52.912Z",
-          "kind": "update",
-          "agent": "executor:a52267e",
-          "detail": "started executor:a52267e",
-          "sourceKey": "session-start:a52267ee892a67988"
-        },
-        {
-          "id": "session-start:a5245b5a4ca75c598:2026-03-26T20:54:12.757Z",
-          "at": "2026-03-26T20:54:12.757Z",
-          "kind": "update",
-          "agent": "executor:a5245b5",
-          "detail": "started executor:a5245b5",
-          "sourceKey": "session-start:a5245b5a4ca75c598"
-        },
-        {
-          "id": "session-stop:a5245b5a4ca75c598:2026-03-26T20:56:51.741Z",
-          "at": "2026-03-26T20:56:51.741Z",
-          "kind": "completion",
-          "agent": "executor:a5245b5",
-          "detail": "completed",
-          "sourceKey": "session-stop:a5245b5a4ca75c598"
-        },
         {
           "id": "session-stop:a52267ee892a67988:2026-03-26T20:56:54.988Z",
           "at": "2026-03-26T20:56:54.988Z",
@@ -260,6 +248,30 @@
           "agent": "executor:a52267e",
           "detail": "completed",
           "sourceKey": "session-stop:a52267ee892a67988"
+        },
+        {
+          "id": "session-start:ac252f060fd8e4246:2026-03-26T21:02:46.905Z",
+          "at": "2026-03-26T21:02:46.905Z",
+          "kind": "update",
+          "agent": "executor:ac252f0",
+          "detail": "started executor:ac252f0",
+          "sourceKey": "session-start:ac252f060fd8e4246"
+        },
+        {
+          "id": "session-start:aa8d51664f6f4e316:2026-03-26T21:03:09.568Z",
+          "at": "2026-03-26T21:03:09.568Z",
+          "kind": "update",
+          "agent": "executor:aa8d516",
+          "detail": "started executor:aa8d516",
+          "sourceKey": "session-start:aa8d51664f6f4e316"
+        },
+        {
+          "id": "session-stop:ac252f060fd8e4246:2026-03-26T21:04:22.705Z",
+          "at": "2026-03-26T21:04:22.705Z",
+          "kind": "completion",
+          "agent": "executor:ac252f0",
+          "detail": "completed",
+          "sourceKey": "session-stop:ac252f060fd8e4246"
         }
       ]
     }

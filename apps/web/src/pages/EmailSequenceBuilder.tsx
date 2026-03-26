@@ -15,12 +15,21 @@ interface StepInput {
   templateId: string;
   stepNumber: number;
   delayDays: number;
+  channel: 'email' | 'sms';
+  smsBody: string;
 }
 
 interface SequenceData {
   sequence: { id: string; name: string; pipelineType: string };
   steps: Array<StepInput & { id?: string; templateName?: string; templateSubject?: string }>;
 }
+
+const SMS_VARIABLES = [
+  '{{contact.first_name}}',
+  '{{contact.last_name}}',
+  '{{company.name}}',
+  '{{company.city}}',
+];
 
 export default function EmailSequenceBuilder() {
   const { id } = useParams();
@@ -45,9 +54,11 @@ export default function EmailSequenceBuilder() {
         setName(data.sequence.name);
         setPipelineType(data.sequence.pipelineType as 'local' | 'construction');
         setSteps(data.steps.map(s => ({
-          templateId: s.templateId,
+          templateId: s.templateId ?? '',
           stepNumber: s.stepNumber,
           delayDays: s.delayDays,
+          channel: s.channel ?? 'email',
+          smsBody: s.smsBody ?? '',
         })));
       });
     }
@@ -56,7 +67,13 @@ export default function EmailSequenceBuilder() {
   function addStep() {
     setSteps(prev => [
       ...prev,
-      { templateId: '', stepNumber: prev.length + 1, delayDays: prev.length === 0 ? 0 : 3 },
+      {
+        templateId: '',
+        stepNumber: prev.length + 1,
+        delayDays: prev.length === 0 ? 0 : 3,
+        channel: 'email',
+        smsBody: '',
+      },
     ]);
   }
 
@@ -68,8 +85,20 @@ export default function EmailSequenceBuilder() {
     setSteps(prev => prev.map((s, i) => i === index ? { ...s, ...updates } : s));
   }
 
+  function insertVariable(index: number, variable: string) {
+    setSteps(prev => prev.map((s, i) => {
+      if (i !== index) return s;
+      return { ...s, smsBody: s.smsBody + variable };
+    }));
+  }
+
+  function isStepValid(step: StepInput): boolean {
+    if (step.channel === 'sms') return step.smsBody.trim().length > 0;
+    return step.templateId.trim().length > 0;
+  }
+
   async function handleSave() {
-    if (!name || steps.length === 0 || steps.some(s => !s.templateId)) return;
+    if (!name || steps.length === 0 || steps.some(s => !isStepValid(s))) return;
     setSaving(true);
 
     try {
@@ -91,6 +120,7 @@ export default function EmailSequenceBuilder() {
   }
 
   const filteredTemplates = templates.filter(t => t.pipelineType === pipelineType);
+  const saveDisabled = saving || !name || steps.length === 0 || steps.some(s => !isStepValid(s));
 
   return (
     <div>
@@ -100,7 +130,7 @@ export default function EmailSequenceBuilder() {
           <div className="flex gap-2">
             <button
               onClick={handleSave}
-              disabled={saving || !name || steps.length === 0}
+              disabled={saveDisabled}
               className="bg-blue-600 px-3 py-2 rounded-md text-sm text-white hover:bg-blue-500 disabled:opacity-50"
             >
               {saving ? 'Saving...' : 'Save Sequence'}
@@ -172,33 +202,111 @@ export default function EmailSequenceBuilder() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">Template</label>
-                    <select
-                      value={step.templateId}
-                      onChange={e => updateStep(index, { templateId: e.target.value })}
-                      className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900"
+                {/* Channel toggle */}
+                <div className="mb-3">
+                  <label className="block text-xs text-gray-500 mb-1">Channel</label>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => updateStep(index, { channel: 'email', smsBody: '' })}
+                      className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${
+                        step.channel === 'email'
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
+                      }`}
                     >
-                      <option value="">Select template...</option>
-                      {filteredTemplates.map(t => (
-                        <option key={t.id} value={t.id}>{t.name} — {t.subject}</option>
-                      ))}
-                    </select>
+                      Email
+                    </button>
+                    <button
+                      onClick={() => updateStep(index, { channel: 'sms', templateId: '' })}
+                      className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${
+                        step.channel === 'sms'
+                          ? 'bg-green-600 text-white border-green-600'
+                          : 'bg-white text-gray-600 border-gray-300 hover:border-green-400'
+                      }`}
+                    >
+                      SMS
+                    </button>
                   </div>
-                  {index > 0 && (
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-1">Delay (days)</label>
-                      <input
-                        type="number"
-                        min={1}
-                        value={step.delayDays}
-                        onChange={e => updateStep(index, { delayDays: parseInt(e.target.value) || 1 })}
-                        className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900"
-                      />
-                    </div>
-                  )}
                 </div>
+
+                {step.channel === 'email' ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">Template</label>
+                      <select
+                        value={step.templateId}
+                        onChange={e => updateStep(index, { templateId: e.target.value })}
+                        className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900"
+                      >
+                        <option value="">Select template...</option>
+                        {filteredTemplates.map(t => (
+                          <option key={t.id} value={t.id}>{t.name} — {t.subject}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {index > 0 && (
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Delay (days)</label>
+                        <input
+                          type="number"
+                          min={1}
+                          value={step.delayDays}
+                          onChange={e => updateStep(index, { delayDays: parseInt(e.target.value) || 1 })}
+                          className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900"
+                        />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-3">
+                      {index > 0 && (
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Delay (days)</label>
+                          <input
+                            type="number"
+                            min={1}
+                            value={step.delayDays}
+                            onChange={e => updateStep(index, { delayDays: parseInt(e.target.value) || 1 })}
+                            className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900"
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs text-gray-500">SMS Body</label>
+                        <span className={`text-xs ${step.smsBody.length > 160 ? 'text-red-500 font-medium' : 'text-gray-400'}`}>
+                          {step.smsBody.length}/160
+                        </span>
+                      </div>
+                      <textarea
+                        value={step.smsBody}
+                        onChange={e => updateStep(index, { smsBody: e.target.value })}
+                        rows={3}
+                        placeholder="Hi {{contact.first_name}}, just checking in..."
+                        className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-green-500 resize-none"
+                      />
+                      {/* Variable picker */}
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {SMS_VARIABLES.map(v => (
+                          <button
+                            key={v}
+                            onClick={() => insertVariable(index, v)}
+                            className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-0.5 rounded border border-gray-200"
+                          >
+                            {v}
+                          </button>
+                        ))}
+                      </div>
+                      {step.smsBody.length > 160 && (
+                        <p className="text-xs text-red-500 mt-1">
+                          Message exceeds 160 characters and will be split into multiple SMS segments.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
 

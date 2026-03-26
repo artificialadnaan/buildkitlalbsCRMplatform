@@ -1,6 +1,6 @@
 import type { Job } from 'bullmq';
 import { eq, and, inArray } from 'drizzle-orm';
-import { db, users, emailSends, sequenceEnrollments, activities } from '@buildkit/shared';
+import { db, users, emailSends, sequenceEnrollments, activities, conversations, conversationMessages, contacts, tasks } from '@buildkit/shared';
 import { GmailProvider } from '@buildkit/email';
 import type { GmailTokens } from '@buildkit/email';
 
@@ -129,6 +129,76 @@ export async function processGmailSync(job: Job<{ userId: string }>) {
           console.log(`[gmail-sync] Auto-paused enrollment ${enrollment.id} — reply received`);
         }
       }
+
+      // Thread inbound email into conversations
+      const contactId = send.contactId ?? null;
+      let contactName = msg.from;
+      if (contactId) {
+        const [contact] = await db.select({ firstName: contacts.firstName, lastName: contacts.lastName })
+          .from(contacts)
+          .where(eq(contacts.id, contactId))
+          .limit(1);
+        if (contact) {
+          contactName = `${contact.firstName} ${contact.lastName ?? ''}`.trim();
+        }
+      }
+
+      let conversationId: string;
+      if (contactId) {
+        const existingConv = await db.select({ id: conversations.id })
+          .from(conversations)
+          .where(and(
+            eq(conversations.contactId, contactId),
+            eq(conversations.channel, 'email'),
+          ))
+          .limit(1);
+
+        if (existingConv.length > 0) {
+          conversationId = existingConv[0].id;
+          await db.update(conversations)
+            .set({ lastMessageAt: new Date() })
+            .where(eq(conversations.id, conversationId));
+        } else {
+          const [newConv] = await db.insert(conversations).values({
+            contactId,
+            companyId: null,
+            dealId: send.dealId ?? null,
+            channel: 'email',
+            subject: msg.subject ?? null,
+            lastMessageAt: new Date(),
+          }).returning();
+          conversationId = newConv.id;
+        }
+      } else {
+        const [newConv] = await db.insert(conversations).values({
+          channel: 'email',
+          subject: msg.subject ?? null,
+          lastMessageAt: new Date(),
+        }).returning();
+        conversationId = newConv.id;
+      }
+
+      await db.insert(conversationMessages).values({
+        conversationId,
+        direction: 'inbound',
+        channel: 'email',
+        body: msg.snippet,
+        senderEmail: msg.from,
+        senderName: contactName,
+        status: 'received',
+      });
+
+      // Auto-create follow-up task for the rep
+      await db.insert(tasks).values({
+        title: `Follow up: Email from ${contactName} — ${msg.subject || '(no subject)'}`,
+        source: 'system',
+        status: 'todo',
+        priority: 'medium',
+        dealId: send.dealId ?? null,
+        assignedTo: userId,
+      });
+
+      console.log(`[gmail-sync] Threaded inbound email from ${msg.from} into conversation ${conversationId}`);
     }
   } catch (err) {
     console.error(`[gmail-sync] Error syncing for user ${userId}:`, err);

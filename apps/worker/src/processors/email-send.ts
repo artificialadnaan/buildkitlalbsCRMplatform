@@ -1,6 +1,6 @@
 import type { Job } from 'bullmq';
-import { eq } from 'drizzle-orm';
-import { db, emailSends, contacts, users, activities } from '@buildkit/shared';
+import { eq, and } from 'drizzle-orm';
+import { db, emailSends, contacts, users, activities, conversations, conversationMessages } from '@buildkit/shared';
 import type { EmailJobPayload } from '@buildkit/shared';
 import { GmailProvider, injectTracking } from '@buildkit/email';
 import type { GmailTokens } from '@buildkit/email';
@@ -114,6 +114,46 @@ export async function processEmailSend(job: Job<EmailJobPayload>) {
       body: send.bodyHtml,
       gmailThreadId: result.threadId,
     });
+
+    // Thread email into conversations
+    if (send.contactId) {
+      const existingConv = await db.select({ id: conversations.id })
+        .from(conversations)
+        .where(and(
+          eq(conversations.contactId, send.contactId),
+          eq(conversations.channel, 'email'),
+        ))
+        .limit(1);
+
+      let conversationId: string;
+
+      if (existingConv.length > 0) {
+        conversationId = existingConv[0].id;
+        await db.update(conversations)
+          .set({ lastMessageAt: new Date() })
+          .where(eq(conversations.id, conversationId));
+      } else {
+        const [newConv] = await db.insert(conversations).values({
+          contactId: send.contactId,
+          companyId: null,
+          dealId: send.dealId ?? null,
+          channel: 'email',
+          subject: send.subject ?? null,
+          lastMessageAt: new Date(),
+        }).returning();
+        conversationId = newConv.id;
+      }
+
+      await db.insert(conversationMessages).values({
+        conversationId,
+        direction: 'outbound',
+        channel: 'email',
+        body: send.bodyHtml || send.subject || '(no body)',
+        senderEmail: user.email,
+        senderName: user.name ?? null,
+        status: 'sent',
+      });
+    }
 
     console.log(`[email-send] Sent email ${emailSendId} — Gmail message ${result.messageId}`);
   } catch (err) {
