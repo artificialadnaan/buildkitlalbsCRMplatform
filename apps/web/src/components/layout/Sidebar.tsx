@@ -12,7 +12,7 @@ interface SidebarProps {
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: 'dashboard', fill: true },
-  { to: '/inbox', label: 'Inbox', icon: 'chat' },
+  { to: '/inbox', label: 'Comms', icon: 'forum' },
   { to: '/leads', label: 'Leads', icon: 'person_search' },
   { to: '/pipelines', label: 'Pipelines', icon: 'view_kanban' },
   { to: '/scraper', label: 'Scraper', icon: 'travel_explore' },
