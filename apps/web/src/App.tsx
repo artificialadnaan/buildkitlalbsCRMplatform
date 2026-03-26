@@ -22,6 +22,14 @@ import TimeTracking from './pages/TimeTracking.js';
 import Import from './pages/Import.js';
 import AuditLog from './pages/AuditLog.js';
 import Analytics from './pages/Analytics.js';
+import Notifications from './pages/Notifications.js';
+import OutreachCampaigns from './pages/OutreachCampaigns.js';
+import OutreachWizard from './pages/OutreachWizard.js';
+import OutreachDetail from './pages/OutreachDetail.js';
+import CallPrepView from './pages/CallPrepView.js';
+import ReportsList from './pages/ReportsList.js';
+import SalesPerformance from './pages/SalesPerformance.js';
+import ROICalculator from './pages/ROICalculator.js';
 
 function AuthCallback() {
   const { user, loading } = useAuth();
@@ -68,6 +76,14 @@ export default function App() {
         <Route path="/import" element={<Import />} />
         <Route path="/audit" element={<AuditLog />} />
         <Route path="/analytics" element={<Analytics />} />
+        <Route path="/notifications" element={<Notifications />} />
+        <Route path="/outreach" element={<OutreachCampaigns />} />
+        <Route path="/outreach/new" element={<OutreachWizard />} />
+        <Route path="/outreach/:id" element={<OutreachDetail />} />
+        <Route path="/deals/:id/call-prep" element={<CallPrepView />} />
+        <Route path="/reports" element={<ReportsList />} />
+        <Route path="/reports/sales" element={<SalesPerformance />} />
+        <Route path="/reports/roi" element={<ROICalculator />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
     </Routes>

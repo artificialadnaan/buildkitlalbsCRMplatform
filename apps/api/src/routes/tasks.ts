@@ -58,7 +58,7 @@ router.patch('/:id', async (req, res) => {
   }
 
   // Auto-complete milestone: if all tasks in the milestone are done, mark milestone as done
-  if (req.body.status === 'done') {
+  if (req.body.status === 'done' && task.milestoneId != null) {
     const [counts] = await db.select({
       total: sql<number>`count(*)::int`,
       done: sql<number>`count(*) filter (where ${tasks.status} = 'done')::int`,

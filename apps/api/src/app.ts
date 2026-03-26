@@ -16,6 +16,7 @@ import milestonesRoutes from './routes/milestones.js';
 import tasksRoutes from './routes/tasks.js';
 import timeEntriesRoutes from './routes/time-entries.js';
 import scrapeRoutes from './routes/scrape.js';
+import outreachRoutes from './routes/outreach.js';
 import invoicesRoutes from './routes/invoices.js';
 import invoicesStripeRoutes from './routes/invoices-stripe.js';
 import filesRoutes from './routes/files.js';
@@ -26,6 +27,10 @@ import analyticsRoutes from './routes/analytics.js';
 import exportRoutes from './routes/export.js';
 import importRoutes from './routes/import.js';
 import auditRoutes from './routes/audit.js';
+import notificationRoutes from './routes/notifications.js';
+import searchRoutes from './routes/search.js';
+import reportsRoutes from './routes/reports.js';
+import changeRequestsRoutes from './routes/change-requests.js';
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/dist/queueAdapters/bullMQ.js';
 import { ExpressAdapter } from '@bull-board/express';
@@ -59,6 +64,7 @@ export function createApp() {
   app.use('/api/milestones/:milestoneId/tasks', tasksRoutes);
   app.use('/api/time-entries', timeEntriesRoutes);
   app.use('/api/scrape', scrapeRoutes);
+  app.use('/api/outreach', outreachRoutes);
   app.use('/api/invoices', invoicesRoutes);
   app.use('/api/invoices', invoicesStripeRoutes);
   app.use('/api/files', filesRoutes);
@@ -68,6 +74,10 @@ export function createApp() {
   app.use('/api/export', exportRoutes);
   app.use('/api/import', importRoutes);
   app.use('/api/audit', auditRoutes);
+  app.use('/api/notifications', notificationRoutes);
+  app.use('/api/search', searchRoutes);
+  app.use('/api/reports', reportsRoutes);
+  app.use('/api/change-requests', changeRequestsRoutes);
 
   // Bull Board admin UI (only when Redis is available)
   if (process.env.REDIS_URL) {

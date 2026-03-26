@@ -1,9 +1,16 @@
-import type { Job } from 'bullmq';
+import type { Job, Queue } from 'bullmq';
 import { eq } from 'drizzle-orm';
 import { db, scrapeJobs, companies, contacts } from '@buildkit/shared';
-import type { ScrapeJobData, ScrapeJobProgress } from '@buildkit/shared';
+import type { ScrapeJobData, ScrapeJobProgress, WebsiteAuditJobData } from '@buildkit/shared';
+import { createWebsiteAuditQueue } from '@buildkit/shared';
 import { searchPlaces, parsePlace } from '../lib/google-places.js';
 import { extractEmailsFromUrl } from '../lib/email-extractor.js';
+
+let auditQueue: Queue<WebsiteAuditJobData> | null = null;
+function getAuditQueue(): Queue<WebsiteAuditJobData> {
+  if (!auditQueue) auditQueue = createWebsiteAuditQueue();
+  return auditQueue;
+}
 
 const API_KEY = process.env.GOOGLE_PLACES_API_KEY || '';
 
@@ -72,6 +79,14 @@ export async function processScrapeJob(job: Job<ScrapeJobData>): Promise<void> {
             email,
             phone: parsed.phone,
             isPrimary: true,
+          });
+        }
+
+        // Enqueue website audit if a URL is available
+        if (parsed.website) {
+          await getAuditQueue().add('audit', {
+            companyId: newCompany.id,
+            url: parsed.website,
           });
         }
 

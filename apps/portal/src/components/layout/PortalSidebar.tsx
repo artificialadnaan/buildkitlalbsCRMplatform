@@ -6,6 +6,8 @@ const navItems = [
   { to: '/messages', label: 'Messages', icon: '\uD83D\uDCAC' },
   { to: '/files', label: 'Files', icon: '\uD83D\uDCC1' },
   { to: '/invoices', label: 'Invoices', icon: '\uD83D\uDCB0' },
+  { to: '/surveys', label: 'Surveys', icon: '\u2B50' },
+  { to: '/changes', label: 'Changes', icon: '\uD83D\uDD04' },
 ];
 
 export default function PortalSidebar() {

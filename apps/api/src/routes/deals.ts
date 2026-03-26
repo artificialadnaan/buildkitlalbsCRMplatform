@@ -4,6 +4,7 @@ import { eq, and, sql } from 'drizzle-orm';
 import { db, deals, companies, contacts, pipelineStages, projects, milestones, portalUsers, milestoneTemplates, milestoneTemplateItems, pipelines } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
 import { logAudit } from '../lib/audit.js';
+import { generateCallPrep } from '../lib/call-prep.js';
 
 const router = Router();
 router.use(authMiddleware);
@@ -203,6 +204,33 @@ router.patch('/:id/stage', async (req, res) => {
   }
   logAudit({ userId: req.user!.userId, action: 'update', entity: 'deal', entityId: deal.id, changes: { before: { stageId: stageBefore?.stageId }, after: { stageId } } });
   res.json(deal);
+});
+
+// Get call prep (auto-generate if none exists)
+router.get('/:id/call-prep', async (req, res) => {
+  try {
+    const [deal] = await db.select({ callPrep: deals.callPrep }).from(deals).where(eq(deals.id, req.params.id)).limit(1);
+    if (!deal) {
+      res.status(404).json({ error: 'Deal not found' });
+      return;
+    }
+    const callPrep = deal.callPrep ?? await generateCallPrep(req.params.id);
+    res.json(callPrep);
+  } catch (err) {
+    console.error('[call-prep] GET error:', err);
+    res.status(500).json({ error: 'Failed to generate call prep' });
+  }
+});
+
+// Force regenerate call prep
+router.post('/:id/call-prep', async (req, res) => {
+  try {
+    const callPrep = await generateCallPrep(req.params.id);
+    res.json(callPrep);
+  } catch (err) {
+    console.error('[call-prep] POST error:', err);
+    res.status(500).json({ error: 'Failed to generate call prep' });
+  }
 });
 
 // Delete deal

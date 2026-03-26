@@ -1,12 +1,25 @@
 import 'dotenv/config';
 import { Worker } from 'bullmq';
 import cron from 'node-cron';
-import { SCRAPE_QUEUE_NAME, getRedisConnection } from '@buildkit/shared';
-import type { ScrapeJobData } from '@buildkit/shared';
+import {
+  SCRAPE_QUEUE_NAME,
+  WEBSITE_AUDIT_QUEUE,
+  OUTREACH_PIPELINE_QUEUE,
+  getRedisConnection,
+  createOutreachPipelineQueue,
+  db,
+  outreachCampaigns,
+} from '@buildkit/shared';
+import { eq } from 'drizzle-orm';
+import type { ScrapeJobData, WebsiteAuditJobData, OutreachPipelineJobData } from '@buildkit/shared';
 import { processScrapeJob } from './processors/scrape.js';
+import { processWebsiteAudit } from './processors/website-audit.js';
+import { processOutreachPipeline } from './processors/outreach-pipeline.js';
 import { processInvoicePdf } from './jobs/invoicePdf.js';
 import { processInvoiceReminders } from './jobs/invoiceReminder.js';
 import { setupEmailQueues } from './setup-email-queues.js';
+import { checkStaleDeals } from './jobs/staleDealChecker.js';
+import { sendDailyDigest } from './jobs/dailyDigest.js';
 
 console.log('[worker] Starting BuildKit CRM worker...');
 
@@ -28,8 +41,36 @@ const worker = new Worker<ScrapeJobData>(
   }
 );
 
-worker.on('completed', (job) => {
+let outreachPipelineQueue: ReturnType<typeof createOutreachPipelineQueue> | null = null;
+function getOutreachPipelineQueue() {
+  if (!outreachPipelineQueue) outreachPipelineQueue = createOutreachPipelineQueue();
+  return outreachPipelineQueue;
+}
+
+worker.on('completed', async (job) => {
   console.log(`[Worker] Scrape job ${job.id} completed`);
+
+  // If this scrape job is linked to an outreach campaign, advance the pipeline
+  try {
+    const scrapeJobId = job.data.jobId as string | undefined;
+    if (!scrapeJobId) return;
+
+    const [campaign] = await db
+      .select({ id: outreachCampaigns.id, status: outreachCampaigns.status })
+      .from(outreachCampaigns)
+      .where(eq(outreachCampaigns.scrapeJobId, scrapeJobId))
+      .limit(1);
+
+    if (campaign && campaign.status !== 'cancelled') {
+      console.log(`[Worker] Scrape job ${scrapeJobId} linked to campaign ${campaign.id} — enqueueing audit phase`);
+      await getOutreachPipelineQueue().add(`pipeline-audit-${campaign.id}`, {
+        campaignId: campaign.id,
+        phase: 'audit',
+      } satisfies OutreachPipelineJobData);
+    }
+  } catch (err) {
+    console.error('[Worker] Failed to advance outreach pipeline after scrape:', err);
+  }
 });
 
 worker.on('failed', (job, err) => {
@@ -41,6 +82,52 @@ worker.on('error', (err) => {
 });
 
 console.log(`[Worker] BuildKit CRM Worker started — listening on queue "${SCRAPE_QUEUE_NAME}"`);
+
+// Website audit worker
+const auditWorker = new Worker<WebsiteAuditJobData>(
+  WEBSITE_AUDIT_QUEUE,
+  async (job) => {
+    console.log(`[Worker] Processing website-audit job ${job.id} — company: ${job.data.companyId}`);
+    await processWebsiteAudit(job);
+  },
+  {
+    connection,
+    concurrency: 3,
+  },
+);
+
+auditWorker.on('completed', (job) => {
+  console.log(`[Worker] Website-audit job ${job.id} completed`);
+});
+
+auditWorker.on('failed', (job, err) => {
+  console.error(`[Worker] Website-audit job ${job?.id} failed:`, err.message);
+});
+
+console.log(`[Worker] Website audit worker started — listening on queue "${WEBSITE_AUDIT_QUEUE}"`);
+
+// Outreach pipeline worker
+const outreachWorker = new Worker<OutreachPipelineJobData>(
+  OUTREACH_PIPELINE_QUEUE,
+  async (job) => {
+    console.log(`[Worker] Processing outreach-pipeline job ${job.id} — campaign: ${job.data.campaignId}, phase: ${job.data.phase}`);
+    await processOutreachPipeline(job);
+  },
+  {
+    connection,
+    concurrency: 1,
+  },
+);
+
+outreachWorker.on('completed', (job) => {
+  console.log(`[Worker] Outreach-pipeline job ${job.id} completed (phase: ${job.data.phase})`);
+});
+
+outreachWorker.on('failed', (job, err) => {
+  console.error(`[Worker] Outreach-pipeline job ${job?.id} failed:`, err.message);
+});
+
+console.log(`[Worker] Outreach pipeline worker started — listening on queue "${OUTREACH_PIPELINE_QUEUE}"`);
 
 // Invoice PDF generation worker
 const invoiceWorker = new Worker(
@@ -76,6 +163,28 @@ cron.schedule('0 9 * * *', async () => {
 });
 
 console.log('[Worker] Invoice worker and daily reminder cron registered');
+
+// Stale deal check — daily at 8 AM
+cron.schedule('0 8 * * *', async () => {
+  console.log('[Worker] Running stale deal check...');
+  try {
+    await checkStaleDeals();
+  } catch (err) {
+    console.error('[Worker] Stale deal checker failed:', err);
+  }
+});
+
+// Daily digest — daily at 9 AM
+cron.schedule('0 9 * * *', async () => {
+  console.log('[Worker] Running daily digest...');
+  try {
+    await sendDailyDigest();
+  } catch (err) {
+    console.error('[Worker] Daily digest failed:', err);
+  }
+});
+
+console.log('[Worker] Stale deal checker and daily digest crons registered');
 
 // Start email workers (send, sequence-tick, gmail-sync)
 setupEmailQueues();

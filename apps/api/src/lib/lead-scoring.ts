@@ -20,6 +20,7 @@ export function calculateLeadScore(
   contactCount: number,
   dealCount: number,
   hasEmail = false,
+  websiteScore?: number,
 ): number {
   let score = 0;
 
@@ -70,6 +71,9 @@ export function calculateLeadScore(
   if (dealCount > 0) {
     score += 20;
   }
+
+  // Website audit score: up to +20
+  score += Math.min(Math.round((websiteScore || 0) / 5), 20);
 
   return Math.min(score, 100);
 }

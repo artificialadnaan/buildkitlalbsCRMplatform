@@ -20,3 +20,8 @@ export * from './files.js';
 export * from './invoices.js';
 export * from './audit-log.js';
 export * from './email-events.js';
+export * from './notifications.js';
+export * from './outreach-campaigns.js';
+export * from './satisfaction-surveys.js';
+export * from './change-requests.js';
+export * from './report-schedules.js';

@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, integer, numeric, timestamp, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, integer, numeric, jsonb, timestamp, pgEnum } from 'drizzle-orm/pg-core';
 
 export const companyTypeEnum = pgEnum('company_type', ['local', 'construction']);
 export const companySourceEnum = pgEnum('company_source', ['scraped', 'manual']);
@@ -19,5 +19,8 @@ export const companies = pgTable('companies', {
   employeeCount: integer('employee_count'),
   source: companySourceEnum('source').notNull().default('manual'),
   score: integer('score').notNull().default(0),
+  websiteAudit: jsonb('website_audit'),
+  websiteScore: integer('website_score').default(0),
+  websiteAuditedAt: timestamp('website_audited_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });

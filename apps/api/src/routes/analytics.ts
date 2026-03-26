@@ -195,4 +195,55 @@ router.get('/overview', async (req, res) => {
   });
 });
 
+// GET /api/analytics/forecast — Revenue forecast by pipeline stage
+router.get('/forecast', async (req, res) => {
+  // Get all pipeline stages
+  const stages = await db.select().from(pipelineStages).orderBy(pipelineStages.position);
+
+  if (stages.length === 0) {
+    res.json({ stages: [], totalForecast: 0 });
+    return;
+  }
+
+  // For each stage: open deal count + value, and historical win rate from that stage
+  const stageMetrics = await db.select({
+    stageId: deals.stageId,
+    openCount: sql<number>`count(*) filter (where ${deals.status} = 'open')::int`,
+    openValue: sql<number>`coalesce(sum(${deals.value}) filter (where ${deals.status} = 'open'), 0)::int`,
+    totalClosed: sql<number>`count(*) filter (where ${deals.status} in ('won', 'lost'))::int`,
+    totalWon: sql<number>`count(*) filter (where ${deals.status} = 'won')::int`,
+  })
+    .from(deals)
+    .groupBy(deals.stageId);
+
+  const metricsMap = new Map(stageMetrics.map(m => [m.stageId, m]));
+
+  let totalForecast = 0;
+
+  const stageData = stages.map(stage => {
+    const metrics = metricsMap.get(stage.id);
+    const openCount = metrics?.openCount ?? 0;
+    const openValue = metrics?.openValue ?? 0;
+    const totalClosed = metrics?.totalClosed ?? 0;
+    const totalWon = metrics?.totalWon ?? 0;
+
+    const conversionRate = totalClosed > 0 ? totalWon / totalClosed : 0;
+    const weightedValue = Math.round(openValue * conversionRate);
+    totalForecast += weightedValue;
+
+    return {
+      id: stage.id,
+      name: stage.name,
+      position: stage.position,
+      color: stage.color,
+      openDealCount: openCount,
+      openDealValue: openValue,
+      historicalConversionRate: +conversionRate.toFixed(3),
+      weightedValue,
+    };
+  });
+
+  res.json({ stages: stageData, totalForecast });
+});
+
 export default router;

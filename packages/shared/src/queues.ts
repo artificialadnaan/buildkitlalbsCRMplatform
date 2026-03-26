@@ -1,4 +1,5 @@
 import { Queue } from 'bullmq';
+import type { WebsiteAuditJobData, OutreachPipelineJobData, NotificationJobData, ReportJobData } from './types/index.js';
 
 // Email queues
 export const EMAIL_SEND_QUEUE = 'email-send';
@@ -16,6 +17,12 @@ export const EMAIL_QUEUE_OPTIONS = {
 
 // Scrape queues
 export const SCRAPE_QUEUE_NAME = 'scrape-leads';
+
+// New feature queues
+export const WEBSITE_AUDIT_QUEUE = 'website-audit';
+export const OUTREACH_PIPELINE_QUEUE = 'outreach-pipeline';
+export const NOTIFICATION_QUEUE = 'notification';
+export const REPORT_QUEUE = 'report-generation';
 
 export interface ScrapeJobData {
   jobId: string;
@@ -47,6 +54,53 @@ export function createScrapeQueue() {
     connection: getRedisConnection(),
     defaultJobOptions: {
       attempts: 1,
+      removeOnComplete: { count: 100 },
+      removeOnFail: { count: 50 },
+    },
+  });
+}
+
+export function createWebsiteAuditQueue() {
+  return new Queue<WebsiteAuditJobData>(WEBSITE_AUDIT_QUEUE, {
+    connection: getRedisConnection(),
+    defaultJobOptions: {
+      attempts: 2,
+      backoff: { type: 'exponential' as const, delay: 10000 },
+      removeOnComplete: { count: 500 },
+      removeOnFail: { count: 200 },
+    },
+  });
+}
+
+export function createOutreachPipelineQueue() {
+  return new Queue<OutreachPipelineJobData>(OUTREACH_PIPELINE_QUEUE, {
+    connection: getRedisConnection(),
+    defaultJobOptions: {
+      attempts: 3,
+      backoff: { type: 'exponential' as const, delay: 5000 },
+      removeOnComplete: { count: 100 },
+      removeOnFail: { count: 50 },
+    },
+  });
+}
+
+export function createNotificationQueue() {
+  return new Queue<NotificationJobData>(NOTIFICATION_QUEUE, {
+    connection: getRedisConnection(),
+    defaultJobOptions: {
+      attempts: 2,
+      removeOnComplete: { count: 1000 },
+      removeOnFail: { count: 500 },
+    },
+  });
+}
+
+export function createReportQueue() {
+  return new Queue<ReportJobData>(REPORT_QUEUE, {
+    connection: getRedisConnection(),
+    defaultJobOptions: {
+      attempts: 2,
+      backoff: { type: 'exponential' as const, delay: 10000 },
       removeOnComplete: { count: 100 },
       removeOnFail: { count: 50 },
     },

@@ -4,7 +4,63 @@ import { db, sequenceEnrollments, sequenceSteps, emailSends, emailTemplates, con
 import { resolveVariables } from '@buildkit/email';
 import { Queue } from 'bullmq';
 import { EMAIL_SEND_QUEUE } from '@buildkit/shared';
-import type { EmailJobPayload } from '@buildkit/shared';
+import type { EmailJobPayload, WebsiteAudit } from '@buildkit/shared';
+
+function getTopIssue(audit: WebsiteAudit | null): string {
+  if (!audit) return '';
+
+  const { checks } = audit;
+
+  if (!checks.isHttps) return 'No SSL certificate on your website';
+  if (!checks.hasMobileViewport) return "Your website isn't mobile-friendly";
+  if (checks.loadTimeMs > 3000) {
+    const seconds = (checks.loadTimeMs / 1000).toFixed(1);
+    return `Your website takes ${seconds}s to load`;
+  }
+  if (!checks.hasContactForm) return 'No contact form on your website';
+  if (!checks.hasMetaDescription) return 'Missing meta description — you\'re invisible to search engines';
+  if (checks.brokenImageCount > 0) return `${checks.brokenImageCount} broken image${checks.brokenImageCount > 1 ? 's' : ''} on your website`;
+
+  const currentYear = new Date().getFullYear();
+  if (checks.copyrightYear != null && checks.copyrightYear < currentYear - 1) {
+    return `Your website copyright still says ${checks.copyrightYear}`;
+  }
+
+  return audit.findings || '';
+}
+
+function generateSpecificObservation(audit: WebsiteAudit | null): string {
+  if (!audit) return '';
+
+  const { checks } = audit;
+  const issues: string[] = [];
+
+  if (checks.loadTimeMs > 3000) {
+    const seconds = (checks.loadTimeMs / 1000).toFixed(1);
+    issues.push(`loads in ${seconds} seconds`);
+  }
+
+  if (!checks.hasMobileViewport) {
+    issues.push("isn't mobile-friendly");
+  }
+
+  if (!checks.isHttps) {
+    issues.push("doesn't have an SSL certificate");
+  }
+
+  if (!checks.hasContactForm) {
+    issues.push("has no contact form");
+  }
+
+  if (issues.length === 0) return '';
+
+  if (issues.length === 1) {
+    return `I noticed your website ${issues[0]}`;
+  }
+
+  const last = issues.pop();
+  return `I noticed your website ${issues.join(', ')} and ${last}`;
+}
 
 const redisConnection = { host: process.env.REDIS_HOST || 'localhost', port: parseInt(process.env.REDIS_PORT || '6379') };
 
@@ -59,11 +115,15 @@ export async function processSequenceTick(job: Job) {
         companyWebsite: companies.website,
         companyCity: companies.city,
         companyIndustry: companies.industry,
+        websiteAudit: companies.websiteAudit,
+        websiteScore: companies.websiteScore,
       })
         .from(contacts)
         .leftJoin(companies, eq(contacts.companyId, companies.id))
         .where(eq(contacts.id, enrollment.contactId))
         .limit(1);
+
+      const audit = (contact?.websiteAudit as WebsiteAudit | null) ?? null;
 
       const variables: Record<string, string> = {
         'contact.first_name': contact?.firstName || '',
@@ -73,6 +133,11 @@ export async function processSequenceTick(job: Job) {
         'company.website': contact?.companyWebsite || '',
         'company.city': contact?.companyCity || '',
         'company.industry': contact?.companyIndustry || '',
+        'audit.score': String(contact?.websiteScore || 0),
+        'audit.load_time': audit ? String((audit.checks.loadTimeMs / 1000).toFixed(1)) : '',
+        'audit.findings': audit?.findings || '',
+        'audit.top_issue': getTopIssue(audit),
+        'audit.specific_observation': generateSpecificObservation(audit),
       };
 
       const resolvedSubject = resolveVariables(step.templateSubject || '', variables);

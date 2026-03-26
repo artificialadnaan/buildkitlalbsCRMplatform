@@ -1,11 +1,19 @@
 import { Router } from 'express';
 import { eq, ilike, sql, and, desc, isNotNull } from 'drizzle-orm';
-import { db, companies, contacts, deals } from '@buildkit/shared';
+import { db, companies, contacts, deals, activities, emailSends } from '@buildkit/shared';
+import { createWebsiteAuditQueue } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
 import { requireRole } from '../middleware/requireRole.js';
 import { calculateLeadScore } from '../lib/lead-scoring.js';
 import { logAudit } from '../lib/audit.js';
-import type { CompanyType } from '@buildkit/shared';
+import type { CompanyType, WebsiteAuditJobData } from '@buildkit/shared';
+import type { Queue } from 'bullmq';
+
+let auditQueue: Queue<WebsiteAuditJobData> | null = null;
+function getAuditQueue(): Queue<WebsiteAuditJobData> {
+  if (!auditQueue) auditQueue = createWebsiteAuditQueue();
+  return auditQueue;
+}
 
 const router = Router();
 
@@ -120,6 +128,167 @@ router.delete('/:id', requireRole('admin'), async (req, res) => {
   }
   logAudit({ userId: req.user!.userId, action: 'delete', entity: 'company', entityId: id, changes: { before: deleted } });
   res.json({ success: true });
+});
+
+// Get website audit results for a company
+router.get('/:id/audit', async (req, res) => {
+  const id = req.params.id as string;
+  const [company] = await db
+    .select({ websiteAudit: companies.websiteAudit, websiteScore: companies.websiteScore, websiteAuditedAt: companies.websiteAuditedAt })
+    .from(companies)
+    .where(eq(companies.id, id))
+    .limit(1);
+  if (!company) {
+    res.status(404).json({ error: 'Company not found' });
+    return;
+  }
+  res.json(company);
+});
+
+// Trigger a manual website re-audit
+router.post('/:id/audit', async (req, res) => {
+  const id = req.params.id as string;
+  const [company] = await db
+    .select({ id: companies.id, website: companies.website })
+    .from(companies)
+    .where(eq(companies.id, id))
+    .limit(1);
+  if (!company) {
+    res.status(404).json({ error: 'Company not found' });
+    return;
+  }
+  if (!company.website) {
+    res.status(400).json({ error: 'Company has no website URL to audit' });
+    return;
+  }
+  const job = await getAuditQueue().add('audit', { companyId: id, url: company.website });
+  res.status(202).json({ success: true, jobId: job.id });
+});
+
+// GET /:id/timeline — Company timeline aggregating activities, email sends, and deal events
+router.get('/:id/timeline', async (req, res) => {
+  const id = req.params.id as string;
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 50;
+  const offset = (page - 1) * limit;
+
+  const [company] = await db.select({ id: companies.id }).from(companies).where(eq(companies.id, id)).limit(1);
+  if (!company) {
+    res.status(404).json({ error: 'Company not found' });
+    return;
+  }
+
+  const timelineResult = await db.execute(sql`
+    SELECT * FROM (
+      -- Activities via deals.company_id
+      SELECT
+        a.id,
+        'activity' AS type,
+        COALESCE(a.subject, a.type::text) AS title,
+        a.body AS description,
+        a.created_at AS timestamp,
+        json_build_object('activityType', a.type, 'dealId', a.deal_id) AS metadata
+      FROM activities a
+      INNER JOIN deals d ON a.deal_id = d.id
+      WHERE d.company_id = ${id}
+
+      UNION ALL
+
+      -- Activities via contacts.company_id
+      SELECT
+        a.id,
+        'activity' AS type,
+        COALESCE(a.subject, a.type::text) AS title,
+        a.body AS description,
+        a.created_at AS timestamp,
+        json_build_object('activityType', a.type, 'contactId', a.contact_id) AS metadata
+      FROM activities a
+      INNER JOIN contacts c ON a.contact_id = c.id
+      WHERE c.company_id = ${id}
+        AND a.deal_id IS NULL
+
+      UNION ALL
+
+      -- Email sends via contacts.company_id
+      SELECT
+        es.id,
+        'email_sent' AS type,
+        COALESCE(es.subject, 'Email sent') AS title,
+        NULL AS description,
+        es.sent_at AS timestamp,
+        json_build_object('contactId', es.contact_id, 'status', es.status) AS metadata
+      FROM email_sends es
+      INNER JOIN contacts c ON es.contact_id = c.id
+      WHERE c.company_id = ${id}
+        AND es.sent_at IS NOT NULL
+
+      UNION ALL
+
+      -- Deals: created event
+      SELECT
+        d.id,
+        'deal_created' AS type,
+        'Deal created: ' || d.title AS title,
+        NULL AS description,
+        d.created_at AS timestamp,
+        json_build_object('dealId', d.id, 'value', d.value) AS metadata
+      FROM deals d
+      WHERE d.company_id = ${id}
+
+      UNION ALL
+
+      -- Deals: won event
+      SELECT
+        d.id || '-won' AS id,
+        'deal_won' AS type,
+        'Deal won: ' || d.title AS title,
+        NULL AS description,
+        d.closed_at AS timestamp,
+        json_build_object('dealId', d.id, 'value', d.value) AS metadata
+      FROM deals d
+      WHERE d.company_id = ${id}
+        AND d.status = 'won'
+        AND d.closed_at IS NOT NULL
+
+      UNION ALL
+
+      -- Deals: lost event
+      SELECT
+        d.id || '-lost' AS id,
+        'deal_lost' AS type,
+        'Deal lost: ' || d.title AS title,
+        d.lost_reason AS description,
+        d.closed_at AS timestamp,
+        json_build_object('dealId', d.id, 'lostReason', d.lost_reason) AS metadata
+      FROM deals d
+      WHERE d.company_id = ${id}
+        AND d.status = 'lost'
+        AND d.closed_at IS NOT NULL
+    ) AS timeline
+    WHERE timestamp IS NOT NULL
+    ORDER BY timestamp DESC
+    LIMIT ${limit} OFFSET ${offset}
+  `);
+
+  const countResult = await db.execute(sql`
+    SELECT COUNT(*) AS total FROM (
+      SELECT a.id FROM activities a INNER JOIN deals d ON a.deal_id = d.id WHERE d.company_id = ${id}
+      UNION ALL
+      SELECT a.id FROM activities a INNER JOIN contacts c ON a.contact_id = c.id WHERE c.company_id = ${id} AND a.deal_id IS NULL
+      UNION ALL
+      SELECT es.id FROM email_sends es INNER JOIN contacts c ON es.contact_id = c.id WHERE c.company_id = ${id} AND es.sent_at IS NOT NULL
+      UNION ALL
+      SELECT d.id FROM deals d WHERE d.company_id = ${id}
+      UNION ALL
+      SELECT d.id FROM deals d WHERE d.company_id = ${id} AND d.status = 'won' AND d.closed_at IS NOT NULL
+      UNION ALL
+      SELECT d.id FROM deals d WHERE d.company_id = ${id} AND d.status = 'lost' AND d.closed_at IS NOT NULL
+    ) AS t
+  `);
+
+  const total = parseInt(String((countResult.rows[0] as { total: string }).total)) || 0;
+
+  res.json({ data: timelineResult.rows, total, page, limit });
 });
 
 export default router;

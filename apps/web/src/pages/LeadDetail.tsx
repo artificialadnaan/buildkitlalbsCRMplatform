@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { api } from '../lib/api.js';
 import TopBar from '../components/layout/TopBar.js';
 import Badge from '../components/ui/Badge.js';
 import Modal from '../components/ui/Modal.js';
+import WebsiteAuditCard, { type WebsiteAudit } from '../components/ui/WebsiteAuditCard.js';
+import CompanyTimeline from '../components/ui/CompanyTimeline.js';
+
+interface Deal {
+  id: string;
+}
 
 interface Company {
   id: string;
@@ -20,6 +26,8 @@ interface Company {
   employeeCount: number | null;
   source: string;
   score: number;
+  websiteAudit: WebsiteAudit | null;
+  deals: Deal[];
 }
 
 interface Contact {
@@ -67,9 +75,13 @@ export default function LeadDetail() {
     api<ContactsResponse>(`/api/contacts?companyId=${id}`).then((res) => setContacts(res.data)).catch(console.error);
   };
 
-  useEffect(() => {
+  const loadCompany = () => {
     if (!id) return;
     api<Company>(`/api/companies/${id}`).then(setCompany).catch(console.error);
+  };
+
+  useEffect(() => {
+    loadCompany();
     loadContacts();
   }, [id]);
 
@@ -172,12 +184,22 @@ export default function LeadDetail() {
             <h2 className="text-base font-semibold text-gray-900">
               Company Details
             </h2>
-            <button
-              onClick={openCreateDeal}
-              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-emerald-500"
-            >
-              + Create Deal
-            </button>
+            <div className="flex items-center gap-2">
+              {company.deals && company.deals.length > 0 && (
+                <Link
+                  to={`/deals/${company.deals[0].id}/call-prep`}
+                  className="rounded-lg border border-border bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100"
+                >
+                  Call Prep
+                </Link>
+              )}
+              <button
+                onClick={openCreateDeal}
+                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-emerald-500"
+              >
+                + Create Deal
+              </button>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             {infoFields.map((field) => (
@@ -240,6 +262,16 @@ export default function LeadDetail() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Website Audit + Timeline */}
+      <div className="grid grid-cols-1 gap-6 px-6 pb-6 lg:grid-cols-2">
+        <WebsiteAuditCard
+          companyId={id!}
+          audit={company.websiteAudit}
+          onReaudit={loadCompany}
+        />
+        <CompanyTimeline companyId={id!} />
       </div>
 
       {/* Create Deal Modal */}

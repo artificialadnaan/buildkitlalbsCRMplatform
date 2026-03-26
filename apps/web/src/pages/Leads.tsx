@@ -8,6 +8,7 @@ import Badge from '../components/ui/Badge.js';
 import Modal from '../components/ui/Modal.js';
 import LoadingSpinner from '../components/ui/LoadingSpinner.js';
 import { useToast } from '../components/ui/Toast.js';
+import ContextualActionButton from '../components/ui/ContextualActionButton.js';
 
 interface Company {
   id: string;
@@ -21,6 +22,7 @@ interface Company {
   industry: string | null;
   googleRating: string | null;
   score: number;
+  websiteAudit: { score: number } | null;
 }
 
 interface CompanyResponse {
@@ -56,6 +58,22 @@ function ScoreIndicator({ score }: { score: number }) {
     <span className="inline-flex items-center gap-1.5">
       <span className={`inline-block h-2 w-2 rounded-full ${color}`} />
       <span className="text-sm font-medium text-gray-700">{score}</span>
+    </span>
+  );
+}
+
+function WebsiteScoreBadge({ audit }: { audit: { score: number } | null }) {
+  if (!audit) {
+    return <span className="text-sm text-gray-400">—</span>;
+  }
+  const { score } = audit;
+  let classes = 'bg-red-100 text-red-700 border-red-200';
+  if (score > 60) classes = 'bg-emerald-100 text-emerald-700 border-emerald-200';
+  else if (score > 30) classes = 'bg-amber-100 text-amber-700 border-amber-200';
+
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${classes}`}>
+      {score}
     </span>
   );
 }
@@ -225,6 +243,16 @@ export default function Leads() {
       render: (row) => (
         <Badge label={row.source} variant={sourceVariants[row.source] ?? 'gray'} />
       ),
+    },
+    {
+      key: 'websiteAudit',
+      label: 'Web Score',
+      render: (row) => <WebsiteScoreBadge audit={row.websiteAudit} />,
+    },
+    {
+      key: 'id',
+      label: 'Action',
+      render: (row) => <ContextualActionButton company={row} />,
     },
   ];
 

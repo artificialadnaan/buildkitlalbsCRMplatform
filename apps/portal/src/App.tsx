@@ -7,6 +7,8 @@ import ProjectStatus from './pages/ProjectStatus.js';
 import Messages from './pages/Messages.js';
 import Files from './pages/Files.js';
 import PortalInvoices from './pages/Invoices.js';
+import Surveys from './pages/Surveys.js';
+import ChangeRequests from './pages/ChangeRequests.js';
 
 export default function App() {
   return (
@@ -19,6 +21,8 @@ export default function App() {
           <Route path="/messages" element={<Messages />} />
           <Route path="/files" element={<Files />} />
           <Route path="/invoices" element={<PortalInvoices />} />
+          <Route path="/surveys" element={<Surveys />} />
+          <Route path="/changes" element={<ChangeRequests />} />
         </Route>
       </Routes>
     </PortalAuthProvider>

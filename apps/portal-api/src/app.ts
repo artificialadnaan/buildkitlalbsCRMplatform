@@ -5,6 +5,8 @@ import projectsRoutes from './routes/projects.js';
 import messagesRoutes from './routes/messages.js';
 import filesRoutes from './routes/files.js';
 import portalInvoicesRoutes from './routes/invoices.js';
+import surveysRoutes from './routes/surveys.js';
+import portalChangeRequestsRoutes from './routes/change-requests.js';
 
 export function createApp() {
   const app = express();
@@ -21,6 +23,8 @@ export function createApp() {
   app.use('/portal/messages', messagesRoutes);
   app.use('/portal/files', filesRoutes);
   app.use('/portal/invoices', portalInvoicesRoutes);
+  app.use('/portal/surveys', surveysRoutes);
+  app.use('/portal/change-requests', portalChangeRequestsRoutes);
 
   // Health check
   app.get('/portal/health', (req, res) => {

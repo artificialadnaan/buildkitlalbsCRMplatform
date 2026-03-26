@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, integer, timestamp, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, integer, jsonb, timestamp, pgEnum } from 'drizzle-orm/pg-core';
 import { companies } from './companies.js';
 import { contacts } from './contacts.js';
 import { users } from './users.js';
@@ -19,5 +19,7 @@ export const deals = pgTable('deals', {
   lostReason: varchar('lost_reason', { length: 500 }),
   expectedCloseDate: timestamp('expected_close_date', { withTimezone: true }),
   closedAt: timestamp('closed_at', { withTimezone: true }),
+  callPrep: jsonb('call_prep'),
+  callPrepGeneratedAt: timestamp('call_prep_generated_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
