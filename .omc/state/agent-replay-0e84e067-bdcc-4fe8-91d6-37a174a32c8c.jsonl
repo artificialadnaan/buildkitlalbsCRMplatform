@@ -37,3 +37,4 @@
 {"t":0,"agent":"aff743a","agent_type":"general-purpose","event":"agent_start","parent_mode":"none"}
 {"t":0,"agent":"af34409","agent_type":"general-purpose","event":"agent_start","parent_mode":"none"}
 {"t":0,"agent":"af5409b","agent_type":"general-purpose","event":"agent_stop","success":true,"duration_ms":569947}
+{"t":0,"agent":"ae1a28b","agent_type":"unknown","event":"agent_stop","success":true}

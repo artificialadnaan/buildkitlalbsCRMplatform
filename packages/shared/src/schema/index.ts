@@ -19,3 +19,4 @@ export * from './messages.js';
 export * from './files.js';
 export * from './invoices.js';
 export * from './audit-log.js';
+export * from './email-events.js';

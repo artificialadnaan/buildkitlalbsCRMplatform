@@ -19,6 +19,8 @@ import InvoiceDetail from './pages/InvoiceDetail.js';
 import Projects from './pages/Projects.js';
 import ProjectDetail from './pages/ProjectDetail.js';
 import TimeTracking from './pages/TimeTracking.js';
+import Import from './pages/Import.js';
+import AuditLog from './pages/AuditLog.js';
 
 function AuthCallback() {
   const { user, loading } = useAuth();
@@ -62,6 +64,8 @@ export default function App() {
         <Route path="/projects" element={<Projects />} />
         <Route path="/projects/:id" element={<ProjectDetail />} />
         <Route path="/time" element={<TimeTracking />} />
+        <Route path="/import" element={<Import />} />
+        <Route path="/audit" element={<AuditLog />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
     </Routes>

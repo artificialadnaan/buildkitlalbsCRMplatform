@@ -21,6 +21,8 @@ import invoicesStripeRoutes from './routes/invoices-stripe.js';
 import filesRoutes from './routes/files.js';
 import messagesRoutes from './routes/messages.js';
 import usersRoutes from './routes/users.js';
+import emailTrackingRoutes from './routes/email-tracking.js';
+import analyticsRoutes from './routes/analytics.js';
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/dist/queueAdapters/bullMQ.js';
 import { ExpressAdapter } from '@bull-board/express';
@@ -33,6 +35,9 @@ export function createApp() {
 
   app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
   app.use(express.json());
+
+  // Public tracking routes (no auth — hit by email clients)
+  app.use('/t', emailTrackingRoutes);
 
   // Routes
   app.use('/auth', authRoutes);
@@ -56,6 +61,7 @@ export function createApp() {
   app.use('/api/files', filesRoutes);
   app.use('/api/messages', messagesRoutes);
   app.use('/api/users', usersRoutes);
+  app.use('/api/analytics', analyticsRoutes);
 
   // Bull Board admin UI (only when Redis is available)
   if (process.env.REDIS_URL) {

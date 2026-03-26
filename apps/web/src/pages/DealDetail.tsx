@@ -57,6 +57,30 @@ interface ActivitiesResponse {
   data: Activity[];
 }
 
+interface EmailSend {
+  id: string;
+  subject: string | null;
+  status: string;
+  sentAt: string | null;
+  createdAt: string;
+}
+
+interface EmailSendsResponse {
+  data: EmailSend[];
+  total: number;
+}
+
+interface EmailEventsSummary {
+  openCount: number;
+  clickCount: number;
+  firstOpenedAt: string | null;
+  lastOpenedAt: string | null;
+}
+
+interface EmailEventsResponse {
+  summary: EmailEventsSummary;
+}
+
 const statusVariants: Record<string, 'blue' | 'green' | 'red'> = {
   open: 'blue',
   won: 'green',
@@ -78,6 +102,28 @@ export default function DealDetail() {
   const [stageChanging, setStageChanging] = useState(false);
   const [showStageModal, setShowStageModal] = useState(false);
   const [selectedStageId, setSelectedStageId] = useState('');
+  const [emailSends, setEmailSends] = useState<EmailSend[]>([]);
+  const [emailStats, setEmailStats] = useState<Record<string, EmailEventsSummary>>({});
+
+  const loadEmailTracking = (dealId: string) => {
+    api<EmailSendsResponse>(`/api/email-sends?dealId=${dealId}`).then(async (res) => {
+      setEmailSends(res.data);
+      const stats: Record<string, EmailEventsSummary> = {};
+      await Promise.all(
+        res.data
+          .filter((s) => s.status === 'sent')
+          .map(async (s) => {
+            try {
+              const evts = await api<EmailEventsResponse>(`/api/email-sends/${s.id}/events`);
+              stats[s.id] = evts.summary;
+            } catch {
+              // tracking data may not exist yet
+            }
+          })
+      );
+      setEmailStats(stats);
+    }).catch(console.error);
+  };
 
   const loadData = () => {
     if (!id) return;
@@ -92,6 +138,7 @@ export default function DealDetail() {
       }).catch(console.error);
     }).catch(console.error);
     api<ActivitiesResponse>(`/api/activities?dealId=${id}`).then((res) => setActivities(res.data)).catch(console.error);
+    loadEmailTracking(id);
   };
 
   const handleStageChange = async (stageId: string) => {
@@ -295,6 +342,56 @@ export default function DealDetail() {
           )}
         </div>
       </div>
+
+      {/* Email Tracking */}
+      {emailSends.length > 0 && (
+        <div className="px-6 pb-6">
+          <div className="rounded-lg border border-border bg-surface p-5">
+            <h2 className="mb-3 text-base font-semibold text-gray-900">
+              Email Tracking
+            </h2>
+            <div className="divide-y divide-border">
+              {emailSends.map((send) => {
+                const stats = emailStats[send.id];
+                return (
+                  <div key={send.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {send.subject || '(no subject)'}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {send.status === 'sent' ? `Sent ${formatRelativeTime(send.sentAt || send.createdAt)}` : send.status}
+                      </p>
+                    </div>
+                    {send.status === 'sent' && stats ? (
+                      <div className="flex items-center gap-3 ml-4 shrink-0">
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${stats.openCount > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          {stats.openCount > 0 ? `Opened ${stats.openCount}x` : 'Not opened'}
+                        </span>
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${stats.clickCount > 0 ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.172 13.828a4 4 0 015.656 0l4-4a4 4 0 00-5.656-5.656l-1.102 1.101" />
+                          </svg>
+                          {stats.clickCount > 0 ? `${stats.clickCount} clicks` : 'No clicks'}
+                        </span>
+                      </div>
+                    ) : send.status === 'sent' ? (
+                      <span className="text-xs text-gray-400 ml-4">Loading...</span>
+                    ) : (
+                      <Badge label={send.status} variant={send.status === 'failed' ? 'red' : 'amber'} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Move Stage Modal */}
       <Modal open={showStageModal} onClose={() => setShowStageModal(false)} title="Move Stage">
