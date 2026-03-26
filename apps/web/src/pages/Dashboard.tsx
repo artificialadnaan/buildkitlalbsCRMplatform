@@ -15,6 +15,7 @@ interface DashboardStats {
   activeProjects: number;
   openTasks: number;
   dueSoonTasks: number;
+  emailsSentThisMonth: number;
 }
 
 interface ActivityRow {
@@ -106,6 +107,12 @@ export default function Dashboard() {
               value={stats?.wonDeals ?? '--'}
               trend={stats ? formatCurrency(stats.wonValue) + ' total' : undefined}
               trendColor="green"
+            />
+            <StatCard
+              label="Emails Sent"
+              value={stats?.emailsSentThisMonth ?? '--'}
+              trend="this month"
+              trendColor="blue"
             />
           </div>
         </div>

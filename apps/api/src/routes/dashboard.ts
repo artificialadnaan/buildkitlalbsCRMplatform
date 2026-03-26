@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { eq, and, sql, desc } from 'drizzle-orm';
-import { db, deals, activities, users, projects, tasks, milestones as milestonesTable } from '@buildkit/shared';
+import { eq, and, sql, desc, gte } from 'drizzle-orm';
+import { db, deals, activities, users, projects, tasks, milestones as milestonesTable, emailSends } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
@@ -25,10 +25,24 @@ router.get('/stats', async (req, res) => {
     dueSoonTasks: sql<number>`count(*) filter (where ${tasks.status} != 'done' and ${tasks.dueDate} <= current_date + interval '7 days')::int`,
   }).from(tasks);
 
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
+
+  const [emailStats] = await db.select({
+    emailsSentThisMonth: sql<number>`count(*)::int`,
+  })
+    .from(emailSends)
+    .where(and(
+      eq(emailSends.status, 'sent'),
+      gte(emailSends.sentAt, monthStart),
+    ));
+
   res.json({
     ...dealStats,
     ...projectStats,
     ...taskStats,
+    ...emailStats,
   });
 });
 
