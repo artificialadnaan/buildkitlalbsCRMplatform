@@ -1,5 +1,13 @@
+import { useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../lib/auth.js';
+
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
+}
 
 const navItems = [
   {
@@ -95,61 +103,127 @@ const navItems = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }: SidebarProps) {
   const { user, logout } = useAuth();
 
+  // Close mobile sidebar on Escape key
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      document.addEventListener('keydown', handleEsc);
+      return () => document.removeEventListener('keydown', handleEsc);
+    }
+  }, [isOpen, onClose]);
+
+  const sidebarWidth = collapsed ? 'w-16' : 'w-56';
+
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-56 flex-col bg-[#1F4D78] border-r border-[#1F4D78]">
-      {/* Logo */}
-      <div className="flex items-center gap-2 px-5 py-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
-          <span className="text-sm font-bold text-white">BK</span>
+    <>
+      {/* Mobile backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`
+          fixed left-0 top-0 z-50 flex h-screen flex-col bg-[#1F4D78] border-r border-[#1F4D78]
+          transition-all duration-200
+          ${sidebarWidth}
+          ${/* Mobile: translate off-screen unless open */''}
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          md:translate-x-0
+        `}
+      >
+        {/* Logo */}
+        <div className="flex items-center gap-2 px-5 py-5">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/20">
+            <span className="text-sm font-bold text-white">BK</span>
+          </div>
+          {!collapsed && (
+            <span className="text-base font-semibold text-white whitespace-nowrap">
+              BuildKit CRM
+            </span>
+          )}
         </div>
-        <span className="text-base font-semibold text-white">
-          BuildKit CRM
-        </span>
-      </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-3 py-2">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === '/'}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-150 ease-out ${
-                isActive
-                  ? 'border-l-2 border-white bg-white/20 text-white'
-                  : 'border-l-2 border-transparent text-white/70 hover:bg-white/10 hover:text-white'
-              }`
-            }
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-2 overflow-y-auto">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/'}
+              onClick={onClose}
+              title={collapsed ? item.label : undefined}
+              className={({ isActive }) =>
+                `flex items-center ${collapsed ? 'justify-center' : 'gap-3'} rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-150 ease-out ${
+                  isActive
+                    ? 'border-l-2 border-white bg-white/20 text-white'
+                    : 'border-l-2 border-transparent text-white/70 hover:bg-white/10 hover:text-white'
+                }`
+              }
+            >
+              {collapsed ? (
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-xs font-semibold text-white">
+                  {item.label.charAt(0)}
+                </div>
+              ) : (
+                <>
+                  {item.icon}
+                  {item.label}
+                </>
+              )}
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Collapse toggle (desktop only) */}
+        <div className="hidden md:block border-t border-white/20 px-3 py-2">
+          <button
+            onClick={onToggleCollapse}
+            className="flex w-full items-center justify-center rounded-md px-3 py-2 text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
-            {item.icon}
-            {item.label}
-          </NavLink>
-        ))}
-      </nav>
+            {collapsed ? (
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+              </svg>
+            ) : (
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+              </svg>
+            )}
+          </button>
+        </div>
 
-      {/* User */}
-      {user && (
-        <div className="border-t border-white/20 px-4 py-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20 text-xs font-medium text-white">
-              {user.name.charAt(0).toUpperCase()}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-white truncate">{user.name}</p>
-              <button
-                onClick={logout}
-                className="text-xs text-white/60 hover:text-red-300 transition-colors"
-              >
-                Sign out
-              </button>
+        {/* User */}
+        {user && (
+          <div className="border-t border-white/20 px-4 py-3">
+            <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20 text-xs font-medium text-white">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+              {!collapsed && (
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-white truncate">{user.name}</p>
+                  <button
+                    onClick={logout}
+                    className="text-xs text-white/60 hover:text-red-300 transition-colors"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-        </div>
-      )}
-    </aside>
+        )}
+      </aside>
+    </>
   );
 }
