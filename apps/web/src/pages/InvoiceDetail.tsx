@@ -96,7 +96,7 @@ export default function InvoiceDetail() {
             <select
               value={selectedProjectId}
               onChange={e => setSelectedProjectId(e.target.value)}
-              className="bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300 w-full max-w-sm"
+              className="bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300 w-full max-w-sm"
             >
               <option value="">Select a project...</option>
               {projects.map(p => (

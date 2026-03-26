@@ -120,7 +120,7 @@ export default function TimeTracking() {
         {projects.length === 0 ? <p className="text-sm text-gray-500 text-center py-4">No active projects. Create a project first.</p> : (
           <div className="space-y-3">
             <div><label className="block text-xs text-gray-500 mb-1">Project</label>
-              <select value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)} className="w-full bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300">
+              <select value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)} className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300">
                 <option value="">Select a project</option>
                 {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>

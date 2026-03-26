@@ -89,7 +89,7 @@ export default function ComposeEmailModal({
           <select
             value={selectedTemplateId}
             onChange={e => setSelectedTemplateId(e.target.value)}
-            className="w-full bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300"
+            className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300"
           >
             <option value="">Select a template...</option>
             {templates.map(t => (
@@ -102,14 +102,14 @@ export default function ComposeEmailModal({
               placeholder="Subject"
               value={subject}
               onChange={e => setSubject(e.target.value)}
-              className="w-full bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600"
+              className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600"
             />
             <textarea
               placeholder="Email body (HTML supported)..."
               value={bodyHtml}
               onChange={e => setBodyHtml(e.target.value)}
               rows={5}
-              className="w-full bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600 resize-none"
+              className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600 resize-none"
             />
           </>
         )}

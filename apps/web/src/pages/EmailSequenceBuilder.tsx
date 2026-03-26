@@ -124,7 +124,7 @@ export default function EmailSequenceBuilder() {
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="e.g., Construction 3-Touch Outreach"
-              className="w-full bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+              className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-blue-500"
             />
           </div>
           <div>
@@ -132,7 +132,7 @@ export default function EmailSequenceBuilder() {
             <select
               value={pipelineType}
               onChange={e => { setPipelineType(e.target.value as 'local' | 'construction'); setSteps([]); }}
-              className="w-full bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300"
+              className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300"
             >
               <option value="local">Local Business</option>
               <option value="construction">Construction</option>
@@ -178,7 +178,7 @@ export default function EmailSequenceBuilder() {
                     <select
                       value={step.templateId}
                       onChange={e => updateStep(index, { templateId: e.target.value })}
-                      className="w-full bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300"
+                      className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300"
                     >
                       <option value="">Select template...</option>
                       {filteredTemplates.map(t => (
@@ -194,7 +194,7 @@ export default function EmailSequenceBuilder() {
                         min={1}
                         value={step.delayDays}
                         onChange={e => updateStep(index, { delayDays: parseInt(e.target.value) || 1 })}
-                        className="w-full bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300"
+                        className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300"
                       />
                     </div>
                   )}

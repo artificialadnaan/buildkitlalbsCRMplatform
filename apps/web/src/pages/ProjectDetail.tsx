@@ -205,10 +205,10 @@ export default function ProjectDetail() {
 
       <Modal open={showAddTask} onClose={() => setShowAddTask(false)} title="Add Task">
         <div className="space-y-3">
-          <input placeholder="Task title" value={newTaskTitle} onChange={e => setNewTaskTitle(e.target.value)} className="w-full bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600" />
+          <input placeholder="Task title" value={newTaskTitle} onChange={e => setNewTaskTitle(e.target.value)} className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600" />
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="block text-xs text-gray-500 mb-1">Priority</label><select value={newTaskPriority} onChange={e => setNewTaskPriority(e.target.value)} className="w-full bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></div>
-            <div><label className="block text-xs text-gray-500 mb-1">Due Date</label><input type="date" value={newTaskDueDate} onChange={e => setNewTaskDueDate(e.target.value)} className="w-full bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300" /></div>
+            <div><label className="block text-xs text-gray-500 mb-1">Priority</label><select value={newTaskPriority} onChange={e => setNewTaskPriority(e.target.value)} className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></div>
+            <div><label className="block text-xs text-gray-500 mb-1">Due Date</label><input type="date" value={newTaskDueDate} onChange={e => setNewTaskDueDate(e.target.value)} className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300" /></div>
           </div>
           <button onClick={handleAddTask} className="w-full bg-blue-600 text-white rounded-md py-2 text-sm font-medium hover:bg-blue-500">Add Task</button>
         </div>

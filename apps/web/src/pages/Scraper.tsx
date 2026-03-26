@@ -118,7 +118,7 @@ export default function Scraper() {
                 onChange={e => setZipInput(e.target.value)}
                 placeholder={"75201, 75202, 75203\nOr one per line..."}
                 rows={3}
-                className="w-full bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600 resize-none focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600 resize-none focus:outline-none focus:border-blue-500"
               />
               <p className="text-xs text-gray-600 mt-1">
                 Comma or newline separated. {zipInput.split(/[,\s\n]+/).filter(z => /^\d{5}$/.test(z.trim())).length} valid zip(s) entered.
@@ -131,7 +131,7 @@ export default function Scraper() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder='e.g., "plumbers", "restaurants", "roofing contractors"'
-                className="w-full bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-blue-500"
               />
               <p className="text-xs text-gray-600 mt-3">
                 Estimated cost: ~$34 per 1,000 leads (Google Places API).
@@ -164,7 +164,7 @@ export default function Scraper() {
         ) : (
           <div className="space-y-3">
             {jobs.map(job => (
-              <div key={job.id} className="bg-gray-950 border border-border rounded-lg p-4">
+              <div key={job.id} className="bg-slate-900 border border-border rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-medium text-gray-300">

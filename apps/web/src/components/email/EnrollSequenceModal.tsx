@@ -93,7 +93,7 @@ export default function EnrollSequenceModal({
             <h4 className="text-xs font-medium text-gray-500 mb-2">Current Enrollments</h4>
             <div className="space-y-2">
               {enrollments.map(e => (
-                <div key={e.id} className="bg-gray-950 border border-border rounded-md px-3 py-2 flex items-center justify-between">
+                <div key={e.id} className="bg-slate-900 border border-border rounded-md px-3 py-2 flex items-center justify-between">
                   <div>
                     <span className="text-sm text-gray-300">{e.sequenceName}</span>
                     <div className="flex items-center gap-2 mt-0.5">
@@ -133,7 +133,7 @@ export default function EnrollSequenceModal({
           <select
             value={selectedSequenceId}
             onChange={e => setSelectedSequenceId(e.target.value)}
-            className="w-full bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300 mb-2"
+            className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300 mb-2"
           >
             <option value="">Select a sequence...</option>
             {sequences.map(s => (

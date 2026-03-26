@@ -49,7 +49,7 @@ export default function InvoiceForm({ initialLineItems = [], initialDueDate = ''
           type="date"
           value={dueDate}
           onChange={e => setDueDate(e.target.value)}
-          className="bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300 w-48"
+          className="bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300 w-48"
         />
       </div>
 
@@ -61,7 +61,7 @@ export default function InvoiceForm({ initialLineItems = [], initialDueDate = ''
 
         <div className="space-y-2">
           {lineItems.map((item, i) => (
-            <div key={i} className="flex gap-2 items-start bg-gray-950 border border-border rounded-md p-3">
+            <div key={i} className="flex gap-2 items-start bg-slate-900 border border-border rounded-md p-3">
               <div className="flex-1">
                 <input
                   placeholder="Description"
@@ -73,7 +73,7 @@ export default function InvoiceForm({ initialLineItems = [], initialDueDate = ''
                   <select
                     value={item.type}
                     onChange={e => updateLineItem(i, 'type', e.target.value)}
-                    className="bg-gray-900 border border-border rounded text-xs text-gray-400 px-2 py-1"
+                    className="bg-slate-800 border border-border rounded text-xs text-gray-400 px-2 py-1"
                   >
                     <option value="fixed">Fixed</option>
                     <option value="time_entry">Time Entry</option>
@@ -84,7 +84,7 @@ export default function InvoiceForm({ initialLineItems = [], initialDueDate = ''
                     placeholder="Qty"
                     value={item.quantity}
                     onChange={e => updateLineItem(i, 'quantity', parseInt(e.target.value) || 1)}
-                    className="bg-gray-900 border border-border rounded text-xs text-gray-300 px-2 py-1 w-16"
+                    className="bg-slate-800 border border-border rounded text-xs text-gray-300 px-2 py-1 w-16"
                   />
                   <div className="flex items-center gap-1">
                     <span className="text-xs text-gray-500">$</span>
@@ -95,7 +95,7 @@ export default function InvoiceForm({ initialLineItems = [], initialDueDate = ''
                       placeholder="Unit price"
                       value={(item.unitPriceCents / 100).toFixed(2)}
                       onChange={e => updateLineItem(i, 'unitPriceCents', e.target.value)}
-                      className="bg-gray-900 border border-border rounded text-xs text-gray-300 px-2 py-1 w-24"
+                      className="bg-slate-800 border border-border rounded text-xs text-gray-300 px-2 py-1 w-24"
                     />
                   </div>
                 </div>

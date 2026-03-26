@@ -5,9 +5,9 @@ export default {
   theme: {
     extend: {
       colors: {
-        sidebar: '#0a0f1a',
-        surface: '#111827',
-        border: '#1e293b',
+        sidebar: '#0f172a',
+        surface: '#1e293b',
+        border: '#334155',
         brand: '#1F4D78',
       },
     },

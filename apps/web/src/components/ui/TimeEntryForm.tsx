@@ -51,7 +51,7 @@ export default function TimeEntryForm({ projectId, onSubmit, onCancel, tasks }: 
           value={description}
           onChange={e => setDescription(e.target.value)}
           placeholder="What did you work on?"
-          className="w-full bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600"
+          className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600"
         />
       </div>
 
@@ -64,7 +64,7 @@ export default function TimeEntryForm({ projectId, onSubmit, onCancel, tasks }: 
             value={hours}
             onChange={e => setHours(e.target.value)}
             placeholder="0"
-            className="w-full bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600"
+            className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600"
           />
         </div>
         <div>
@@ -76,7 +76,7 @@ export default function TimeEntryForm({ projectId, onSubmit, onCancel, tasks }: 
             value={minutes}
             onChange={e => setMinutes(e.target.value)}
             placeholder="0"
-            className="w-full bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600"
+            className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600"
           />
         </div>
         <div>
@@ -85,7 +85,7 @@ export default function TimeEntryForm({ projectId, onSubmit, onCancel, tasks }: 
             type="date"
             value={date}
             onChange={e => setDate(e.target.value)}
-            className="w-full bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300"
+            className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300"
           />
         </div>
       </div>
@@ -96,7 +96,7 @@ export default function TimeEntryForm({ projectId, onSubmit, onCancel, tasks }: 
           <select
             value={taskId}
             onChange={e => setTaskId(e.target.value)}
-            className="w-full bg-gray-950 border border-border rounded-md px-3 py-2 text-sm text-gray-300"
+            className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300"
           >
             <option value="">No specific task</option>
             {tasks.map(t => (
