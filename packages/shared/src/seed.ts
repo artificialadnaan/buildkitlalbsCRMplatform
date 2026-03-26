@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import pg from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { pipelines, pipelineStages } from './schema/index.js';
+import { pipelines, pipelineStages, milestoneTemplates, milestoneTemplateItems } from './schema/index.js';
 
 async function seed() {
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
@@ -50,6 +50,38 @@ async function seed() {
   console.log('Seeded pipelines:');
   console.log(`  Local Business (${localStages.length} stages)`);
   console.log(`  Construction (${constructionStages.length} stages)`);
+
+  // Seed Website milestone template
+  const [websiteTemplate] = await db.insert(milestoneTemplates).values({
+    name: 'Website Project',
+    projectType: 'website',
+  }).returning();
+
+  await db.insert(milestoneTemplateItems).values([
+    { templateId: websiteTemplate.id, name: 'Discovery', position: 1 },
+    { templateId: websiteTemplate.id, name: 'Design', position: 2 },
+    { templateId: websiteTemplate.id, name: 'Development', position: 3 },
+    { templateId: websiteTemplate.id, name: 'Launch', position: 4 },
+  ]);
+
+  // Seed Software milestone template
+  const [softwareTemplate] = await db.insert(milestoneTemplates).values({
+    name: 'Software Project',
+    projectType: 'software',
+  }).returning();
+
+  await db.insert(milestoneTemplateItems).values([
+    { templateId: softwareTemplate.id, name: 'Discovery', position: 1 },
+    { templateId: softwareTemplate.id, name: 'Architecture', position: 2 },
+    { templateId: softwareTemplate.id, name: 'Development', position: 3 },
+    { templateId: softwareTemplate.id, name: 'Testing', position: 4 },
+    { templateId: softwareTemplate.id, name: 'Staging', position: 5 },
+    { templateId: softwareTemplate.id, name: 'Launch', position: 6 },
+  ]);
+
+  console.log('Seeded milestone templates:');
+  console.log(`  Website Project (4 milestones)`);
+  console.log(`  Software Project (6 milestones)`);
 
   await pool.end();
 }

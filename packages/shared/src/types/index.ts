@@ -45,3 +45,17 @@ export interface SequenceTickPayload {
 export interface GmailSyncPayload {
   userId: string;
 }
+
+export type ScrapeJobStatus = 'pending' | 'running' | 'done' | 'failed';
+
+export interface ScrapeJobInput {
+  zipCodes: string[];
+  searchQuery: string;
+  startedBy: string;
+}
+
+export type ProjectType = 'website' | 'software';
+export type ProjectStatus = 'active' | 'on_hold' | 'completed';
+export type MilestoneStatus = 'pending' | 'in_progress' | 'done';
+export type TaskStatus = 'todo' | 'in_progress' | 'done';
+export type TaskPriority = 'low' | 'medium' | 'high';

@@ -8,6 +8,8 @@
   "scripts": {
     "dev:api": "npm run dev -w apps/api",
     "dev:web": "npm run dev -w apps/web",
+    "dev:portal": "npm run dev -w apps/portal",
+    "dev:portal-api": "npm run dev -w apps/portal-api",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
