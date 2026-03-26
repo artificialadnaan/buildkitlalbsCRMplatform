@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import crypto from 'crypto';
 import { eq, and, sql } from 'drizzle-orm';
 import { db, deals, companies, contacts, pipelineStages, projects, milestones, portalUsers, milestoneTemplates, milestoneTemplateItems, pipelines } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
@@ -162,11 +163,22 @@ router.patch('/:id', async (req, res) => {
             .limit(1);
 
           if (existingPortalUser.length === 0) {
-            await db.insert(portalUsers).values({
+            const [newPortalUser] = await db.insert(portalUsers).values({
               contactId: primaryContact.id,
               companyId: deal.companyId,
               email: primaryContact.email,
-            });
+            }).returning();
+
+            // Generate magic link token for portal access
+            const magicToken = crypto.randomBytes(32).toString('hex');
+            const tokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 min
+
+            await db.update(portalUsers)
+              .set({ magicLinkToken: magicToken, tokenExpiresAt: tokenExpiry })
+              .where(eq(portalUsers.id, newPortalUser.id));
+
+            // Log the portal URL (in production this would be emailed)
+            console.log(`[Portal] Magic link for ${primaryContact.email}: ${process.env.PORTAL_URL || 'https://buildkitportal-production.up.railway.app'}/auth/verify/${magicToken}`);
           }
         }
       }
