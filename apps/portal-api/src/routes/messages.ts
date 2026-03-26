@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { eq, and, asc, isNull, sql } from 'drizzle-orm';
-import { db, messages, users, contacts } from '@buildkit/shared';
+import { db, messages, users, contacts, projects } from '@buildkit/shared';
 import { portalAuthMiddleware } from '../middleware/portalAuth.js';
 import { emitToCompany } from '../lib/socket.js';
 
@@ -13,32 +13,44 @@ router.get('/:projectId', async (req, res) => {
   const companyId = req.portalUser!.companyId;
   const { projectId } = req.params;
   const limit = parseInt(req.query.limit as string) || 50;
-  const before = req.query.before as string | undefined;
 
-  // Verify project belongs to this company (done via join/check)
-  const projectMessages = await db.select()
-    .from(messages)
-    .where(eq(messages.projectId, projectId))
-    .orderBy(asc(messages.createdAt))
-    .limit(limit);
+  // Verify project belongs to this portal user's company
+  const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
+  if (!project || project.companyId !== companyId) {
+    res.status(403).json({ error: 'Access denied' });
+    return;
+  }
 
-  // Enrich with sender names
-  const enriched = await Promise.all(projectMessages.map(async (msg) => {
-    let senderName = 'Unknown';
-    if (msg.senderType === 'team') {
-      const [user] = await db.select({ name: users.name })
-        .from(users)
-        .where(eq(users.id, msg.senderId))
-        .limit(1);
-      senderName = user?.name || 'Team Member';
-    } else {
-      const [contact] = await db.select({ firstName: contacts.firstName, lastName: contacts.lastName })
-        .from(contacts)
-        .where(eq(contacts.id, msg.senderId))
-        .limit(1);
-      senderName = contact ? `${contact.firstName} ${contact.lastName || ''}`.trim() : 'Client';
-    }
-    return { ...msg, senderName };
+  // Fetch messages with sender name via LEFT JOINs — no N+1
+  const rows = await db.execute<{
+    id: string;
+    project_id: string;
+    sender_type: string;
+    sender_id: string;
+    body: string;
+    created_at: Date;
+    read_at: Date | null;
+    user_name: string | null;
+    contact_first: string | null;
+    contact_last: string | null;
+  }>(sql`
+    SELECT m.*,
+      u.name AS user_name,
+      ct.first_name AS contact_first,
+      ct.last_name AS contact_last
+    FROM messages m
+    LEFT JOIN users u ON m.sender_type = 'team' AND u.id = m.sender_id
+    LEFT JOIN contacts ct ON m.sender_type = 'client' AND ct.id = m.sender_id
+    WHERE m.project_id = ${projectId}
+    ORDER BY m.created_at ASC
+    LIMIT ${limit}
+  `);
+
+  const enriched = rows.rows.map(r => ({
+    ...r,
+    senderName: r.sender_type === 'team'
+      ? (r.user_name || 'Team Member')
+      : (r.contact_first ? `${r.contact_first} ${r.contact_last || ''}`.trim() : 'Client'),
   }));
 
   res.json(enriched);
@@ -53,6 +65,13 @@ router.post('/:projectId', async (req, res) => {
 
   if (!body || typeof body !== 'string' || body.trim().length === 0) {
     res.status(400).json({ error: 'Message body is required' });
+    return;
+  }
+
+  // Verify project belongs to this portal user's company
+  const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
+  if (!project || project.companyId !== companyId) {
+    res.status(403).json({ error: 'Access denied' });
     return;
   }
 

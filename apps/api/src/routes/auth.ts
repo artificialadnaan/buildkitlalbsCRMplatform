@@ -79,7 +79,9 @@ router.get('/callback', async (req, res) => {
     }
 
     const jwt = signToken({ userId: user.id, email: user.email, role: user.role });
-    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${jwt}`);
+    // Use URL fragment (#) instead of query param so the token is never sent
+    // to the server in access logs or Referer headers.
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback#token=${jwt}`);
   } catch (err) {
     console.error('OAuth callback error:', err);
     res.status(500).json({ error: 'Authentication failed' });

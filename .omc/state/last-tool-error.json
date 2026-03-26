@@ -1,7 +1,7 @@
 {
-  "tool_name": "Read",
-  "tool_input_preview": "{\"file_path\":\"/Users/adnaaniqbal/Developer/Consulting/buildkit-crm/apps/web/src/lib/auth.ts\"}",
-  "error": "File does not exist. Note: your current working directory is /Users/adnaaniqbal/Developer/Consulting/buildkit-crm. Did you mean auth.tsx?",
-  "timestamp": "2026-03-26T21:52:07.686Z",
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"npx tsc --noEmit -p apps/worker/tsconfig.json 2>&1\",\"description\":\"Type-check worker package\"}",
+  "error": "Exit code 2\napps/worker/src/processors/website-audit.ts(20,36): error TS2304: Cannot find name 'REQUEST_TIMEOUT_MS'.",
+  "timestamp": "2026-03-26T22:27:52.877Z",
   "retry_count": 1
 }

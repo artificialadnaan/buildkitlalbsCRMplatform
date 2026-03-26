@@ -22,7 +22,7 @@ function toCSV(headers: string[], rows: Record<string, unknown>[]): string {
 }
 
 router.get('/companies', async (req, res) => {
-  const data = await db.select().from(companies);
+  const data = await db.select().from(companies).limit(10000);
   const csv = toCSV(
     ['name', 'type', 'phone', 'website', 'city', 'state', 'zip', 'industry', 'source', 'score'],
     data as Record<string, unknown>[]
@@ -38,7 +38,7 @@ router.get('/contacts', async (req, res) => {
     firstName: contacts.firstName, lastName: contacts.lastName,
     email: contacts.email, phone: contacts.phone, title: contacts.title,
     companyName: companies.name,
-  }).from(contacts).leftJoin(companies, eq(contacts.companyId, companies.id));
+  }).from(contacts).leftJoin(companies, eq(contacts.companyId, companies.id)).limit(10000);
   const csv = toCSV(['firstName', 'lastName', 'email', 'phone', 'title', 'companyName'], data as Record<string, unknown>[]);
   const date = new Date().toISOString().split('T')[0];
   res.setHeader('Content-Type', 'text/csv');
@@ -52,7 +52,8 @@ router.get('/deals', async (req, res) => {
     companyName: companies.name, stageName: pipelineStages.name,
   }).from(deals)
     .leftJoin(companies, eq(deals.companyId, companies.id))
-    .leftJoin(pipelineStages, eq(deals.stageId, pipelineStages.id));
+    .leftJoin(pipelineStages, eq(deals.stageId, pipelineStages.id))
+    .limit(10000);
   const csv = toCSV(['title', 'value', 'status', 'companyName', 'stageName'], data as Record<string, unknown>[]);
   const date = new Date().toISOString().split('T')[0];
   res.setHeader('Content-Type', 'text/csv');
@@ -67,7 +68,8 @@ router.get('/time-entries', async (req, res) => {
     projectName: projects.name, userName: users.name,
   }).from(timeEntries)
     .leftJoin(projects, eq(timeEntries.projectId, projects.id))
-    .leftJoin(users, eq(timeEntries.userId, users.id));
+    .leftJoin(users, eq(timeEntries.userId, users.id))
+    .limit(10000);
   const csv = toCSV(['description', 'durationMinutes', 'date', 'billable', 'projectName', 'userName'], data as Record<string, unknown>[]);
   const date = new Date().toISOString().split('T')[0];
   res.setHeader('Content-Type', 'text/csv');
@@ -97,7 +99,8 @@ router.get('/scrape/:jobId', async (req, res) => {
     websiteScore: companies.websiteScore,
   }).from(companies)
     .leftJoin(contacts, eq(contacts.companyId, companies.id))
-    .where(eq(companies.scrapeJobId, jobId));
+    .where(eq(companies.scrapeJobId, jobId))
+    .limit(10000);
 
   const csv = toCSV(
     ['name', 'phone', 'email', 'website', 'city', 'state', 'zip', 'industry', 'score', 'websiteScore'],

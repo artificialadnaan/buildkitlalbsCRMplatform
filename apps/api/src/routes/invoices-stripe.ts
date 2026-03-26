@@ -121,14 +121,14 @@ router.post('/:id/send', authMiddleware, async (req: Request<IdParams>, res) => 
   }
 });
 
-// Stripe webhook handler
+// Stripe webhook handler — req.body is a raw Buffer (set by express.raw in app.ts)
 router.post('/webhook', async (req, res) => {
   const sig = req.headers['stripe-signature'] as string;
   let event: Stripe.Event;
 
   try {
     event = getStripe().webhooks.constructEvent(
-      JSON.stringify(req.body),
+      req.body as Buffer,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET!
     );

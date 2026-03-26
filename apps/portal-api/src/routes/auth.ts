@@ -86,9 +86,9 @@ router.get('/verify/:token', async (req, res) => {
     email: portalUser.email,
   });
 
-  // Redirect to portal frontend with session token
+  // Redirect to portal frontend with session token in hash (not query string) to avoid server logs
   const frontendUrl = process.env.PORTAL_FRONTEND_URL || 'http://localhost:5174';
-  res.redirect(`${frontendUrl}/?session=${sessionId}`);
+  res.redirect(`${frontendUrl}/#session=${sessionId}`);
 });
 
 export default router;

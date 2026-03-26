@@ -50,6 +50,26 @@ router.get('/:emailSendId/click', async (req, res) => {
     return;
   }
 
+  // Validate redirect URL — must be http/https and not an internal auth endpoint
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    res.status(400).send('Invalid url parameter');
+    return;
+  }
+
+  if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+    res.status(400).send('Invalid url protocol');
+    return;
+  }
+
+  const ownHost = req.get('host') ?? '';
+  if (parsedUrl.host === ownHost && parsedUrl.pathname.startsWith('/auth')) {
+    res.status(400).send('Redirect to auth endpoints is not allowed');
+    return;
+  }
+
   try {
     const [send] = await db.select({ id: emailSends.id })
       .from(emailSends)
@@ -67,7 +87,7 @@ router.get('/:emailSendId/click', async (req, res) => {
     console.error('[email-tracking] Failed to log click event:', err);
   }
 
-  res.redirect(302, url);
+  res.redirect(302, parsedUrl.toString());
 });
 
 export default router;

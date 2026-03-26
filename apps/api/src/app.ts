@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import authRoutes from './routes/auth.js';
 import companiesRoutes from './routes/companies.js';
 import contactsRoutes from './routes/contacts.js';
@@ -38,12 +40,23 @@ import { ExpressAdapter } from '@bull-board/express';
 import { createScrapeQueue, EMAIL_SEND_QUEUE, SEQUENCE_TICK_QUEUE, GMAIL_SYNC_QUEUE, getRedisConnection } from '@buildkit/shared';
 import { Queue } from 'bullmq';
 import { errorHandler } from './middleware/errorHandler.js';
+import { authMiddleware } from './middleware/auth.js';
+import { requireRole } from './middleware/requireRole.js';
 
 export function createApp() {
   const app = express();
 
+  app.use(helmet());
   app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
-  app.use(express.json());
+
+  // Stripe webhook must receive raw body BEFORE express.json() parses it
+  app.use('/api/invoices/stripe/webhook', express.raw({ type: 'application/json' }));
+
+  app.use(express.json({ limit: '1mb' }));
+
+  // Global rate limiter — 100 requests per minute per IP
+  const limiter = rateLimit({ windowMs: 60 * 1000, max: 100, standardHeaders: true, legacyHeaders: false });
+  app.use('/api/', limiter);
 
   // Public tracking routes (no auth — hit by email clients)
   app.use('/t', emailTrackingRoutes);
@@ -101,7 +114,7 @@ export function createApp() {
       serverAdapter,
     });
 
-    app.use('/admin/queues', serverAdapter.getRouter());
+    app.use('/admin/queues', authMiddleware, requireRole('admin'), serverAdapter.getRouter());
   }
 
   // Health check

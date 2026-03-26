@@ -96,7 +96,15 @@ router.post('/:projectId/upload-url', async (req, res) => {
 
 // Request approval for a file (team-side route, but included here for completeness)
 router.post('/:projectId/files/:fileId/request-approval', async (req, res) => {
-  const { fileId } = req.params;
+  const companyId = req.portalUser!.companyId;
+  const { projectId, fileId } = req.params;
+
+  // Verify project belongs to this portal user's company
+  const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
+  if (!project || project.companyId !== companyId) {
+    res.status(403).json({ error: 'Access denied' });
+    return;
+  }
 
   const [file] = await db.update(files)
     .set({ requiresApproval: true })

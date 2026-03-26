@@ -1,11 +1,12 @@
 import twilio from 'twilio';
+import { requireEnv } from './env.js';
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID!;
-const authToken = process.env.TWILIO_AUTH_TOKEN!;
+const accountSid = requireEnv('TWILIO_ACCOUNT_SID');
+const authToken = requireEnv('TWILIO_AUTH_TOKEN');
 
 export const twilioClient = twilio(accountSid, authToken);
 
-export const TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER!;
+export const TWILIO_PHONE_NUMBER = requireEnv('TWILIO_PHONE_NUMBER');
 
 export async function sendSms(to: string, body: string): Promise<{ sid: string; status: string }> {
   const apiBaseUrl = process.env.API_BASE_URL || process.env.RAILWAY_PUBLIC_DOMAIN

@@ -1,0 +1,19 @@
+-- Foreign key indexes
+CREATE INDEX IF NOT EXISTS idx_deals_company_id ON deals(company_id);
+CREATE INDEX IF NOT EXISTS idx_deals_pipeline_id ON deals(pipeline_id);
+CREATE INDEX IF NOT EXISTS idx_deals_stage_id ON deals(stage_id);
+CREATE INDEX IF NOT EXISTS idx_deals_assigned_to ON deals(assigned_to);
+CREATE INDEX IF NOT EXISTS idx_deals_status ON deals(status);
+CREATE INDEX IF NOT EXISTS idx_contacts_company_id ON contacts(company_id);
+CREATE INDEX IF NOT EXISTS idx_contacts_email ON contacts(email);
+CREATE INDEX IF NOT EXISTS idx_activities_deal_id ON activities(deal_id);
+CREATE INDEX IF NOT EXISTS idx_activities_user_id ON activities(user_id);
+CREATE INDEX IF NOT EXISTS idx_email_sends_contact_id ON email_sends(contact_id);
+CREATE INDEX IF NOT EXISTS idx_email_sends_deal_id ON email_sends(deal_id);
+CREATE INDEX IF NOT EXISTS idx_conversation_messages_conversation_id ON conversation_messages(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_conversation_messages_twilio_sid ON conversation_messages(twilio_sid);
+CREATE INDEX IF NOT EXISTS idx_companies_assigned_to ON companies(assigned_to);
+CREATE INDEX IF NOT EXISTS idx_companies_scrape_job_id ON companies(scrape_job_id);
+CREATE INDEX IF NOT EXISTS idx_companies_source ON companies(source);
+CREATE INDEX IF NOT EXISTS idx_sequence_enrollments_deal_id ON sequence_enrollments(deal_id);
+CREATE INDEX IF NOT EXISTS idx_sequence_enrollments_status ON sequence_enrollments(status);

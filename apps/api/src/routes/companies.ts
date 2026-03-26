@@ -85,31 +85,35 @@ router.get('/', async (req, res) => {
 
 // Rescore all companies
 router.post('/rescore', async (req, res) => {
+  // Fetch all companies and their aggregated contact/deal counts in two queries
   const allCompanies = await db.select().from(companies);
+
+  const aggregates = await db.execute<{
+    id: string;
+    contact_count: number;
+    has_email: number;
+    deal_count: number;
+  }>(sql`
+    SELECT c.id,
+      COUNT(DISTINCT ct.id)::int AS contact_count,
+      COUNT(DISTINCT CASE WHEN ct.email IS NOT NULL THEN ct.id END)::int AS has_email,
+      COUNT(DISTINCT d.id)::int AS deal_count
+    FROM companies c
+    LEFT JOIN contacts ct ON ct.company_id = c.id
+    LEFT JOIN deals d ON d.company_id = c.id
+    GROUP BY c.id
+  `);
+
+  const aggMap = new Map(aggregates.rows.map(r => [r.id, r]));
 
   let updated = 0;
   for (const company of allCompanies) {
-    const [contactResult] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(contacts)
-      .where(eq(contacts.companyId, company.id));
+    const agg = aggMap.get(company.id);
+    const contactCount = agg?.contact_count ?? 0;
+    const dealCount = agg?.deal_count ?? 0;
+    const hasEmail = (agg?.has_email ?? 0) > 0;
 
-    const [emailResult] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(contacts)
-      .where(and(eq(contacts.companyId, company.id), isNotNull(contacts.email)));
-
-    const [dealResult] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(deals)
-      .where(eq(deals.companyId, company.id));
-
-    const score = calculateLeadScore(
-      company,
-      contactResult.count,
-      dealResult.count,
-      emailResult.count > 0,
-    );
+    const score = calculateLeadScore(company, contactCount, dealCount, hasEmail);
 
     if (score !== company.score) {
       await db.update(companies).set({ score }).where(eq(companies.id, company.id));

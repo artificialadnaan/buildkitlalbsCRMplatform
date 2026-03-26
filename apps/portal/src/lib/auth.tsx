@@ -40,9 +40,9 @@ export function PortalAuthProvider({ children }: { children: ReactNode }) {
   const [activeProject, setActiveProject] = useState<PortalProject | null>(null);
 
   useEffect(() => {
-    // Check for session token in URL (from magic link redirect)
-    const params = new URLSearchParams(window.location.search);
-    const session = params.get('session');
+    // Check for session token in URL hash (from magic link redirect)
+    const hash = new URLSearchParams(window.location.hash.slice(1));
+    const session = hash.get('session');
     if (session) {
       localStorage.setItem('portal_session', session);
       window.history.replaceState({}, '', window.location.pathname);

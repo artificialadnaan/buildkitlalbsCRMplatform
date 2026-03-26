@@ -1,3 +1,5 @@
+import DOMPurify from 'dompurify';
+
 interface TemplatePreviewProps {
   subject: string;
   bodyHtml: string;
@@ -12,7 +14,7 @@ export default function TemplatePreview({ subject, bodyHtml }: TemplatePreviewPr
       </div>
       <div
         className="prose prose-sm max-w-none"
-        dangerouslySetInnerHTML={{ __html: bodyHtml || '<p class="text-gray-500">Empty body</p>' }}
+        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(bodyHtml || '') || '<p class="text-gray-500">Empty body</p>' }}
       />
     </div>
   );

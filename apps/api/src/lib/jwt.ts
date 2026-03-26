@@ -1,7 +1,8 @@
 import jwt from 'jsonwebtoken';
 import type { JwtPayload } from '@buildkit/shared';
+import { requireEnv } from './env.js';
 
-const SECRET = process.env.JWT_SECRET!;
+const SECRET = requireEnv('JWT_SECRET');
 
 export function signToken(payload: JwtPayload): string {
   return jwt.sign(payload, SECRET, { expiresIn: '7d' });

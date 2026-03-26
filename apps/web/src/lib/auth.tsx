@@ -26,8 +26,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
+    // Read token from URL fragment (#token=...) — fragments are never sent to
+    // servers or included in access logs / Referer headers.
+    const hash = new URLSearchParams(window.location.hash.slice(1));
+    const token = hash.get('token');
     if (token) {
       localStorage.setItem('token', token);
       window.history.replaceState({}, '', window.location.pathname);

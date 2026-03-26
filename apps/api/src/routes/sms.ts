@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { eq, desc, asc, and } from 'drizzle-orm';
+import { eq, desc, asc, and, sql } from 'drizzle-orm';
 import {
   db,
   contacts,
@@ -393,16 +393,16 @@ router.post('/webhook/voice', async (req, res) => {
     const callSid = req.body.CallSid || '';
     const normalizedFrom = from.replace(/\D/g, '').slice(-10);
 
-    // Match caller to contact
-    const allContacts = await db.select({
+    // Match caller to contact by normalized phone number
+    const [matchedContact] = await db.select({
       id: contacts.id,
       phone: contacts.phone,
       firstName: contacts.firstName,
       lastName: contacts.lastName,
       companyId: contacts.companyId,
-    }).from(contacts);
-
-    const matchedContact = allContacts.find(c => c.phone?.replace(/\D/g, '').slice(-10) === normalizedFrom);
+    }).from(contacts)
+      .where(sql`regexp_replace(${contacts.phone}, '[^0-9]', '', 'g') LIKE '%' || ${normalizedFrom}`)
+      .limit(1);
     const contactName = matchedContact ? `${matchedContact.firstName} ${matchedContact.lastName ?? ''}`.trim() : from;
 
     // Find or create conversation
@@ -457,10 +457,12 @@ router.post('/webhook/voice', async (req, res) => {
   }
 
   // TwiML response — ring the team then voicemail
+  const teamPhone = process.env.TEAM_PHONE_NUMBER || '+14696902240';
+  const twilioPhone = process.env.TWILIO_PHONE_NUMBER || '+14698888214';
   res.type('text/xml').send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Dial timeout="25" callerId="+14698888214" action="/webhook/voice/status">
-    <Number>+14696902240</Number>
+  <Dial timeout="25" callerId="${twilioPhone}" action="/webhook/voice/status">
+    <Number>${teamPhone}</Number>
   </Dial>
   <Say voice="alice">Sorry we missed your call. Please leave a message and we'll get back to you as soon as possible.</Say>
 </Response>`);
