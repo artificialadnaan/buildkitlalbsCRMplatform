@@ -73,27 +73,34 @@ export default function Dashboard() {
 
       <div className="p-6">
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            label="Active Deals"
-            value={stats?.activeDeals ?? '--'}
-          />
-          <StatCard
-            label="Active Projects"
-            value={stats?.activeProjects ?? '--'}
-            trend={stats?.openTasks ? `${stats.openTasks} open tasks` : undefined}
-            trendColor="blue"
-          />
-          <StatCard
-            label="Pipeline Value"
-            value={stats ? formatCurrency(stats.pipelineValue) : '--'}
-          />
-          <StatCard
-            label="Deals Won"
-            value={stats?.wonDeals ?? '--'}
-            trend={stats ? formatCurrency(stats.wonValue) + ' total' : undefined}
-            trendColor="green"
-          />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-3">
+          {/* Hero stat — Pipeline Value spans 1 of 3 columns but is visually dominant */}
+          <div className="sm:col-span-1 lg:col-span-1">
+            <StatCard
+              label="Pipeline Value"
+              value={stats ? formatCurrency(stats.pipelineValue) : '--'}
+              hero
+            />
+          </div>
+          {/* Secondary stats — 2-column sub-grid on the right */}
+          <div className="sm:col-span-2 lg:col-span-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <StatCard
+              label="Active Deals"
+              value={stats?.activeDeals ?? '--'}
+            />
+            <StatCard
+              label="Active Projects"
+              value={stats?.activeProjects ?? '--'}
+              trend={stats?.openTasks ? `${stats.openTasks} open tasks` : undefined}
+              trendColor="blue"
+            />
+            <StatCard
+              label="Deals Won"
+              value={stats?.wonDeals ?? '--'}
+              trend={stats ? formatCurrency(stats.wonValue) + ' total' : undefined}
+              trendColor="green"
+            />
+          </div>
         </div>
 
         {/* Two Column: Activity + Tasks */}
