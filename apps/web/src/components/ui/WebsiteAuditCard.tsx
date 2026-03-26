@@ -8,6 +8,8 @@ interface AuditChecks {
   hasTitle: boolean;
   titleText: string | null;
   hasMetaDescription: boolean;
+  metaDescription?: string | null;
+  hasOgTags?: boolean;
   brokenImageCount: number;
   totalImageCount: number;
   copyrightYear: number | null;
@@ -15,7 +17,7 @@ interface AuditChecks {
   hasH1: boolean;
   h1Text: string | null;
   hasRobotsTxt: boolean;
-  pagesCrawled: number;
+  pagesCrawled: number | string[];
 }
 
 export interface WebsiteAudit {
@@ -27,58 +29,138 @@ export interface WebsiteAudit {
 
 interface WebsiteAuditCardProps {
   companyId: string;
+  companyWebsite?: string | null;
   audit: WebsiteAudit | null;
   onReaudit: () => void;
 }
 
+interface Suggestion {
+  icon: string;
+  title: string;
+  description: string;
+  impact: 'high' | 'medium' | 'low';
+  service: string;
+}
+
+function generateSuggestions(checks: AuditChecks): Suggestion[] {
+  const suggestions: Suggestion[] = [];
+
+  if (!checks.isHttps) {
+    suggestions.push({
+      icon: 'lock',
+      title: 'Install SSL Certificate',
+      description: 'Their site lacks HTTPS. This hurts Google rankings and makes visitors see "Not Secure" warnings. We can set up SSL in under an hour.',
+      impact: 'high',
+      service: 'SSL Setup — $200-500',
+    });
+  }
+
+  if (!checks.hasMobileViewport) {
+    suggestions.push({
+      icon: 'smartphone',
+      title: 'Make Site Mobile-Friendly',
+      description: 'Over 60% of web traffic is mobile. Their site doesn\'t have a mobile viewport — it looks broken on phones. A responsive redesign would dramatically improve their reach.',
+      impact: 'high',
+      service: 'Responsive Redesign — $2,000-5,000',
+    });
+  }
+
+  if (checks.loadTimeMs != null && checks.loadTimeMs > 3000) {
+    const secs = (checks.loadTimeMs / 1000).toFixed(1);
+    suggestions.push({
+      icon: 'speed',
+      title: `Fix Slow Load Time (${secs}s)`,
+      description: `Their homepage takes ${secs}s to load — Google recommends under 3s. Slow sites lose 40% of visitors. Image optimization, caching, and code cleanup can fix this.`,
+      impact: 'high',
+      service: 'Performance Optimization — $500-1,500',
+    });
+  }
+
+  if (!checks.hasContactForm) {
+    suggestions.push({
+      icon: 'contact_mail',
+      title: 'Add a Contact Form',
+      description: 'No contact form found. They\'re losing leads who want to reach out but won\'t pick up the phone. A simple form can increase conversions 20-30%.',
+      impact: 'high',
+      service: 'Contact Form + Lead Capture — $300-800',
+    });
+  }
+
+  if (!checks.hasMetaDescription || !checks.hasTitle) {
+    suggestions.push({
+      icon: 'search',
+      title: 'Fix SEO Meta Tags',
+      description: `Missing ${!checks.hasTitle ? 'page title' : ''}${!checks.hasTitle && !checks.hasMetaDescription ? ' and ' : ''}${!checks.hasMetaDescription ? 'meta description' : ''}. These are what show up in Google search results — without them, they\'re invisible to search.`,
+      impact: 'medium',
+      service: 'SEO Audit + Fix — $500-1,000',
+    });
+  }
+
+  if (checks.copyrightYear != null && checks.copyrightYear < new Date().getFullYear() - 1) {
+    suggestions.push({
+      icon: 'update',
+      title: `Outdated Copyright (${checks.copyrightYear})`,
+      description: `Footer says © ${checks.copyrightYear}. This signals the site hasn't been maintained in years — it erodes trust with potential customers.`,
+      impact: 'medium',
+      service: 'Site Refresh — $1,000-3,000',
+    });
+  }
+
+  if (checks.brokenImageCount > 0) {
+    suggestions.push({
+      icon: 'broken_image',
+      title: `${checks.brokenImageCount} Broken Images`,
+      description: 'Broken images make the site look unprofessional and abandoned. Quick fix that makes a big visual difference.',
+      impact: 'medium',
+      service: 'Image Fix + Optimization — $200-500',
+    });
+  }
+
+  if (!checks.hasRobotsTxt) {
+    suggestions.push({
+      icon: 'robot_2',
+      title: 'Missing robots.txt',
+      description: 'No robots.txt file — search engines don\'t know how to crawl the site properly. This is a 5-minute fix that improves SEO.',
+      impact: 'low',
+      service: 'Quick Technical Fix — $100',
+    });
+  }
+
+  return suggestions;
+}
+
 function ScoreRing({ score }: { score: number }) {
-  const radius = 36;
+  const radius = 40;
   const circumference = 2 * Math.PI * radius;
   const progress = Math.min(Math.max(score, 0), 100);
   const offset = circumference - (progress / 100) * circumference;
 
-  let color = '#ef4444'; // red
-  if (score > 60) color = '#22c55e'; // green
-  else if (score > 30) color = '#f59e0b'; // amber
+  let color = '#ef4444';
+  if (score > 60) color = '#22c55e';
+  else if (score > 30) color = '#f59e0b';
 
   return (
-    <div className="relative flex h-24 w-24 items-center justify-center">
-      <svg className="absolute inset-0 -rotate-90" viewBox="0 0 84 84">
-        <circle cx="42" cy="42" r={radius} fill="none" stroke="#e5e7eb" strokeWidth="8" />
+    <div className="relative flex h-28 w-28 items-center justify-center">
+      <svg className="absolute inset-0 -rotate-90" viewBox="0 0 96 96">
+        <circle cx="48" cy="48" r={radius} fill="none" stroke="#1e293b" strokeWidth="6" />
         <circle
-          cx="42"
-          cy="42"
-          r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth="8"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
+          cx="48" cy="48" r={radius} fill="none" stroke={color} strokeWidth="6"
+          strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
         />
       </svg>
-      <span className="text-xl font-bold text-gray-900">{score}</span>
+      <div className="text-center">
+        <span className="text-2xl font-black text-white">{score}</span>
+        <p className="text-[8px] text-slate-400 uppercase tracking-wider">/ 100</p>
+      </div>
     </div>
   );
 }
 
-function CheckRow({ pass, label, value }: { pass: boolean; label: string; value: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      {pass ? (
-        <svg className="h-4 w-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-        </svg>
-      ) : (
-        <svg className="h-4 w-4 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      )}
-      <span className="text-gray-500">{label}</span>
-      <span className="ml-auto truncate font-medium text-gray-800">{value}</span>
-    </div>
-  );
-}
+const impactColors = {
+  high: 'bg-red-500/20 text-red-400 border-red-500',
+  medium: 'bg-amber-500/20 text-amber-400 border-amber-500',
+  low: 'bg-blue-500/20 text-blue-400 border-blue-500',
+};
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -90,9 +172,9 @@ function timeAgo(dateStr: string): string {
   return `${days}d ago`;
 }
 
-export default function WebsiteAuditCard({ companyId, audit, onReaudit }: WebsiteAuditCardProps) {
+export default function WebsiteAuditCard({ companyId, companyWebsite, audit, onReaudit }: WebsiteAuditCardProps) {
   const [loading, setLoading] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const [showAllChecks, setShowAllChecks] = useState(false);
 
   async function runAudit() {
     setLoading(true);
@@ -108,90 +190,166 @@ export default function WebsiteAuditCard({ companyId, audit, onReaudit }: Websit
 
   if (!audit) {
     return (
-      <div className="rounded-lg border border-border bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-base font-semibold text-gray-900">Website Audit</h2>
-        <div className="flex flex-col items-center gap-3 py-6 text-center">
-          <svg className="h-10 w-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0H3" />
-          </svg>
-          <p className="text-sm text-gray-500">No audit yet</p>
-          <button
-            onClick={runAudit}
-            disabled={loading}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-50"
-          >
-            {loading ? 'Running...' : 'Run Audit'}
-          </button>
+      <div className="bg-slate-900 rounded-xl p-8 text-white">
+        <h2 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 mb-6 flex items-center gap-2">
+          <span className="material-symbols-outlined text-sm">monitoring</span>
+          Website Audit
+        </h2>
+        <div className="flex flex-col items-center gap-4 py-8 text-center">
+          <span className="material-symbols-outlined text-5xl text-slate-600">web</span>
+          <p className="text-sm text-slate-400">No audit data yet</p>
+          {companyWebsite && (
+            <button
+              onClick={runAudit}
+              disabled={loading}
+              className="px-6 py-3 bg-gradient-to-r from-orange-700 to-orange-500 text-white rounded-lg font-bold text-sm shadow-lg hover:-translate-y-px transition-all disabled:opacity-50"
+            >
+              {loading ? 'Scanning...' : 'Run Website Audit'}
+            </button>
+          )}
         </div>
       </div>
     );
   }
 
   const c = audit.checks;
+  const suggestions = generateSuggestions(c);
   const loadSecs = c.loadTimeMs != null ? (c.loadTimeMs / 1000).toFixed(1) : null;
-  const loadTimeColor = c.loadTimeMs == null ? '' : c.loadTimeMs < 2000 ? 'text-green-600' : c.loadTimeMs < 4000 ? 'text-amber-600' : 'text-red-600';
+  const screenshotUrl = companyWebsite
+    ? `https://image.thum.io/get/width/600/crop/400/${companyWebsite.startsWith('http') ? companyWebsite : 'https://' + companyWebsite}`
+    : null;
 
   const checkRows = [
-    { pass: c.isHttps, label: 'SSL / HTTPS', value: c.isHttps ? 'Yes' : 'No' },
-    { pass: c.hasMobileViewport, label: 'Mobile Viewport', value: c.hasMobileViewport ? 'Yes' : 'No' },
+    { pass: c.isHttps, label: 'SSL / HTTPS', value: c.isHttps ? 'Secure' : 'Not Secure' },
+    { pass: c.hasMobileViewport, label: 'Mobile-Friendly', value: c.hasMobileViewport ? 'Yes' : 'No' },
     { pass: c.hasTitle, label: 'Page Title', value: c.titleText ?? (c.hasTitle ? 'Present' : 'Missing') },
     { pass: c.hasMetaDescription, label: 'Meta Description', value: c.hasMetaDescription ? 'Present' : 'Missing' },
     { pass: c.hasH1, label: 'H1 Tag', value: c.h1Text ?? (c.hasH1 ? 'Present' : 'Missing') },
-    { pass: c.hasContactForm, label: 'Contact Form', value: c.hasContactForm ? 'Yes' : 'No' },
-    { pass: c.copyrightYear != null, label: 'Copyright', value: c.copyrightYear != null ? String(c.copyrightYear) : 'Missing' },
-    { pass: c.brokenImageCount === 0, label: 'Broken Images', value: `${c.brokenImageCount} of ${c.totalImageCount}` },
-    { pass: c.hasRobotsTxt, label: 'robots.txt', value: c.hasRobotsTxt ? 'Yes' : 'No' },
+    { pass: c.hasContactForm, label: 'Contact Form', value: c.hasContactForm ? 'Found' : 'Missing' },
+    { pass: c.copyrightYear != null && c.copyrightYear >= new Date().getFullYear() - 1, label: 'Copyright', value: c.copyrightYear != null ? `© ${c.copyrightYear}` : 'Missing' },
+    { pass: c.brokenImageCount === 0, label: 'Broken Images', value: c.brokenImageCount === 0 ? 'None' : `${c.brokenImageCount} found` },
+    { pass: c.hasRobotsTxt, label: 'robots.txt', value: c.hasRobotsTxt ? 'Present' : 'Missing' },
   ];
 
   return (
-    <div className="rounded-lg border border-border bg-white p-6 shadow-sm">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-base font-semibold text-gray-900">Website Audit</h2>
-        <button
-          onClick={runAudit}
-          disabled={loading}
-          className="rounded-lg border border-border bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50"
-        >
-          {loading ? 'Running...' : 'Re-audit'}
-        </button>
-      </div>
-
-      <div className="mb-4 flex items-center gap-5">
-        <ScoreRing score={audit.score} />
-        <div className="flex-1 min-w-0">
-          <p className="text-sm text-gray-600 leading-relaxed">{audit.findings}</p>
-          {audit.auditedAt && (
-            <p className="mt-1 text-xs text-gray-400">Last audited: {timeAgo(audit.auditedAt)}</p>
+    <div className="space-y-6">
+      {/* Main Audit Card */}
+      <div className="bg-slate-900 rounded-xl overflow-hidden">
+        {/* Screenshot + Score Header */}
+        <div className="flex">
+          {/* Screenshot */}
+          {screenshotUrl && (
+            <div className="w-1/2 relative">
+              <img
+                src={screenshotUrl}
+                alt="Website screenshot"
+                className="w-full h-64 object-cover object-top"
+                loading="lazy"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-slate-900/80" />
+              <div className="absolute bottom-3 left-3">
+                <a
+                  href={companyWebsite?.startsWith('http') ? companyWebsite : `https://${companyWebsite}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[10px] font-bold text-white/60 hover:text-white flex items-center gap-1 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-xs">open_in_new</span>
+                  Visit Site
+                </a>
+              </div>
+            </div>
           )}
-          {loadSecs != null && (
-            <p className="mt-1 text-xs">
-              Load time: <span className={`font-medium ${loadTimeColor}`}>{loadSecs}s</span>
-            </p>
+
+          {/* Score + Summary */}
+          <div className={`${screenshotUrl ? 'w-1/2' : 'w-full'} p-8 flex flex-col justify-center`}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 flex items-center gap-2">
+                <span className="material-symbols-outlined text-sm">monitoring</span>
+                Website Health
+              </h2>
+              <button
+                onClick={runAudit}
+                disabled={loading}
+                className="text-[10px] font-bold text-orange-400 hover:text-orange-300 uppercase tracking-widest disabled:opacity-50"
+              >
+                {loading ? 'Scanning...' : 'Re-scan'}
+              </button>
+            </div>
+            <div className="flex items-center gap-6">
+              <ScoreRing score={audit.score} />
+              <div className="flex-1">
+                <p className="text-sm text-slate-300 leading-relaxed">{audit.findings}</p>
+                {audit.auditedAt && (
+                  <p className="mt-2 text-[10px] text-slate-500">Scanned {timeAgo(audit.auditedAt)}</p>
+                )}
+                {loadSecs && (
+                  <p className="mt-1 text-[10px] text-slate-500">
+                    Load time: <span className={`font-bold ${parseFloat(loadSecs) < 3 ? 'text-green-400' : 'text-red-400'}`}>{loadSecs}s</span>
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Check Grid */}
+        <div className="px-8 pb-6">
+          <button
+            onClick={() => setShowAllChecks(v => !v)}
+            className="text-[10px] font-bold text-slate-400 hover:text-slate-300 uppercase tracking-widest flex items-center gap-1 mb-4"
+          >
+            <span className="material-symbols-outlined text-xs">{showAllChecks ? 'expand_less' : 'expand_more'}</span>
+            {showAllChecks ? 'Hide' : 'Show'} Technical Checks
+          </button>
+          {showAllChecks && (
+            <div className="grid grid-cols-3 gap-3">
+              {checkRows.map(row => (
+                <div key={row.label} className="flex items-center gap-2 p-3 bg-white/5 rounded-lg">
+                  <span className={`material-symbols-outlined text-sm ${row.pass ? 'text-green-400' : 'text-red-400'}`}
+                    style={{ fontVariationSettings: "'FILL' 1" }}>
+                    {row.pass ? 'check_circle' : 'cancel'}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-slate-400">{row.label}</p>
+                    <p className="text-xs font-bold text-white truncate">{row.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
 
-      <button
-        onClick={() => setExpanded((v) => !v)}
-        className="mb-3 flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-500"
-      >
-        <svg
-          className={`h-3.5 w-3.5 transition-transform ${expanded ? 'rotate-90' : ''}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2.5}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-        </svg>
-        {expanded ? 'Hide checks' : 'Show checks'}
-      </button>
-
-      {expanded && (
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          {checkRows.map((row) => (
-            <CheckRow key={row.label} pass={row.pass} label={row.label} value={row.value} />
-          ))}
+      {/* Improvement Suggestions */}
+      {suggestions.length > 0 && (
+        <div className="bg-white rounded-xl p-8 border border-slate-100 shadow-sm">
+          <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
+            <span className="material-symbols-outlined text-sm">lightbulb</span>
+            What We Can Improve ({suggestions.length} opportunities)
+          </h3>
+          <div className="space-y-4">
+            {suggestions.map((s, i) => (
+              <div key={i} className={`p-5 rounded-lg border-l-4 ${impactColors[s.impact]} bg-opacity-5`} style={{ backgroundColor: 'rgb(249 249 255)' }}>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-3 flex-1">
+                    <span className="material-symbols-outlined text-lg text-slate-600 mt-0.5">{s.icon}</span>
+                    <div>
+                      <p className="font-bold text-slate-900 text-sm">{s.title}</p>
+                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">{s.description}</p>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${impactColors[s.impact]}`}>
+                      {s.impact} impact
+                    </span>
+                    <p className="text-[10px] font-bold text-orange-700 mt-2">{s.service}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -268,6 +268,7 @@ export default function LeadDetail() {
       <div className="grid grid-cols-1 gap-6 px-6 pb-6 lg:grid-cols-2">
         <WebsiteAuditCard
           companyId={id!}
+          companyWebsite={company.website}
           audit={company.websiteAudit}
           onReaudit={loadCompany}
         />
