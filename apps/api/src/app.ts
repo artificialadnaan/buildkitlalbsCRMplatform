@@ -23,7 +23,8 @@ import messagesRoutes from './routes/messages.js';
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/dist/queueAdapters/bullMQ.js';
 import { ExpressAdapter } from '@bull-board/express';
-import { createScrapeQueue } from '@buildkit/shared';
+import { createScrapeQueue, EMAIL_SEND_QUEUE, SEQUENCE_TICK_QUEUE, GMAIL_SYNC_QUEUE, getRedisConnection } from '@buildkit/shared';
+import { Queue } from 'bullmq';
 import { errorHandler } from './middleware/errorHandler.js';
 
 export function createApp() {
@@ -59,8 +60,14 @@ export function createApp() {
     const serverAdapter = new ExpressAdapter();
     serverAdapter.setBasePath('/admin/queues');
 
+    const redisConn = getRedisConnection();
     createBullBoard({
-      queues: [new BullMQAdapter(createScrapeQueue())],
+      queues: [
+        new BullMQAdapter(createScrapeQueue()),
+        new BullMQAdapter(new Queue(EMAIL_SEND_QUEUE, { connection: redisConn })),
+        new BullMQAdapter(new Queue(SEQUENCE_TICK_QUEUE, { connection: redisConn })),
+        new BullMQAdapter(new Queue(GMAIL_SYNC_QUEUE, { connection: redisConn })),
+      ],
       serverAdapter,
     });
 
