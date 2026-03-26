@@ -1,7 +1,7 @@
 {
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"git add apps/web/src/components/ui/Modal.tsx apps/web/src/components/ui/KanbanCard.tsx apps/web/src/components/layout/Sidebar.tsx && git commit -m \\\"$(cat <<'EOF'\\ndesign: add subtle enter...",
-  "error": "Exit code 1\nOn branch main\nYour branch is up to date with 'origin/main'.\n\nChanges not staged for commit:\n  (use \"git add <file>...\" to update what will be committed)\n  (use \"git restore <file>...\" to discard changes in working directory)\n\tmodified:   .omc/state/hud-stdin-cache.json\n\tmodified:   .omc/state/last-tool-error.json\n\nno changes added to commit (use \"git add\" and/or \"git commit -a\")",
-  "timestamp": "2026-03-26T06:03:41.438Z",
-  "retry_count": 4
+  "tool_name": "Read",
+  "tool_input_preview": "{\"file_path\":\"/Users/adnaaniqbal/.claude/projects/-Users-adnaaniqbal-Developer-Consulting/0e84e067-bdcc-4fe8-91d6-37a174a32c8c/tool-results/belnous2l.txt\"}",
+  "error": "File content (39661 tokens) exceeds maximum allowed tokens (10000). Use offset and limit parameters to read specific portions of the file, or search for specific content instead of reading the whole file.",
+  "timestamp": "2026-03-26T06:24:33.977Z",
+  "retry_count": 1
 }

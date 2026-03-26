@@ -22,3 +22,11 @@
 {"t":0,"agent":"a23af5b","agent_type":"designer","event":"agent_start","parent_mode":"none"}
 {"t":0,"agent":"a090f2b","agent_type":"designer","event":"agent_stop","success":true,"duration_ms":160358}
 {"t":0,"agent":"a0545a4","agent_type":"designer","event":"agent_stop","success":true,"duration_ms":58616}
+{"t":0,"agent":"acbc7b1","agent_type":"general-purpose","event":"agent_stop","success":true}
+{"t":0,"agent":"ac899a8","agent_type":"general-purpose","event":"agent_stop","success":true}
+{"t":0,"agent":"a959d9f","agent_type":"general-purpose","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"acd1007","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"a959d9f","agent_type":"general-purpose","event":"agent_stop","success":true,"duration_ms":684165}
+{"t":0,"agent":"ac681b6","agent_type":"architect","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"a00ccb3","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"ac681b6","agent_type":"architect","event":"agent_stop","success":true,"duration_ms":510179}

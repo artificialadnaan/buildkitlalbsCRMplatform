@@ -6,6 +6,7 @@ import type { ScrapeJobData } from '@buildkit/shared';
 import { processScrapeJob } from './processors/scrape.js';
 import { processInvoicePdf } from './jobs/invoicePdf.js';
 import { processInvoiceReminders } from './jobs/invoiceReminder.js';
+import { setupEmailQueues } from './setup-email-queues.js';
 
 console.log('[worker] Starting BuildKit CRM worker...');
 
@@ -75,3 +76,7 @@ cron.schedule('0 9 * * *', async () => {
 });
 
 console.log('[Worker] Invoice worker and daily reminder cron registered');
+
+// Start email workers (send, sequence-tick, gmail-sync)
+setupEmailQueues();
+console.log('[Worker] Email workers started (send, sequence-tick, gmail-sync)');
