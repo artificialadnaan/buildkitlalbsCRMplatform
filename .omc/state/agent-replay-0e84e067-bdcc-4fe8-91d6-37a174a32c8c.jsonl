@@ -40,3 +40,4 @@
 {"t":0,"agent":"ae1a28b","agent_type":"unknown","event":"agent_stop","success":true}
 {"t":0,"agent":"a6191f0","agent_type":"general-purpose","event":"agent_stop","success":true,"duration_ms":948535}
 {"t":0,"agent":"aff743a","agent_type":"general-purpose","event":"agent_stop","success":true,"duration_ms":882772}
+{"t":0,"agent":"af34409","agent_type":"general-purpose","event":"agent_stop","success":true,"duration_ms":1113781}
