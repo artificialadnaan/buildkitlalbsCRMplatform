@@ -87,6 +87,20 @@ router.patch('/:id', async (req, res) => {
   // Auto-set closedAt when status changes to won/lost
   if (updates.status === 'won' || updates.status === 'lost') {
     updates.closedAt = new Date();
+
+    // Auto-move to the matching pipeline stage ("Won" or "Lost")
+    const pipelineId = updates.pipelineId ?? dealBefore?.pipelineId;
+    if (pipelineId) {
+      const stageName = updates.status === 'won' ? 'Won' : 'Lost';
+      const [matchedStage] = await db
+        .select()
+        .from(pipelineStages)
+        .where(and(eq(pipelineStages.pipelineId, pipelineId), eq(pipelineStages.name, stageName)))
+        .limit(1);
+      if (matchedStage) {
+        updates.stageId = matchedStage.id;
+      }
+    }
   }
 
   const [deal] = await db.update(deals)

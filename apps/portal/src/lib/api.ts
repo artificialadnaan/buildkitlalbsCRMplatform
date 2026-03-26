@@ -1,4 +1,4 @@
-const API_BASE = '';
+const API_BASE = import.meta.env.VITE_PORTAL_API_URL || '';
 
 export async function portalApi<T>(path: string, options?: RequestInit): Promise<T> {
   const session = localStorage.getItem('portal_session');

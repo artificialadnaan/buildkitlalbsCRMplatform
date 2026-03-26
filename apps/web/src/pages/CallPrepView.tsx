@@ -6,30 +6,29 @@ import LoadingSpinner from '../components/ui/LoadingSpinner.js';
 
 interface ActivityEntry {
   date: string;
-  description: string;
+  subject: string;
   type: string;
 }
 
 interface CallPrepData {
-  company: {
+  companyOverview: {
     name: string;
     industry: string | null;
-    city: string | null;
-    state: string | null;
+    location: string;
     website: string | null;
-    googleRating: string | null;
+    googleRating: number | null;
+    employeeCount: number | null;
   };
-  websiteFindings: {
-    score: number;
-    findings: string;
-  } | null;
+  websiteFindings: string | null;
+  websiteScore: number | null;
   talkingPoints: string[];
   estimatedScope: {
-    low: number;
-    high: number;
+    lowEstimate: number;
+    highEstimate: number;
     description: string;
   } | null;
   recentActivity: ActivityEntry[];
+  generatedAt: string;
 }
 
 export default function CallPrepView() {
@@ -77,7 +76,7 @@ export default function CallPrepView() {
     <div>
       <TopBar
         title="Call Prep Brief"
-        subtitle={data?.company.name ?? 'Loading...'}
+        subtitle={data?.companyOverview.name ?? 'Loading...'}
         actions={
           <div className="flex items-center gap-2 print:hidden">
             <button
@@ -112,39 +111,37 @@ export default function CallPrepView() {
               <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
                 <div>
                   <dt className="font-medium text-gray-500">Company</dt>
-                  <dd className="text-gray-900">{data.company.name}</dd>
+                  <dd className="text-gray-900">{data.companyOverview.name}</dd>
                 </div>
                 <div>
                   <dt className="font-medium text-gray-500">Industry</dt>
-                  <dd className="text-gray-900">{data.company.industry ?? '--'}</dd>
+                  <dd className="text-gray-900">{data.companyOverview.industry ?? '--'}</dd>
                 </div>
                 <div>
                   <dt className="font-medium text-gray-500">Location</dt>
-                  <dd className="text-gray-900">
-                    {[data.company.city, data.company.state].filter(Boolean).join(', ') || '--'}
-                  </dd>
+                  <dd className="text-gray-900">{data.companyOverview.location || '--'}</dd>
                 </div>
                 <div>
                   <dt className="font-medium text-gray-500">Website</dt>
                   <dd>
-                    {data.company.website ? (
+                    {data.companyOverview.website ? (
                       <a
-                        href={data.company.website}
+                        href={data.companyOverview.website}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:underline"
                       >
-                        {data.company.website}
+                        {data.companyOverview.website}
                       </a>
                     ) : (
                       '--'
                     )}
                   </dd>
                 </div>
-                {data.company.googleRating && (
+                {data.companyOverview.googleRating != null && (
                   <div>
                     <dt className="font-medium text-gray-500">Google Rating</dt>
-                    <dd className="text-gray-900">{data.company.googleRating} / 5</dd>
+                    <dd className="text-gray-900">{data.companyOverview.googleRating} / 5</dd>
                   </div>
                 )}
               </dl>
@@ -155,19 +152,21 @@ export default function CallPrepView() {
               <section className="rounded-lg border border-border bg-surface p-5">
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="text-base font-semibold text-gray-900">Website Findings</h2>
-                  <span
-                    className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${
-                      data.websiteFindings.score >= 70
-                        ? 'border-emerald-200 bg-emerald-100 text-emerald-700'
-                        : data.websiteFindings.score >= 40
-                        ? 'border-amber-200 bg-amber-100 text-amber-700'
-                        : 'border-gray-200 bg-gray-100 text-gray-600'
-                    }`}
-                  >
-                    Score: {data.websiteFindings.score}
-                  </span>
+                  {data.websiteScore != null && (
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${
+                        data.websiteScore >= 70
+                          ? 'border-emerald-200 bg-emerald-100 text-emerald-700'
+                          : data.websiteScore >= 40
+                          ? 'border-amber-200 bg-amber-100 text-amber-700'
+                          : 'border-gray-200 bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      Score: {data.websiteScore}
+                    </span>
+                  )}
                 </div>
-                <p className="text-sm text-gray-700 whitespace-pre-line">{data.websiteFindings.findings}</p>
+                <p className="text-sm text-gray-700 whitespace-pre-line">{data.websiteFindings}</p>
               </section>
             )}
 
@@ -193,7 +192,7 @@ export default function CallPrepView() {
               <section className="rounded-lg border border-border bg-surface p-5">
                 <h2 className="mb-3 text-base font-semibold text-gray-900">Estimated Scope</h2>
                 <p className="text-2xl font-semibold text-gray-900 mb-2">
-                  ${data.estimatedScope.low.toLocaleString()} – ${data.estimatedScope.high.toLocaleString()}
+                  ${data.estimatedScope.lowEstimate.toLocaleString()} – ${data.estimatedScope.highEstimate.toLocaleString()}
                 </p>
                 <p className="text-sm text-gray-600">{data.estimatedScope.description}</p>
               </section>
@@ -213,7 +212,7 @@ export default function CallPrepView() {
                         )}
                       </div>
                       <div className="pb-3 min-w-0">
-                        <p className="text-sm text-gray-900">{item.description}</p>
+                        <p className="text-sm text-gray-900">{item.subject}</p>
                         <p className="text-xs text-gray-500 mt-0.5">
                           {item.type} &middot; {new Date(item.date).toLocaleDateString()}
                         </p>

@@ -137,9 +137,14 @@ router.get('/:id', async (req, res) => {
 
 // Create company
 router.post('/', async (req, res) => {
+  // Auto-assign to creating user when source is manual and no assignedTo provided
+  const body = req.body;
+  if (body.source === 'manual' && !body.assignedTo) {
+    body.assignedTo = req.user!.userId;
+  }
   // Calculate initial score (no contacts or deals yet for a new company)
-  const score = calculateLeadScore(req.body, 0, 0, false);
-  const [company] = await db.insert(companies).values({ ...req.body, score }).returning();
+  const score = calculateLeadScore(body, 0, 0, false);
+  const [company] = await db.insert(companies).values({ ...body, score }).returning();
   logAudit({ userId: req.user!.userId, action: 'create', entity: 'company', entityId: company.id, changes: { after: company } });
   res.status(201).json(company);
 });
@@ -325,7 +330,7 @@ router.get('/:id/timeline', async (req, res) => {
 
       -- Deals: won event
       SELECT
-        d.id || '-won' AS id,
+        d.id::text || '-won' AS id,
         'deal_won' AS type,
         'Deal won: ' || d.title AS title,
         NULL AS description,
@@ -340,7 +345,7 @@ router.get('/:id/timeline', async (req, res) => {
 
       -- Deals: lost event
       SELECT
-        d.id || '-lost' AS id,
+        d.id::text || '-lost' AS id,
         'deal_lost' AS type,
         'Deal lost: ' || d.title AS title,
         d.lost_reason AS description,
