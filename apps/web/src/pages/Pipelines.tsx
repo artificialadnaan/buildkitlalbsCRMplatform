@@ -233,7 +233,7 @@ export default function Pipelines() {
 
           {/* Kanban Board */}
           {activePipeline && (
-            <KanbanBoard stages={activePipeline.stages} deals={deals} />
+            <KanbanBoard stages={activePipeline.stages} deals={deals} onDealMoved={loadDeals} />
           )}
 
           {/* Pipeline Summary Footer */}
