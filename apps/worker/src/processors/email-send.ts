@@ -1,8 +1,8 @@
 import type { Job } from 'bullmq';
-import { eq, and } from 'drizzle-orm';
-import { db, emailSends, contacts, companies, users, activities } from '@buildkit/shared';
+import { eq } from 'drizzle-orm';
+import { db, emailSends, contacts, users, activities } from '@buildkit/shared';
 import type { EmailJobPayload } from '@buildkit/shared';
-import { GmailProvider, resolveVariables } from '@buildkit/email';
+import { GmailProvider, injectTracking } from '@buildkit/email';
 import type { GmailTokens } from '@buildkit/email';
 
 // These are imported from a shared config module in the real app.
@@ -82,12 +82,16 @@ export async function processEmailSend(job: Job<EmailJobPayload>) {
       throw new Error('No recipient email found');
     }
 
+    // Inject open/click tracking into HTML body
+    const apiBaseUrl = process.env.API_BASE_URL || 'https://buildkitapi-production.up.railway.app';
+    const trackedHtml = injectTracking(send.bodyHtml || '', emailSendId, apiBaseUrl);
+
     // Send via Gmail
     const result = await gmail.send({
       to: recipientEmail,
       from: user.email,
       subject: send.subject || '(no subject)',
-      html: send.bodyHtml || '',
+      html: trackedHtml,
     });
 
     // Update email send record

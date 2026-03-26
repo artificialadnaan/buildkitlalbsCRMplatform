@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { eq, and, sql, gte } from 'drizzle-orm';
-import { db, emailSends, emailTemplates, contacts, companies } from '@buildkit/shared';
+import { db, emailSends, emailTemplates, contacts, companies, emailEvents } from '@buildkit/shared';
 import { resolveVariables } from '@buildkit/email';
 import { authMiddleware } from '../middleware/auth.js';
 import { Queue } from 'bullmq';
@@ -57,6 +57,39 @@ router.get('/daily-count', async (req, res) => {
     limit: DAILY_SEND_LIMIT,
     remaining: Math.max(0, DAILY_SEND_LIMIT - count),
     warningThreshold: count >= DAILY_SEND_LIMIT * 0.8,
+  });
+});
+
+// Get tracking events for an email send
+router.get('/:id/events', async (req, res) => {
+  const { id } = req.params;
+
+  const [send] = await db.select({ id: emailSends.id })
+    .from(emailSends)
+    .where(eq(emailSends.id, id))
+    .limit(1);
+
+  if (!send) {
+    res.status(404).json({ error: 'Email send not found' });
+    return;
+  }
+
+  const events = await db.select()
+    .from(emailEvents)
+    .where(eq(emailEvents.emailSendId, id))
+    .orderBy(emailEvents.createdAt);
+
+  const opens = events.filter(e => e.type === 'open');
+  const clicks = events.filter(e => e.type === 'click');
+
+  res.json({
+    events,
+    summary: {
+      openCount: opens.length,
+      clickCount: clicks.length,
+      firstOpenedAt: opens[0]?.createdAt ?? null,
+      lastOpenedAt: opens.length > 0 ? opens[opens.length - 1].createdAt : null,
+    },
   });
 });
 

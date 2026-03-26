@@ -30,3 +30,10 @@
 {"t":0,"agent":"ac681b6","agent_type":"architect","event":"agent_start","parent_mode":"none"}
 {"t":0,"agent":"a00ccb3","agent_type":"unknown","event":"agent_stop","success":true}
 {"t":0,"agent":"ac681b6","agent_type":"architect","event":"agent_stop","success":true,"duration_ms":510179}
+{"t":0,"agent":"abc1b31","agent_type":"general-purpose","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"a6191f0","agent_type":"general-purpose","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"abc1b31","agent_type":"general-purpose","event":"agent_stop","success":true,"duration_ms":229859}
+{"t":0,"agent":"af5409b","agent_type":"general-purpose","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"aff743a","agent_type":"general-purpose","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"af34409","agent_type":"general-purpose","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"af5409b","agent_type":"general-purpose","event":"agent_stop","success":true,"duration_ms":569947}
