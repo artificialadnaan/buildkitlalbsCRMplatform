@@ -76,11 +76,13 @@
       "agent_type": "oh-my-claudecode:designer",
       "started_at": "2026-03-26T06:01:01.122Z",
       "parent_mode": "none",
-      "status": "running"
+      "status": "completed",
+      "completed_at": "2026-03-26T06:02:14.526Z",
+      "duration_ms": 73404
     }
   ],
   "total_spawned": 10,
-  "total_completed": 4,
+  "total_completed": 5,
   "total_failed": 0,
-  "last_updated": "2026-03-26T06:01:56.037Z"
+  "last_updated": "2026-03-26T06:02:14.628Z"
 }
