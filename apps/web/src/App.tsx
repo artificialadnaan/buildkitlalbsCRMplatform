@@ -11,6 +11,7 @@ import EmailTemplates from './pages/EmailTemplates.js';
 import EmailTemplateEditor from './pages/EmailTemplateEditor.js';
 import EmailSequences from './pages/EmailSequences.js';
 import EmailSequenceBuilder from './pages/EmailSequenceBuilder.js';
+import Scraper from './pages/Scraper.js';
 
 function AuthCallback() {
   return <div className="min-h-screen flex items-center justify-center bg-gray-950 text-gray-500">Signing in...</div>;
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="/email/sequences" element={<EmailSequences />} />
         <Route path="/email/sequences/new" element={<EmailSequenceBuilder />} />
         <Route path="/email/sequences/:id" element={<EmailSequenceBuilder />} />
+        <Route path="/scraper" element={<Scraper />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
     </Routes>
