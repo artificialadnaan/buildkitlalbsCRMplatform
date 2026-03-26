@@ -7,6 +7,8 @@ import LeadDetail from './pages/LeadDetail.js';
 import Pipelines from './pages/Pipelines.js';
 import DealDetail from './pages/DealDetail.js';
 import Settings from './pages/Settings.js';
+import Invoices from './pages/Invoices.js';
+import InvoiceDetail from './pages/InvoiceDetail.js';
 
 function AuthCallback() {
   return <div className="min-h-screen flex items-center justify-center bg-gray-950 text-gray-500">Signing in...</div>;
@@ -23,6 +25,8 @@ export default function App() {
         <Route path="/leads/:id" element={<LeadDetail />} />
         <Route path="/pipelines" element={<Pipelines />} />
         <Route path="/deals/:id" element={<DealDetail />} />
+        <Route path="/invoices" element={<Invoices />} />
+        <Route path="/invoices/:id" element={<InvoiceDetail />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
     </Routes>
