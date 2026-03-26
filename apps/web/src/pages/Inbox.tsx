@@ -10,6 +10,7 @@ interface Conversation {
   contactPhone: string | null;
   contactEmail: string | null;
   channel: 'sms' | 'email' | 'call';
+  subject?: string;
   lastMessagePreview: string;
   lastMessageAt: string;
   unread: boolean;
@@ -102,16 +103,31 @@ export default function Inbox() {
     if (!reply.trim() || !selected) return;
     setSending(true);
     try {
-      await api('/api/sms/send', {
-        method: 'POST',
-        body: JSON.stringify({
-          contactId: selected.contactId,
-          body: reply.trim(),
-          ...(selected.dealId ? { dealId: selected.dealId } : {}),
-        }),
-      });
+      if (selected.channel === 'sms') {
+        // Send SMS
+        await api('/api/sms/send', {
+          method: 'POST',
+          body: JSON.stringify({
+            contactId: selected.contactId,
+            body: reply.trim(),
+            ...(selected.dealId ? { dealId: selected.dealId } : {}),
+          }),
+        });
+      } else if (selected.channel === 'email') {
+        // Send email via compose endpoint
+        await api('/api/email-sends', {
+          method: 'POST',
+          body: JSON.stringify({
+            contactId: selected.contactId,
+            dealId: selected.dealId || null,
+            subject: `Re: ${selected.subject || selected.lastMessagePreview || ''}`,
+            bodyHtml: `<p>${reply.trim().replace(/\n/g, '<br/>')}</p>`,
+          }),
+        });
+      }
       setReply('');
       loadMessages(selected.id);
+      loadConversations();
     } catch (err) {
       console.error('Failed to send message:', err);
     } finally {
