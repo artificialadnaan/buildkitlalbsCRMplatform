@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { eq, sql } from 'drizzle-orm';
 import { db, contacts } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
+import { logAudit } from '../lib/audit.js';
 
 const router = Router();
 router.use(authMiddleware);
@@ -35,26 +36,32 @@ router.get('/:id', async (req, res) => {
 // Create contact
 router.post('/', async (req, res) => {
   const [contact] = await db.insert(contacts).values(req.body).returning();
+  logAudit({ userId: req.user!.userId, action: 'create', entity: 'contact', entityId: contact.id, changes: { after: contact } });
   res.status(201).json(contact);
 });
 
 // Update contact
 router.patch('/:id', async (req, res) => {
-  const [contact] = await db.update(contacts).set(req.body).where(eq(contacts.id, req.params.id as string)).returning();
+  const contactId = req.params.id as string;
+  const [before] = await db.select().from(contacts).where(eq(contacts.id, contactId)).limit(1);
+  const [contact] = await db.update(contacts).set(req.body).where(eq(contacts.id, contactId)).returning();
   if (!contact) {
     res.status(404).json({ error: 'Contact not found' });
     return;
   }
+  logAudit({ userId: req.user!.userId, action: 'update', entity: 'contact', entityId: contactId, changes: { before, after: contact } });
   res.json(contact);
 });
 
 // Delete contact
 router.delete('/:id', async (req, res) => {
-  const [deleted] = await db.delete(contacts).where(eq(contacts.id, req.params.id as string)).returning();
+  const deleteId = req.params.id as string;
+  const [deleted] = await db.delete(contacts).where(eq(contacts.id, deleteId)).returning();
   if (!deleted) {
     res.status(404).json({ error: 'Contact not found' });
     return;
   }
+  logAudit({ userId: req.user!.userId, action: 'delete', entity: 'contact', entityId: deleteId, changes: { before: deleted } });
   res.json({ success: true });
 });
 

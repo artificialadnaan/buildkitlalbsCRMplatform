@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { eq, and, sql } from 'drizzle-orm';
 import { db, deals, companies, contacts, pipelineStages, projects, milestones, portalUsers, milestoneTemplates, milestoneTemplateItems, pipelines } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
+import { logAudit } from '../lib/audit.js';
 
 const router = Router();
 router.use(authMiddleware);
@@ -73,11 +74,13 @@ router.post('/', async (req, res) => {
     ...req.body,
     assignedTo: req.body.assignedTo || req.user!.userId,
   }).returning();
+  logAudit({ userId: req.user!.userId, action: 'create', entity: 'deal', entityId: deal.id, changes: { after: deal } });
   res.status(201).json(deal);
 });
 
 // Update deal
 router.patch('/:id', async (req, res) => {
+  const [dealBefore] = await db.select().from(deals).where(eq(deals.id, req.params.id)).limit(1);
   const updates = { ...req.body };
 
   // Auto-set closedAt when status changes to won/lost
@@ -185,27 +188,32 @@ router.patch('/:id', async (req, res) => {
     }
   }
 
+  logAudit({ userId: req.user!.userId, action: 'update', entity: 'deal', entityId: deal.id, changes: { before: dealBefore, after: deal } });
   res.json(deal);
 });
 
 // Move deal to a different stage (drag-and-drop support)
 router.patch('/:id/stage', async (req, res) => {
   const { stageId } = req.body;
+  const [stageBefore] = await db.select().from(deals).where(eq(deals.id, req.params.id as string)).limit(1);
   const [deal] = await db.update(deals).set({ stageId }).where(eq(deals.id, req.params.id as string)).returning();
   if (!deal) {
     res.status(404).json({ error: 'Deal not found' });
     return;
   }
+  logAudit({ userId: req.user!.userId, action: 'update', entity: 'deal', entityId: deal.id, changes: { before: { stageId: stageBefore?.stageId }, after: { stageId } } });
   res.json(deal);
 });
 
 // Delete deal
 router.delete('/:id', async (req, res) => {
-  const [deleted] = await db.delete(deals).where(eq(deals.id, req.params.id as string)).returning();
+  const dealDeleteId = req.params.id as string;
+  const [deleted] = await db.delete(deals).where(eq(deals.id, dealDeleteId)).returning();
   if (!deleted) {
     res.status(404).json({ error: 'Deal not found' });
     return;
   }
+  logAudit({ userId: req.user!.userId, action: 'delete', entity: 'deal', entityId: dealDeleteId, changes: { before: deleted } });
   res.json({ success: true });
 });
 

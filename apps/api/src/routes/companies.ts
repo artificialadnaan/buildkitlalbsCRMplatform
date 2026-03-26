@@ -4,6 +4,7 @@ import { db, companies, contacts, deals } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
 import { requireRole } from '../middleware/requireRole.js';
 import { calculateLeadScore } from '../lib/lead-scoring.js';
+import { logAudit } from '../lib/audit.js';
 import type { CompanyType } from '@buildkit/shared';
 
 const router = Router();
@@ -88,12 +89,14 @@ router.post('/', async (req, res) => {
   // Calculate initial score (no contacts or deals yet for a new company)
   const score = calculateLeadScore(req.body, 0, 0, false);
   const [company] = await db.insert(companies).values({ ...req.body, score }).returning();
+  logAudit({ userId: req.user!.userId, action: 'create', entity: 'company', entityId: company.id, changes: { after: company } });
   res.status(201).json(company);
 });
 
 // Update company
 router.patch('/:id', async (req, res) => {
   const id = req.params.id as string;
+  const [before] = await db.select().from(companies).where(eq(companies.id, id)).limit(1);
   const [company] = await db.update(companies)
     .set(req.body)
     .where(eq(companies.id, id))
@@ -103,6 +106,7 @@ router.patch('/:id', async (req, res) => {
     res.status(404).json({ error: 'Company not found' });
     return;
   }
+  logAudit({ userId: req.user!.userId, action: 'update', entity: 'company', entityId: id, changes: { before, after: company } });
   res.json(company);
 });
 
@@ -114,6 +118,7 @@ router.delete('/:id', requireRole('admin'), async (req, res) => {
     res.status(404).json({ error: 'Company not found' });
     return;
   }
+  logAudit({ userId: req.user!.userId, action: 'delete', entity: 'company', entityId: id, changes: { before: deleted } });
   res.json({ success: true });
 });
 

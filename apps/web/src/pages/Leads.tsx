@@ -238,6 +238,26 @@ export default function Leads() {
         actions={
           <div className="flex items-center gap-2">
             <button
+              onClick={() => {
+                const token = localStorage.getItem('token');
+                fetch(`${import.meta.env.VITE_API_URL || ''}/api/export/companies`, {
+                  headers: { Authorization: `Bearer ${token}` },
+                })
+                  .then((res) => res.blob())
+                  .then((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `companies-${new Date().toISOString().split('T')[0]}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  });
+              }}
+              className="rounded-lg border border-border bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Export CSV
+            </button>
+            <button
               onClick={handleRescore}
               disabled={rescoring}
               className="rounded-lg border border-border bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"

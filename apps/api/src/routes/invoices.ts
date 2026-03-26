@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { eq, and, sql, desc } from 'drizzle-orm';
 import { db, invoices, projects, companies, timeEntries } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
+import { logAudit } from '../lib/audit.js';
 import type { LineItem } from '@buildkit/shared';
 
 const router = Router();
@@ -134,6 +135,7 @@ router.post('/', async (req, res) => {
     lineItems,
   }).returning();
 
+  logAudit({ userId: req.user!.userId, action: 'create', entity: 'invoice', entityId: invoice.id, changes: { after: invoice } });
   res.status(201).json(invoice);
 });
 
@@ -171,6 +173,7 @@ router.patch('/:id', async (req, res) => {
     .where(eq(invoices.id, req.params.id))
     .returning();
 
+  logAudit({ userId: req.user!.userId, action: 'update', entity: 'invoice', entityId: req.params.id, changes: { before: existing, after: invoice } });
   res.json(invoice);
 });
 
@@ -192,6 +195,7 @@ router.delete('/:id', async (req, res) => {
   }
 
   await db.delete(invoices).where(eq(invoices.id, req.params.id));
+  logAudit({ userId: req.user!.userId, action: 'delete', entity: 'invoice', entityId: req.params.id, changes: { before: existing } });
   res.json({ success: true });
 });
 

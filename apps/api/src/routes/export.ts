@@ -1,0 +1,78 @@
+import { Router } from 'express';
+import { db, companies, deals, contacts, timeEntries, pipelineStages, users, projects } from '@buildkit/shared';
+import { eq } from 'drizzle-orm';
+import { authMiddleware } from '../middleware/auth.js';
+
+const router = Router();
+router.use(authMiddleware);
+
+function escapeCSV(val: unknown): string {
+  if (val == null) return '';
+  const str = String(val);
+  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+
+function toCSV(headers: string[], rows: Record<string, unknown>[]): string {
+  const headerLine = headers.join(',');
+  const dataLines = rows.map(row => headers.map(h => escapeCSV(row[h])).join(','));
+  return [headerLine, ...dataLines].join('\n');
+}
+
+router.get('/companies', async (req, res) => {
+  const data = await db.select().from(companies);
+  const csv = toCSV(
+    ['name', 'type', 'phone', 'website', 'city', 'state', 'zip', 'industry', 'source', 'score'],
+    data as Record<string, unknown>[]
+  );
+  const date = new Date().toISOString().split('T')[0];
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename="companies-${date}.csv"`);
+  res.send(csv);
+});
+
+router.get('/contacts', async (req, res) => {
+  const data = await db.select({
+    firstName: contacts.firstName, lastName: contacts.lastName,
+    email: contacts.email, phone: contacts.phone, title: contacts.title,
+    companyName: companies.name,
+  }).from(contacts).leftJoin(companies, eq(contacts.companyId, companies.id));
+  const csv = toCSV(['firstName', 'lastName', 'email', 'phone', 'title', 'companyName'], data as Record<string, unknown>[]);
+  const date = new Date().toISOString().split('T')[0];
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename="contacts-${date}.csv"`);
+  res.send(csv);
+});
+
+router.get('/deals', async (req, res) => {
+  const data = await db.select({
+    title: deals.title, value: deals.value, status: deals.status,
+    companyName: companies.name, stageName: pipelineStages.name,
+  }).from(deals)
+    .leftJoin(companies, eq(deals.companyId, companies.id))
+    .leftJoin(pipelineStages, eq(deals.stageId, pipelineStages.id));
+  const csv = toCSV(['title', 'value', 'status', 'companyName', 'stageName'], data as Record<string, unknown>[]);
+  const date = new Date().toISOString().split('T')[0];
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename="deals-${date}.csv"`);
+  res.send(csv);
+});
+
+router.get('/time-entries', async (req, res) => {
+  const data = await db.select({
+    description: timeEntries.description, durationMinutes: timeEntries.durationMinutes,
+    date: timeEntries.date, billable: timeEntries.billable,
+    projectName: projects.name, userName: users.name,
+  }).from(timeEntries)
+    .leftJoin(projects, eq(timeEntries.projectId, projects.id))
+    .leftJoin(users, eq(timeEntries.userId, users.id));
+  const csv = toCSV(['description', 'durationMinutes', 'date', 'billable', 'projectName', 'userName'], data as Record<string, unknown>[]);
+  const date = new Date().toISOString().split('T')[0];
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename="time-entries-${date}.csv"`);
+  res.send(csv);
+});
+
+export default router;

@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"ls packages/shared/src/schema/audit-log.ts packages/shared/src/schema/email-events.ts 2>&1\",\"description\":\"Check if audit-log and email-events schema files exist\"}",
-  "error": "Exit code 1\nls: packages/shared/src/schema/audit-log.ts: No such file or directory\nls: packages/shared/src/schema/email-events.ts: No such file or directory",
-  "timestamp": "2026-03-26T07:01:40.658Z",
+  "tool_input_preview": "{\"command\":\"ls -la /Users/adnaaniqbal/Developer/Consulting/buildkit-crm/apps/api/src/lib/audit.ts /Users/adnaaniqbal/Developer/Consulting/buildkit-crm/apps/api/src/lib/csv.ts /Users/adnaaniqbal/Develo...",
+  "error": "Exit code 1\nls: /Users/adnaaniqbal/Developer/Consulting/buildkit-crm/apps/api/src/lib/audit.ts: No such file or directory\nls: /Users/adnaaniqbal/Developer/Consulting/buildkit-crm/apps/api/src/lib/csv.ts: No such file or directory\nls: /Users/adnaaniqbal/Developer/Consulting/buildkit-crm/apps/api/src/routes/audit.ts: No such file or directory\nls: /Users/adnaaniqbal/Developer/Consulting/buildkit-crm/apps/api/src/routes/export.ts: No such file or directory\nls: /Users/adnaaniqbal/Developer/Consulting...",
+  "timestamp": "2026-03-26T07:06:13.094Z",
   "retry_count": 2
 }

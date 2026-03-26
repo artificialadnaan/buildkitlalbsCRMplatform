@@ -2,6 +2,7 @@ import { Router, type Request } from 'express';
 import { eq } from 'drizzle-orm';
 import { db, invoices, companies, contacts } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
+import { logAudit } from '../lib/audit.js';
 import Stripe from 'stripe';
 import { Queue } from 'bullmq';
 import Redis from 'ioredis';
@@ -112,6 +113,7 @@ router.post('/:id/send', authMiddleware, async (req: Request<IdParams>, res) => 
     // Trigger PDF generation
     await getInvoiceQueue().add('generate-invoice-pdf', { invoiceId: invoice.id });
 
+    logAudit({ userId: req.user!.userId, action: 'update', entity: 'invoice', entityId: invoice.id, changes: { before: { status: 'draft' }, after: { status: 'sent', stripeInvoiceId: finalized.id } } });
     res.json(updated);
   } catch (err) {
     console.error('Stripe invoice send error:', err);

@@ -51,7 +51,31 @@ export default function TimeTracking() {
 
   return (
     <div>
-      <TopBar title="Time Tracking" actions={<button onClick={() => setShowLogTime(true)} className="bg-blue-600 px-3 py-2 rounded-md text-sm text-white hover:bg-blue-500">+ Log Time</button>} />
+      <TopBar title="Time Tracking" actions={
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              const token = localStorage.getItem('token');
+              fetch(`${import.meta.env.VITE_API_URL || ''}/api/export/time-entries`, {
+                headers: { Authorization: `Bearer ${token}` },
+              })
+                .then((res) => res.blob())
+                .then((blob) => {
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `time-entries-${new Date().toISOString().split('T')[0]}.csv`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                });
+            }}
+            className="border border-gray-300 bg-white px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-50"
+          >
+            Export CSV
+          </button>
+          <button onClick={() => setShowLogTime(true)} className="bg-blue-600 px-3 py-2 rounded-md text-sm text-white hover:bg-blue-500">+ Log Time</button>
+        </div>
+      } />
 
       <div className="grid grid-cols-3 gap-3 mb-6">
         <StatCard label="Total Hours" value={summary ? formatHours(summary.totalMinutes) : '0h'} />
