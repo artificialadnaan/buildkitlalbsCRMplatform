@@ -38,6 +38,7 @@ export default function Scraper() {
   const [recentLeads, setRecentLeads] = useState<RecentLead[]>([]);
   const [zipInput, setZipInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [maxLeads, setMaxLeads] = useState(20);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -102,6 +103,7 @@ export default function Scraper() {
         body: JSON.stringify({
           zipCodes,
           searchQuery: searchQuery.trim() || 'local businesses',
+          maxLeads,
         }),
       });
       setZipInput('');
@@ -205,6 +207,30 @@ export default function Scraper() {
                   ))}
                 </div>
               </div>
+            </div>
+
+            {/* Lead Limit */}
+            <div className="border-t border-[#e7eeff] pt-6 mb-6">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 block">Max Leads to Scrape</label>
+              <div className="flex gap-2">
+                {[10, 20, 50, 100, 200].map(n => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setMaxLeads(n)}
+                    className={`px-4 py-2 rounded text-sm font-bold transition-all ${
+                      maxLeads === n
+                        ? 'bg-gradient-to-r from-orange-700 to-orange-500 text-white shadow-lg shadow-orange-600/20'
+                        : 'bg-[#e7eeff] text-slate-600 hover:bg-[#d8e3fb]'
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-slate-400 mt-2 italic">
+                Estimated cost: ~${((maxLeads * 0.034)).toFixed(2)} ({maxLeads} leads at $0.034/lead)
+              </p>
             </div>
 
             {/* Intelligence Settings */}

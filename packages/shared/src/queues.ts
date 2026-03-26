@@ -29,6 +29,7 @@ export interface ScrapeJobData {
   zipCodes: string[];
   searchQuery: string;
   startedBy: string;
+  maxLeads?: number;
 }
 
 export interface ScrapeJobProgress {

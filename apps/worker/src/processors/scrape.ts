@@ -15,7 +15,7 @@ function getAuditQueue(): Queue<WebsiteAuditJobData> {
 const API_KEY = process.env.GOOGLE_PLACES_API_KEY || '';
 
 export async function processScrapeJob(job: Job<ScrapeJobData>): Promise<void> {
-  const { jobId, zipCodes, searchQuery } = job.data;
+  const { jobId, zipCodes, searchQuery, maxLeads = 50 } = job.data;
 
   // Mark job as running
   await db.update(scrapeJobs)
@@ -35,6 +35,12 @@ export async function processScrapeJob(job: Job<ScrapeJobData>): Promise<void> {
       totalFound += places.length;
 
       for (const place of places) {
+        // Stop if we've hit the lead limit
+        if (newLeads >= maxLeads) {
+          console.log(`[Scrape] Reached max leads limit (${maxLeads}), stopping.`);
+          break;
+        }
+
         const parsed = parsePlace(place);
 
         // Dedup check by google_place_id
@@ -92,6 +98,9 @@ export async function processScrapeJob(job: Job<ScrapeJobData>): Promise<void> {
 
         newLeads++;
       }
+
+      // Stop outer loop if limit reached
+      if (newLeads >= maxLeads) break;
 
       // Update progress after each zip code
       const progress: ScrapeJobProgress = {

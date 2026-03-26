@@ -19,7 +19,8 @@ function getQueue() {
 
 // Enqueue a new scrape job
 router.post('/', async (req, res) => {
-  const { zipCodes, searchQuery } = req.body;
+  const { zipCodes, searchQuery, maxLeads } = req.body;
+  const leadLimit = Math.min(Math.max(1, parseInt(maxLeads) || 50), 500);
 
   // Validate input
   if (!zipCodes || !Array.isArray(zipCodes) || zipCodes.length === 0) {
@@ -53,6 +54,7 @@ router.post('/', async (req, res) => {
     zipCodes,
     searchQuery: resolvedQuery,
     startedBy: req.user!.userId,
+    maxLeads: leadLimit,
   };
 
   try {

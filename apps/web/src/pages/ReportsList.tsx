@@ -40,8 +40,8 @@ export default function ReportsList() {
 
   useEffect(() => {
     Promise.all([
-      api<Report[]>('/api/reports'),
-      api<Project[]>('/api/projects').catch(() => [] as Project[]),
+      api<{ data: Report[] } | Report[]>('/api/reports').then(r => Array.isArray(r) ? r : r.data ?? []),
+      api<{ data: Project[] } | Project[]>('/api/projects').then(p => Array.isArray(p) ? p : (p as { data: Project[] }).data ?? []).catch(() => [] as Project[]),
     ])
       .then(([r, p]) => {
         setReports(r);
