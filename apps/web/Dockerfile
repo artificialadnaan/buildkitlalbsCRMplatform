@@ -8,5 +8,6 @@ RUN npm install
 COPY packages/ packages/
 COPY apps/web/ apps/web/
 RUN npm run build --workspace=@buildkit/web
+WORKDIR /app/apps/web
 EXPOSE 3000
-CMD ["npx", "serve", "apps/web/dist", "-s", "-l", "3000"]
+CMD ["npx", "serve", "dist", "-s", "-l", "3000"]

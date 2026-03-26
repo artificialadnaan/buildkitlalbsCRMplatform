@@ -8,5 +8,6 @@ RUN npm install
 COPY packages/ packages/
 COPY apps/portal/ apps/portal/
 RUN npm run build --workspace=@buildkit/portal
+WORKDIR /app/apps/portal
 EXPOSE 3000
-CMD ["npx", "serve", "apps/portal/dist", "-s", "-l", "3000"]
+CMD ["npx", "serve", "dist", "-s", "-l", "3000"]
