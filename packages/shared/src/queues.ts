@@ -116,3 +116,24 @@ export function createReportQueue() {
     },
   });
 }
+
+// Enrichment queue
+export const ENRICHMENT_QUEUE = 'lead-enrichment';
+
+export interface EnrichmentJobData {
+  companyId: string;
+  website: string;
+  companyName: string;
+}
+
+export function createEnrichmentQueue() {
+  return new Queue<EnrichmentJobData>(ENRICHMENT_QUEUE, {
+    connection: getRedisConnection(),
+    defaultJobOptions: {
+      attempts: 2,
+      backoff: { type: 'exponential' as const, delay: 15000 },
+      removeOnComplete: { count: 500 },
+      removeOnFail: { count: 200 },
+    },
+  });
+}

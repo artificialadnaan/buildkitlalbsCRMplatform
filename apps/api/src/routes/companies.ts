@@ -1,18 +1,24 @@
 import { Router } from 'express';
 import { eq, ilike, sql, and, desc, isNotNull } from 'drizzle-orm';
 import { db, companies, contacts, deals, activities, emailSends, users } from '@buildkit/shared';
-import { createWebsiteAuditQueue } from '@buildkit/shared';
+import { createWebsiteAuditQueue, createEnrichmentQueue } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
 import { requireRole } from '../middleware/requireRole.js';
 import { calculateLeadScore } from '../lib/lead-scoring.js';
 import { logAudit } from '../lib/audit.js';
-import type { CompanyType, WebsiteAuditJobData } from '@buildkit/shared';
+import type { CompanyType, WebsiteAuditJobData, EnrichmentJobData } from '@buildkit/shared';
 import type { Queue } from 'bullmq';
 
 let auditQueue: Queue<WebsiteAuditJobData> | null = null;
 function getAuditQueue(): Queue<WebsiteAuditJobData> {
   if (!auditQueue) auditQueue = createWebsiteAuditQueue();
   return auditQueue;
+}
+
+let enrichmentQueue: Queue<EnrichmentJobData> | null = null;
+function getEnrichmentQueue(): Queue<EnrichmentJobData> {
+  if (!enrichmentQueue) enrichmentQueue = createEnrichmentQueue();
+  return enrichmentQueue;
 }
 
 const router = Router();
@@ -213,6 +219,31 @@ router.post('/:id/audit', async (req, res) => {
     return;
   }
   const job = await getAuditQueue().add('audit', { companyId: id, url: company.website });
+  res.status(202).json({ success: true, jobId: job.id });
+});
+
+// Trigger manual lead enrichment
+router.post('/:id/enrich', async (req, res) => {
+  const id = req.params.id as string;
+  const [company] = await db
+    .select({ id: companies.id, website: companies.website, name: companies.name })
+    .from(companies)
+    .where(eq(companies.id, id))
+    .limit(1);
+  if (!company) {
+    res.status(404).json({ error: 'Company not found' });
+    return;
+  }
+  if (!company.website) {
+    res.status(400).json({ error: 'Company has no website URL to enrich from' });
+    return;
+  }
+  await db.update(companies).set({ enrichmentStatus: 'pending' }).where(eq(companies.id, id));
+  const job = await getEnrichmentQueue().add('enrich', {
+    companyId: id,
+    website: company.website,
+    companyName: company.name,
+  });
   res.status(202).json({ success: true, jobId: job.id });
 });
 

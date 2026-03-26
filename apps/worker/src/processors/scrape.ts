@@ -1,8 +1,8 @@
 import type { Job, Queue } from 'bullmq';
 import { eq } from 'drizzle-orm';
 import { db, scrapeJobs, companies, contacts } from '@buildkit/shared';
-import type { ScrapeJobData, ScrapeJobProgress, WebsiteAuditJobData } from '@buildkit/shared';
-import { createWebsiteAuditQueue } from '@buildkit/shared';
+import type { ScrapeJobData, ScrapeJobProgress, WebsiteAuditJobData, EnrichmentJobData } from '@buildkit/shared';
+import { createWebsiteAuditQueue, createEnrichmentQueue } from '@buildkit/shared';
 import { searchPlaces, parsePlace } from '../lib/google-places.js';
 import { extractEmailsFromUrl } from '../lib/email-extractor.js';
 
@@ -10,6 +10,12 @@ let auditQueue: Queue<WebsiteAuditJobData> | null = null;
 function getAuditQueue(): Queue<WebsiteAuditJobData> {
   if (!auditQueue) auditQueue = createWebsiteAuditQueue();
   return auditQueue;
+}
+
+let enrichmentQueue: Queue<EnrichmentJobData> | null = null;
+function getEnrichmentQueue(): Queue<EnrichmentJobData> {
+  if (!enrichmentQueue) enrichmentQueue = createEnrichmentQueue();
+  return enrichmentQueue;
 }
 
 const API_KEY = process.env.GOOGLE_PLACES_API_KEY || '';
@@ -90,11 +96,16 @@ export async function processScrapeJob(job: Job<ScrapeJobData>): Promise<void> {
           });
         }
 
-        // Enqueue website audit if a URL is available
+        // Enqueue website audit and enrichment if a URL is available
         if (parsed.website) {
           await getAuditQueue().add('audit', {
             companyId: newCompany.id,
             url: parsed.website,
+          });
+          await getEnrichmentQueue().add('enrich', {
+            companyId: newCompany.id,
+            website: parsed.website,
+            companyName: parsed.name,
           });
         }
 

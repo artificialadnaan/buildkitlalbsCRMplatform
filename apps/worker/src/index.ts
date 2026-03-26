@@ -6,15 +6,17 @@ import {
   WEBSITE_AUDIT_QUEUE,
   OUTREACH_PIPELINE_QUEUE,
   SMS_SEND_QUEUE,
+  ENRICHMENT_QUEUE,
   getRedisConnection,
   createOutreachPipelineQueue,
   db,
   outreachCampaigns,
 } from '@buildkit/shared';
 import { eq } from 'drizzle-orm';
-import type { ScrapeJobData, WebsiteAuditJobData, OutreachPipelineJobData, SmsJobData } from '@buildkit/shared';
+import type { ScrapeJobData, WebsiteAuditJobData, OutreachPipelineJobData, SmsJobData, EnrichmentJobData } from '@buildkit/shared';
 import { processScrapeJob } from './processors/scrape.js';
 import { processWebsiteAudit } from './processors/website-audit.js';
+import { processEnrichment } from './processors/enrichment.js';
 import { processOutreachPipeline } from './processors/outreach-pipeline.js';
 import { processInvoicePdf } from './jobs/invoicePdf.js';
 import { processInvoiceReminders } from './jobs/invoiceReminder.js';
@@ -214,3 +216,26 @@ smsSendWorker.on('failed', (job, err) => {
 });
 
 console.log(`[Worker] SMS send worker started — listening on queue "${SMS_SEND_QUEUE}"`);
+
+// Lead enrichment worker
+const enrichmentWorker = new Worker<EnrichmentJobData>(
+  ENRICHMENT_QUEUE,
+  async (job) => {
+    console.log(`[Worker] Processing enrichment job ${job.id} — company: ${job.data.companyId}`);
+    await processEnrichment(job);
+  },
+  {
+    connection,
+    concurrency: 2,
+  },
+);
+
+enrichmentWorker.on('completed', (job) => {
+  console.log(`[Worker] Enrichment job ${job.id} completed`);
+});
+
+enrichmentWorker.on('failed', (job, err) => {
+  console.error(`[Worker] Enrichment job ${job?.id} failed:`, err.message);
+});
+
+console.log(`[Worker] Enrichment worker started — listening on queue "${ENRICHMENT_QUEUE}"`);

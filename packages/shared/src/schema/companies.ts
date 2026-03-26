@@ -26,5 +26,6 @@ export const companies = pgTable('companies', {
   websiteScore: integer('website_score').default(0),
   websiteAuditedAt: timestamp('website_audited_at', { withTimezone: true }),
   assignedTo: uuid('assigned_to').references(() => users.id),
+  enrichmentStatus: varchar('enrichment_status', { length: 20 }).default('pending'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });

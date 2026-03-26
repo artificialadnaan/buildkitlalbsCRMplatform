@@ -10,5 +10,6 @@ export const contacts = pgTable('contacts', {
   phone: varchar('phone', { length: 50 }),
   title: varchar('title', { length: 100 }),
   isPrimary: boolean('is_primary').notNull().default(false),
+  linkedinUrl: varchar('linkedin_url', { length: 500 }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });

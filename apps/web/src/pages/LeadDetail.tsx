@@ -28,6 +28,7 @@ interface Company {
   employeeCount: number | null;
   source: string;
   score: number;
+  enrichmentStatus: string | null;
   websiteAudit: WebsiteAudit | null;
   deals: Deal[];
 }
@@ -73,6 +74,7 @@ export default function LeadDetail() {
   const [pipelines, setPipelines] = useState<Pipeline[]>([]);
   const [dealForm, setDealForm] = useState({ title: '', value: '', pipelineId: '', stageId: '', contactId: '' });
   const [dealSubmitting, setDealSubmitting] = useState(false);
+  const [enriching, setEnriching] = useState(false);
 
   const loadContacts = () => {
     if (!id) return;
@@ -112,6 +114,19 @@ export default function LeadDetail() {
       console.error('Failed to create contact:', err);
     } finally {
       setContactSubmitting(false);
+    }
+  };
+
+  const handleRetryEnrichment = async () => {
+    if (!id || enriching) return;
+    setEnriching(true);
+    try {
+      await api(`/api/companies/${id}/enrich`, { method: 'POST' });
+      loadCompany();
+    } catch (err) {
+      console.error('Failed to trigger enrichment:', err);
+    } finally {
+      setEnriching(false);
     }
   };
 
@@ -185,10 +200,30 @@ export default function LeadDetail() {
         {/* Company Info */}
         <div className="rounded-lg border border-border bg-surface p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-gray-900">
-              Company Details
-            </h2>
             <div className="flex items-center gap-2">
+              <h2 className="text-base font-semibold text-gray-900">
+                Company Details
+              </h2>
+              {company.enrichmentStatus === 'enriched' && (
+                <Badge label="Enriched" variant="green" />
+              )}
+              {company.enrichmentStatus === 'pending' && (
+                <Badge label="Enriching..." variant="blue" />
+              )}
+              {(company.enrichmentStatus === 'not_found' || company.enrichmentStatus === 'failed') && (
+                <Badge label={company.enrichmentStatus === 'failed' ? 'Enrich Failed' : 'Not Found'} variant="red" />
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {(company.enrichmentStatus === 'failed' || company.enrichmentStatus === 'not_found') && company.website && (
+                <button
+                  onClick={handleRetryEnrichment}
+                  disabled={enriching}
+                  className="rounded-lg border border-border bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {enriching ? 'Retrying...' : 'Retry Enrichment'}
+                </button>
+              )}
               {company.deals && company.deals.length > 0 && (
                 <Link
                   to={`/deals/${company.deals[0].id}/call-prep`}
