@@ -4,9 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "npx serve apps/web/dist -s -l 3000",
     "local": "vite",
     "build": "vite build",
-    "start": "npx serve dist -s -l 3000",
+    "start": "npx serve apps/web/dist -s -l 3000",
     "preview": "vite preview"
   },
   "dependencies": {
