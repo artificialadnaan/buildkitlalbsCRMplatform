@@ -167,7 +167,7 @@ export default function LeadDetail() {
         {/* Company Info */}
         <div className="rounded-lg border border-border bg-surface p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-gray-200">
+            <h2 className="text-base font-semibold text-gray-900">
               Company Details
             </h2>
             <button
@@ -181,7 +181,7 @@ export default function LeadDetail() {
             {infoFields.map((field) => (
               <div key={field.label}>
                 <p className="text-xs font-medium uppercase text-gray-500">{field.label}</p>
-                <p className="mt-1 text-sm text-gray-200">{field.value ?? '--'}</p>
+                <p className="mt-1 text-sm text-gray-900">{field.value ?? '--'}</p>
               </div>
             ))}
           </div>
@@ -190,7 +190,7 @@ export default function LeadDetail() {
         {/* Contacts */}
         <div className="rounded-lg border border-border bg-surface p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-gray-200">
+            <h2 className="text-base font-semibold text-gray-900">
               Contacts ({contacts.length})
             </h2>
             <button
@@ -202,7 +202,7 @@ export default function LeadDetail() {
           </div>
           {contacts.length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-8 text-center">
-              <svg className="h-8 w-8 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
               </svg>
               <p className="text-sm text-gray-500">No contacts yet — add a contact to start reaching out</p>
@@ -212,11 +212,11 @@ export default function LeadDetail() {
               {contacts.map((contact) => (
                 <div
                   key={contact.id}
-                  className="flex items-start justify-between rounded-md border border-border bg-gray-900/40 p-3"
+                  className="flex items-start justify-between rounded-md border border-border bg-white/40 p-3"
                 >
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-gray-200">
+                      <p className="text-sm font-medium text-gray-900">
                         {contact.firstName} {contact.lastName ?? ''}
                       </p>
                       {contact.isPrimary && <Badge label="Primary" variant="blue" />}
@@ -227,7 +227,7 @@ export default function LeadDetail() {
                   </div>
                   <div className="text-right">
                     {contact.email && (
-                      <p className="text-xs text-gray-400">{contact.email}</p>
+                      <p className="text-xs text-gray-500">{contact.email}</p>
                     )}
                     {contact.phone && (
                       <p className="text-xs text-gray-500 mt-0.5">{contact.phone}</p>
@@ -250,7 +250,7 @@ export default function LeadDetail() {
               value={dealForm.title}
               onChange={(e) => setDealForm({ ...dealForm, title: e.target.value })}
               placeholder="Deal title"
-              className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
             />
           </div>
           <div>
@@ -260,7 +260,7 @@ export default function LeadDetail() {
               value={dealForm.value}
               onChange={(e) => setDealForm({ ...dealForm, value: e.target.value })}
               placeholder="0"
-              className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
             />
           </div>
           <div>
@@ -268,7 +268,7 @@ export default function LeadDetail() {
             <select
               value={dealForm.pipelineId}
               onChange={(e) => handlePipelineChange(e.target.value)}
-              className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
             >
               <option value="">Select pipeline...</option>
               {pipelines.map((p) => (
@@ -282,7 +282,7 @@ export default function LeadDetail() {
               <select
                 value={dealForm.stageId}
                 onChange={(e) => setDealForm({ ...dealForm, stageId: e.target.value })}
-                className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
               >
                 {pipelines.find((p) => p.id === dealForm.pipelineId)?.stages.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
@@ -296,7 +296,7 @@ export default function LeadDetail() {
               <select
                 value={dealForm.contactId}
                 onChange={(e) => setDealForm({ ...dealForm, contactId: e.target.value })}
-                className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
               >
                 <option value="">None</option>
                 {contacts.map((c) => (
@@ -308,7 +308,7 @@ export default function LeadDetail() {
           <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => setShowCreateDeal(false)}
-              className="rounded-lg border border-border bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
+              className="rounded-lg border border-border bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
             >
               Cancel
             </button>
@@ -334,7 +334,7 @@ export default function LeadDetail() {
                 value={contactForm.firstName}
                 onChange={(e) => setContactForm({ ...contactForm, firstName: e.target.value })}
                 placeholder="First name"
-                className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
               />
             </div>
             <div>
@@ -344,7 +344,7 @@ export default function LeadDetail() {
                 value={contactForm.lastName}
                 onChange={(e) => setContactForm({ ...contactForm, lastName: e.target.value })}
                 placeholder="Last name"
-                className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
               />
             </div>
           </div>
@@ -355,7 +355,7 @@ export default function LeadDetail() {
               value={contactForm.email}
               onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
               placeholder="email@example.com"
-              className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
             />
           </div>
           <div>
@@ -365,7 +365,7 @@ export default function LeadDetail() {
               value={contactForm.phone}
               onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
               placeholder="(555) 123-4567"
-              className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
             />
           </div>
           <div>
@@ -375,7 +375,7 @@ export default function LeadDetail() {
               value={contactForm.title}
               onChange={(e) => setContactForm({ ...contactForm, title: e.target.value })}
               placeholder="e.g. Project Manager"
-              className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
             />
           </div>
           <label className="flex items-center gap-2 cursor-pointer">
@@ -383,14 +383,14 @@ export default function LeadDetail() {
               type="checkbox"
               checked={contactForm.isPrimary}
               onChange={(e) => setContactForm({ ...contactForm, isPrimary: e.target.checked })}
-              className="h-4 w-4 rounded border-gray-600 bg-gray-900 text-blue-600 focus:ring-blue-500"
+              className="h-4 w-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-500"
             />
-            <span className="text-sm text-gray-300">Primary contact</span>
+            <span className="text-sm text-gray-500">Primary contact</span>
           </label>
           <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => setShowAddContact(false)}
-              className="rounded-lg border border-border bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
+              className="rounded-lg border border-border bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
             >
               Cancel
             </button>

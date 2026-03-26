@@ -1,12 +1,12 @@
 export default function Login() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-900 px-4">
-      <div className="w-full max-w-sm rounded-lg border border-border bg-surface p-8 text-center">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-8 text-center shadow-lg">
         {/* Logo */}
         <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-[#1F4D78]">
           <span className="text-lg font-bold text-white">BK</span>
         </div>
-        <h1 className="text-2xl font-bold text-white">
+        <h1 className="text-2xl font-bold text-gray-900">
           BuildKit CRM
         </h1>
         <p className="mt-2 text-sm text-gray-500">
@@ -16,7 +16,7 @@ export default function Login() {
         {/* Google Sign In */}
         <a
           href={`${import.meta.env.VITE_API_URL || ''}/auth/google`}
-          className="mt-6 flex w-full items-center justify-center gap-3 rounded-lg border border-border bg-gray-800 px-4 py-3 text-sm font-medium text-gray-200 transition-colors hover:bg-gray-700"
+          className="mt-6 flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path

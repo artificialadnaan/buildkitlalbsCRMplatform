@@ -114,12 +114,12 @@ export default function Dashboard() {
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Recent Activity */}
           <div className="rounded-lg border border-border bg-surface p-5">
-            <h2 className="text-base font-semibold text-gray-200 mb-3">
+            <h2 className="text-base font-semibold text-gray-900 mb-3">
               Recent Activity
             </h2>
             {activity.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-8 text-center">
-                <svg className="h-8 w-8 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
                 </svg>
                 <p className="text-sm text-gray-500">No activity yet — log a call or send an email to get started</p>
@@ -140,13 +140,13 @@ export default function Dashboard() {
 
           {/* My Tasks */}
           <div className="rounded-lg border border-border bg-surface p-5">
-            <h2 className="text-base font-semibold text-gray-200 mb-3">
+            <h2 className="text-base font-semibold text-gray-900 mb-3">
               My Tasks Due
             </h2>
             <div className="border-t border-border">
               {myTasks.length === 0 ? (
                 <div className="flex flex-col items-center gap-2 py-8 text-center">
-                  <svg className="h-8 w-8 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                   </svg>
                   <p className="text-sm text-gray-500">No tasks due — you're all caught up!</p>
@@ -159,7 +159,7 @@ export default function Dashboard() {
                       task.priority === 'medium' ? 'bg-amber-500' : 'bg-gray-500'
                     }`} />
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm text-gray-300">{task.title}</div>
+                      <div className="text-sm text-gray-900">{task.title}</div>
                       <div className="text-xs text-gray-600">
                         {task.projectName} · {task.milestoneName}
                         {task.dueDate && ` · Due ${new Date(task.dueDate).toLocaleDateString()}`}

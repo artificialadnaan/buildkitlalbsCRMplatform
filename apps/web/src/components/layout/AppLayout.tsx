@@ -7,7 +7,7 @@ export default function AppLayout() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-900">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
       </div>
     );
@@ -18,7 +18,7 @@ export default function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-gray-50">
       <Sidebar />
       <main className="ml-56 min-h-screen">
         <Outlet />

@@ -12,7 +12,7 @@ export default function TemplatePreview({ subject, bodyHtml }: TemplatePreviewPr
       </div>
       <div
         className="prose prose-sm max-w-none"
-        dangerouslySetInnerHTML={{ __html: bodyHtml || '<p class="text-gray-400">Empty body</p>' }}
+        dangerouslySetInnerHTML={{ __html: bodyHtml || '<p class="text-gray-500">Empty body</p>' }}
       />
     </div>
   );

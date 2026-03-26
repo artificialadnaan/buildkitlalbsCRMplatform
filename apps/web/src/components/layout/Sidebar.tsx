@@ -99,10 +99,10 @@ export default function Sidebar() {
   const { user, logout } = useAuth();
 
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-56 flex-col bg-sidebar border-r border-border">
+    <aside className="fixed left-0 top-0 z-40 flex h-screen w-56 flex-col bg-[#1F4D78] border-r border-[#1F4D78]">
       {/* Logo */}
       <div className="flex items-center gap-2 px-5 py-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1F4D78]">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
           <span className="text-sm font-bold text-white">BK</span>
         </div>
         <span className="text-base font-semibold text-white">
@@ -120,8 +120,8 @@ export default function Sidebar() {
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-150 ease-out ${
                 isActive
-                  ? 'border-l-2 border-[#1F4D78] bg-[#1F4D78]/15 text-white'
-                  : 'border-l-2 border-transparent text-gray-400 hover:bg-gray-800/50 hover:text-gray-200 hover:border-gray-700'
+                  ? 'border-l-2 border-white bg-white/20 text-white'
+                  : 'border-l-2 border-transparent text-white/70 hover:bg-white/10 hover:text-white'
               }`
             }
           >
@@ -133,16 +133,16 @@ export default function Sidebar() {
 
       {/* User */}
       {user && (
-        <div className="border-t border-border px-4 py-3">
+        <div className="border-t border-white/20 px-4 py-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-700 text-xs font-medium text-gray-200">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20 text-xs font-medium text-white">
               {user.name.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-gray-200 truncate">{user.name}</p>
+              <p className="text-sm font-medium text-white truncate">{user.name}</p>
               <button
                 onClick={logout}
-                className="text-xs text-gray-500 hover:text-red-400 transition-colors"
+                className="text-xs text-white/60 hover:text-red-300 transition-colors"
               >
                 Sign out
               </button>

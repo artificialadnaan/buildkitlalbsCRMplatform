@@ -19,7 +19,7 @@ export default function ActivityItem({ type, description, meta }: ActivityItemPr
         className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${dotColors[type] ?? 'bg-gray-500'}`}
       />
       <div className="min-w-0 flex-1">
-        <p className="text-sm text-gray-200 truncate">{description}</p>
+        <p className="text-sm text-gray-900 truncate">{description}</p>
         <p className="text-xs text-gray-500 mt-0.5">{meta}</p>
       </div>
     </div>

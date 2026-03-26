@@ -38,7 +38,7 @@ export default function EmailTemplateEditor() {
     ],
     editorProps: {
       attributes: {
-        class: 'prose prose-invert prose-sm max-w-none min-h-[200px] focus:outline-none px-4 py-3',
+        class: 'prose prose-sm max-w-none min-h-[200px] focus:outline-none px-4 py-3',
       },
     },
   });
@@ -121,7 +121,7 @@ export default function EmailTemplateEditor() {
           <div className="flex gap-2">
             <button
               onClick={handlePreview}
-              className="bg-border border border-gray-700 px-3 py-2 rounded-md text-sm text-gray-400 hover:text-gray-200"
+              className="bg-gray-100 border border-gray-300 px-3 py-2 rounded-md text-sm text-gray-500 hover:text-gray-900"
             >
               Preview
             </button>
@@ -134,7 +134,7 @@ export default function EmailTemplateEditor() {
             </button>
             <button
               onClick={() => navigate('/email/templates')}
-              className="bg-border border border-gray-700 px-3 py-2 rounded-md text-sm text-gray-400"
+              className="bg-gray-100 border border-gray-300 px-3 py-2 rounded-md text-sm text-gray-500"
             >
               Cancel
             </button>
@@ -151,7 +151,7 @@ export default function EmailTemplateEditor() {
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="e.g., Construction Touch 1"
-              className="w-full bg-surface border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+              className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500"
             />
           </div>
 
@@ -161,7 +161,7 @@ export default function EmailTemplateEditor() {
             <select
               value={pipelineType}
               onChange={e => setPipelineType(e.target.value as 'local' | 'construction')}
-              className="w-full bg-surface border border-border rounded-md px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-blue-500"
+              className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500"
             >
               <option value="local">Local Business</option>
               <option value="construction">Construction</option>
@@ -178,7 +178,7 @@ export default function EmailTemplateEditor() {
               value={subject}
               onChange={e => setSubject(e.target.value)}
               placeholder="e.g., Custom software for {{company.name}}"
-              className="w-full bg-surface border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+              className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500"
             />
           </div>
 
@@ -194,21 +194,21 @@ export default function EmailTemplateEditor() {
                 <button
                   type="button"
                   onClick={() => editor?.chain().focus().toggleBold().run()}
-                  className={`px-2 py-1 rounded text-xs ${editor?.isActive('bold') ? 'bg-blue-500/20 text-blue-400' : 'text-gray-500 hover:text-gray-300'}`}
+                  className={`px-2 py-1 rounded text-xs ${editor?.isActive('bold') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
                 >
                   B
                 </button>
                 <button
                   type="button"
                   onClick={() => editor?.chain().focus().toggleItalic().run()}
-                  className={`px-2 py-1 rounded text-xs italic ${editor?.isActive('italic') ? 'bg-blue-500/20 text-blue-400' : 'text-gray-500 hover:text-gray-300'}`}
+                  className={`px-2 py-1 rounded text-xs italic ${editor?.isActive('italic') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
                 >
                   I
                 </button>
                 <button
                   type="button"
                   onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                  className={`px-2 py-1 rounded text-xs ${editor?.isActive('bulletList') ? 'bg-blue-500/20 text-blue-400' : 'text-gray-500 hover:text-gray-300'}`}
+                  className={`px-2 py-1 rounded text-xs ${editor?.isActive('bulletList') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
                 >
                   List
                 </button>
@@ -218,7 +218,7 @@ export default function EmailTemplateEditor() {
                     const url = window.prompt('Enter URL:');
                     if (url) editor?.chain().focus().setLink({ href: url }).run();
                   }}
-                  className={`px-2 py-1 rounded text-xs ${editor?.isActive('link') ? 'bg-blue-500/20 text-blue-400' : 'text-gray-500 hover:text-gray-300'}`}
+                  className={`px-2 py-1 rounded text-xs ${editor?.isActive('link') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
                 >
                   Link
                 </button>
@@ -233,10 +233,10 @@ export default function EmailTemplateEditor() {
           {showPreview ? (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium text-gray-400">Preview (sample data)</h3>
+                <h3 className="text-sm font-medium text-gray-500">Preview (sample data)</h3>
                 <button
                   onClick={() => setShowPreview(false)}
-                  className="text-xs text-gray-600 hover:text-gray-400"
+                  className="text-xs text-gray-600 hover:text-gray-500"
                 >
                   Close
                 </button>
@@ -246,7 +246,7 @@ export default function EmailTemplateEditor() {
           ) : (
             <div className="bg-surface border border-border rounded-lg p-8 text-center">
               <p className="text-sm text-gray-600 mb-3">Click "Preview" to see your template with sample data</p>
-              <p className="text-xs text-gray-700">
+              <p className="text-xs text-gray-400">
                 Variables like {'{{contact.first_name}}'} will be replaced with real values when sending.
               </p>
             </div>

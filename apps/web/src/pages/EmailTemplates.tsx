@@ -55,7 +55,7 @@ export default function EmailTemplates() {
       render: (row: Template) => (
         <button
           onClick={(e) => { e.stopPropagation(); deleteTemplate(row.id); }}
-          className="text-red-500 hover:text-red-400 text-xs"
+          className="text-red-500 hover:text-red-600 text-xs"
         >
           Delete
         </button>
@@ -82,7 +82,7 @@ export default function EmailTemplates() {
         <select
           value={typeFilter}
           onChange={e => setTypeFilter(e.target.value)}
-          className="bg-surface border border-border rounded-md px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-blue-500"
+          className="bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-500"
         >
           <option value="">All Pipelines</option>
           <option value="local">Local Business</option>

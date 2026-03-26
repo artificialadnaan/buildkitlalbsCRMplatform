@@ -66,20 +66,20 @@ export default function ComposeEmailModal({
     <Modal open={open} onClose={onClose} title="Send Email">
       <div className="space-y-3">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-500">To: <span className="text-gray-300">{contactName} ({contactEmail})</span></span>
+          <span className="text-gray-500">To: <span className="text-gray-700">{contactName} ({contactEmail})</span></span>
           <SendLimitBadge />
         </div>
 
         <div className="flex gap-2">
           <button
             onClick={() => setUseTemplate(true)}
-            className={`px-3 py-1.5 rounded-md text-xs ${useTemplate ? 'bg-blue-600 text-white' : 'bg-surface border border-border text-gray-400'}`}
+            className={`px-3 py-1.5 rounded-md text-xs ${useTemplate ? 'bg-blue-600 text-white' : 'bg-surface border border-border text-gray-500'}`}
           >
             Use Template
           </button>
           <button
             onClick={() => setUseTemplate(false)}
-            className={`px-3 py-1.5 rounded-md text-xs ${!useTemplate ? 'bg-blue-600 text-white' : 'bg-surface border border-border text-gray-400'}`}
+            className={`px-3 py-1.5 rounded-md text-xs ${!useTemplate ? 'bg-blue-600 text-white' : 'bg-surface border border-border text-gray-500'}`}
           >
             Custom Email
           </button>
@@ -89,7 +89,7 @@ export default function ComposeEmailModal({
           <select
             value={selectedTemplateId}
             onChange={e => setSelectedTemplateId(e.target.value)}
-            className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300"
+            className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900"
           >
             <option value="">Select a template...</option>
             {templates.map(t => (
@@ -102,14 +102,14 @@ export default function ComposeEmailModal({
               placeholder="Subject"
               value={subject}
               onChange={e => setSubject(e.target.value)}
-              className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600"
+              className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 placeholder-gray-400"
             />
             <textarea
               placeholder="Email body (HTML supported)..."
               value={bodyHtml}
               onChange={e => setBodyHtml(e.target.value)}
               rows={5}
-              className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600 resize-none"
+              className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 placeholder-gray-400 resize-none"
             />
           </>
         )}

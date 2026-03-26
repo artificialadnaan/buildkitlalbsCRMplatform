@@ -44,12 +44,12 @@ export default function MilestoneTimeline({ milestones, activeMilestoneId, onMil
                     ? 'bg-green-500'
                     : milestone.status === 'in_progress'
                     ? 'bg-amber-500'
-                    : 'bg-gray-600'
+                    : 'bg-gray-400'
                 }`}
               />
               {!isLast && (
                 <div className={`w-0.5 flex-1 min-h-[24px] ${
-                  milestone.status === 'done' ? 'bg-green-500/30' : 'bg-gray-700'
+                  milestone.status === 'done' ? 'bg-green-500/30' : 'bg-gray-300'
                 }`} />
               )}
             </div>
@@ -58,10 +58,10 @@ export default function MilestoneTimeline({ milestones, activeMilestoneId, onMil
               onClick={() => onMilestoneClick?.(milestone)}
               className={`flex-1 pb-3 -mt-0.5 ${
                 onMilestoneClick ? 'cursor-pointer' : ''
-              } ${isActive ? 'bg-white/5 -mx-2 px-2 rounded-md' : ''}`}
+              } ${isActive ? 'bg-gray-100 -mx-2 px-2 rounded-md' : ''}`}
             >
               <div className="flex items-center gap-2">
-                <span className={`text-sm font-medium ${isActive ? 'text-gray-200' : 'text-gray-400'}`}>
+                <span className={`text-sm font-medium ${isActive ? 'text-gray-900' : 'text-gray-500'}`}>
                   {milestone.name}
                 </span>
                 <Badge label={statusLabel[milestone.status]} variant={statusVariant[milestone.status]} />

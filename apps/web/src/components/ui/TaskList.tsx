@@ -42,7 +42,7 @@ export default function TaskList({ tasks, onToggleStatus, onTaskClick }: TaskLis
       {tasks.map(task => (
         <div
           key={task.id}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-white/5 group"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-100 group"
         >
           <button
             onClick={() => onToggleStatus(task.id, statusCycle[task.status])}
@@ -51,7 +51,7 @@ export default function TaskList({ tasks, onToggleStatus, onTaskClick }: TaskLis
                 ? 'bg-green-500 border-green-500 text-white'
                 : task.status === 'in_progress'
                 ? 'bg-amber-500/20 border-amber-500'
-                : 'border-gray-600 hover:border-gray-400'
+                : 'border-gray-300 hover:border-gray-400'
             }`}
           >
             {task.status === 'done' && (
@@ -68,7 +68,7 @@ export default function TaskList({ tasks, onToggleStatus, onTaskClick }: TaskLis
             className={`flex-1 min-w-0 ${onTaskClick ? 'cursor-pointer' : ''}`}
             onClick={() => onTaskClick?.(task)}
           >
-            <div className={`text-sm ${task.status === 'done' ? 'text-gray-600 line-through' : 'text-gray-300'}`}>
+            <div className={`text-sm ${task.status === 'done' ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
               {task.title}
             </div>
             <div className="flex items-center gap-2 mt-0.5">

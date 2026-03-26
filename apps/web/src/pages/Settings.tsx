@@ -45,7 +45,7 @@ export default function Settings() {
         {pipelines.map((pipeline) => (
           <div key={pipeline.id} className="rounded-lg border border-border bg-surface p-5">
             <div className="mb-4">
-              <h2 className="text-base font-semibold text-gray-100">{pipeline.name}</h2>
+              <h2 className="text-base font-semibold text-gray-900">{pipeline.name}</h2>
               {pipeline.description && (
                 <p className="mt-0.5 text-sm text-gray-500">{pipeline.description}</p>
               )}
@@ -57,13 +57,13 @@ export default function Settings() {
                 .map((stage) => (
                   <div
                     key={stage.id}
-                    className="flex items-center gap-3 rounded-md border border-border bg-gray-900/40 px-4 py-2.5"
+                    className="flex items-center gap-3 rounded-md border border-border bg-white/40 px-4 py-2.5"
                   >
                     <span
                       className="h-3 w-3 rounded-full shrink-0"
                       style={{ backgroundColor: stage.color ?? '#6b7280' }}
                     />
-                    <span className="text-sm text-gray-200">{stage.name}</span>
+                    <span className="text-sm text-gray-900">{stage.name}</span>
                     <span className="ml-auto text-xs text-gray-500">Position {stage.position}</span>
                   </div>
                 ))}

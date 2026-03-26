@@ -173,7 +173,7 @@ export default function DealDetail() {
           value={deal.stageId}
           onChange={(e) => handleStageChange(e.target.value)}
           disabled={stageChanging}
-          className="rounded-md border border-border bg-gray-900 px-2 py-1 text-sm text-gray-200 focus:border-blue-500 focus:outline-none disabled:opacity-50"
+          className="rounded-md border border-border bg-white px-2 py-1 text-sm text-gray-900 focus:border-blue-500 focus:outline-none disabled:opacity-50"
         >
           {pipelineStages.map((s) => (
             <option key={s.id} value={s.id}>{s.name}</option>
@@ -206,14 +206,14 @@ export default function DealDetail() {
       <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-3">
         {/* Deal Info */}
         <div className="lg:col-span-2 rounded-lg border border-border bg-surface p-5">
-          <h2 className="mb-4 text-base font-semibold text-gray-200">
+          <h2 className="mb-4 text-base font-semibold text-gray-900">
             Deal Information
           </h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             {infoFields.map((field) => (
               <div key={field.label}>
                 <p className="text-xs font-medium uppercase text-gray-500">{field.label}</p>
-                <div className="mt-1 text-sm text-gray-200">{field.value}</div>
+                <div className="mt-1 text-sm text-gray-900">{field.value}</div>
               </div>
             ))}
           </div>
@@ -221,25 +221,25 @@ export default function DealDetail() {
 
         {/* Quick Actions */}
         <div className="rounded-lg border border-border bg-surface p-5">
-          <h2 className="mb-4 text-base font-semibold text-gray-200">
+          <h2 className="mb-4 text-base font-semibold text-gray-900">
             Quick Actions
           </h2>
           <div className="flex flex-col gap-2">
             <button
               onClick={() => setShowEmailModal(true)}
-              className="w-full rounded-lg border border-border bg-gray-800 px-4 py-2.5 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
+              className="w-full rounded-lg border border-border bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
             >
               Send Email
             </button>
             <button
               onClick={() => setShowSequenceModal(true)}
-              className="w-full rounded-lg border border-border bg-gray-800 px-4 py-2.5 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
+              className="w-full rounded-lg border border-border bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
             >
               Start Sequence
             </button>
             <button
               onClick={() => setModalOpen(true)}
-              className="w-full rounded-lg border border-border bg-gray-800 px-4 py-2.5 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
+              className="w-full rounded-lg border border-border bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
             >
               Log Activity
             </button>
@@ -248,7 +248,7 @@ export default function DealDetail() {
                 setSelectedStageId(deal.stageId);
                 setShowStageModal(true);
               }}
-              className="w-full rounded-lg border border-border bg-gray-800 px-4 py-2.5 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
+              className="w-full rounded-lg border border-border bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
             >
               Move Stage
             </button>
@@ -257,13 +257,13 @@ export default function DealDetail() {
                 <div className="my-1 border-t border-border" />
                 <button
                   onClick={() => handleStatusChange('won')}
-                  className="w-full rounded-lg bg-emerald-600/20 border border-emerald-500/30 px-4 py-2.5 text-sm font-medium text-emerald-400 transition-colors hover:bg-emerald-600/30"
+                  className="w-full rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-2.5 text-sm font-medium text-emerald-600 transition-colors hover:bg-emerald-100"
                 >
                   Mark Won
                 </button>
                 <button
                   onClick={() => handleStatusChange('lost')}
-                  className="w-full rounded-lg bg-red-600/20 border border-red-500/30 px-4 py-2.5 text-sm font-medium text-red-400 transition-colors hover:bg-red-600/30"
+                  className="w-full rounded-lg bg-red-50 border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-100"
                 >
                   Mark Lost
                 </button>
@@ -276,7 +276,7 @@ export default function DealDetail() {
       {/* Activity Timeline */}
       <div className="px-6 pb-6">
         <div className="rounded-lg border border-border bg-surface p-5">
-          <h2 className="mb-3 text-base font-semibold text-gray-200">
+          <h2 className="mb-3 text-base font-semibold text-gray-900">
             Activity Timeline
           </h2>
           {activities.length === 0 ? (
@@ -304,7 +304,7 @@ export default function DealDetail() {
             <select
               value={selectedStageId}
               onChange={(e) => setSelectedStageId(e.target.value)}
-              className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
             >
               {pipelineStages.map((s) => (
                 <option key={s.id} value={s.id}>{s.name}</option>
@@ -314,7 +314,7 @@ export default function DealDetail() {
           <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => setShowStageModal(false)}
-              className="rounded-lg border border-border bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
+              className="rounded-lg border border-border bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
             >
               Cancel
             </button>
@@ -337,7 +337,7 @@ export default function DealDetail() {
             <select
               value={activityType}
               onChange={(e) => setActivityType(e.target.value)}
-              className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
             >
               <option value="note">Note</option>
               <option value="email">Email</option>
@@ -353,7 +353,7 @@ export default function DealDetail() {
               value={activitySubject}
               onChange={(e) => setActivitySubject(e.target.value)}
               placeholder="Activity subject..."
-              className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
             />
           </div>
           <div>
@@ -363,13 +363,13 @@ export default function DealDetail() {
               onChange={(e) => setActivityBody(e.target.value)}
               placeholder="Additional details..."
               rows={3}
-              className="w-full rounded-lg border border-border bg-gray-900 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none resize-none"
             />
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => setModalOpen(false)}
-              className="rounded-lg border border-border bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
+              className="rounded-lg border border-border bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
             >
               Cancel
             </button>

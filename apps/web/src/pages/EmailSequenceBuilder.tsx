@@ -107,7 +107,7 @@ export default function EmailSequenceBuilder() {
             </button>
             <button
               onClick={() => navigate('/email/sequences')}
-              className="bg-border border border-gray-700 px-3 py-2 rounded-md text-sm text-gray-400"
+              className="bg-gray-100 border border-gray-300 px-3 py-2 rounded-md text-sm text-gray-500"
             >
               Cancel
             </button>
@@ -124,7 +124,7 @@ export default function EmailSequenceBuilder() {
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="e.g., Construction 3-Touch Outreach"
-              className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+              className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500"
             />
           </div>
           <div>
@@ -132,7 +132,7 @@ export default function EmailSequenceBuilder() {
             <select
               value={pipelineType}
               onChange={e => { setPipelineType(e.target.value as 'local' | 'construction'); setSteps([]); }}
-              className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300"
+              className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900"
             >
               <option value="local">Local Business</option>
               <option value="construction">Construction</option>
@@ -143,10 +143,10 @@ export default function EmailSequenceBuilder() {
         {/* Steps */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-300">Steps</h3>
+            <h3 className="text-sm font-medium text-gray-700">Steps</h3>
             <button
               onClick={addStep}
-              className="text-xs text-blue-400 hover:text-blue-300"
+              className="text-xs text-blue-600 hover:text-blue-700"
             >
               + Add Step
             </button>
@@ -166,7 +166,7 @@ export default function EmailSequenceBuilder() {
                   </div>
                   <button
                     onClick={() => removeStep(index)}
-                    className="text-red-500 hover:text-red-400 text-xs"
+                    className="text-red-500 hover:text-red-600 text-xs"
                   >
                     Remove
                   </button>
@@ -178,7 +178,7 @@ export default function EmailSequenceBuilder() {
                     <select
                       value={step.templateId}
                       onChange={e => updateStep(index, { templateId: e.target.value })}
-                      className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300"
+                      className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900"
                     >
                       <option value="">Select template...</option>
                       {filteredTemplates.map(t => (
@@ -194,7 +194,7 @@ export default function EmailSequenceBuilder() {
                         min={1}
                         value={step.delayDays}
                         onChange={e => updateStep(index, { delayDays: parseInt(e.target.value) || 1 })}
-                        className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300"
+                        className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900"
                       />
                     </div>
                   )}

@@ -33,7 +33,7 @@ function AuthCallback() {
   }, [loading, user, navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900 text-gray-400">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500">
       Signing in...
     </div>
   );

@@ -14,14 +14,14 @@ export default function KanbanCard({ id, title, companyName, value }: KanbanCard
   return (
     <button
       onClick={() => navigate(`/deals/${id}`)}
-      className="w-full rounded-md border border-border bg-gray-900/60 p-3 text-left cursor-pointer transition-all duration-150 ease-out hover:border-gray-600 hover:bg-gray-800/60 hover:-translate-y-0.5 hover:shadow-lg"
+      className="w-full rounded-md border border-border bg-white p-3 text-left cursor-pointer transition-all duration-150 ease-out shadow-sm hover:border-gray-300 hover:shadow-md hover:-translate-y-0.5"
     >
-      <p className="text-sm font-medium text-gray-200 truncate">{title}</p>
+      <p className="text-sm font-medium text-gray-900 truncate">{title}</p>
       {companyName && (
         <p className="mt-1 text-xs text-gray-500 truncate">{companyName}</p>
       )}
       {value != null && (
-        <p className="mt-1.5 text-xs font-medium text-emerald-400">{formatCurrency(value)}</p>
+        <p className="mt-1.5 text-xs font-medium text-emerald-600">{formatCurrency(value)}</p>
       )}
     </button>
   );

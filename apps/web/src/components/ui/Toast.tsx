@@ -16,7 +16,7 @@ export function useToast() {
     showSuccess: (message: string) => setToast({ message, type: 'success' }),
     ToastComponent: toast ? (
       <div className={`fixed bottom-4 right-4 z-50 rounded-lg px-4 py-3 text-sm font-medium shadow-lg transition-all ${
-        toast.type === 'error' ? 'bg-red-900/90 text-red-200' : 'bg-emerald-900/90 text-emerald-200'
+        toast.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
       }`}>
         {toast.message}
       </div>

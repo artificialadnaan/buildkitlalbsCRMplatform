@@ -19,11 +19,11 @@ export default function ProgressBar({
     <div>
       {(label || showPercentage) && (
         <div className="flex justify-between items-center mb-1.5">
-          {label && <span className="text-xs text-gray-400">{label}</span>}
+          {label && <span className="text-xs text-gray-500">{label}</span>}
           {showPercentage && <span className="text-xs text-gray-500">{Math.round(clamped)}%</span>}
         </div>
       )}
-      <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-500 ease-out ${color}`}
           style={{ width: `${clamped}%` }}

@@ -194,7 +194,7 @@ export default function Pipelines() {
                 className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                   p.id === activePipelineId
                     ? 'bg-blue-600 text-white'
-                    : 'border border-border bg-gray-800 text-gray-300 hover:bg-gray-700'
+                    : 'border border-border bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 {p.name}
@@ -219,7 +219,7 @@ export default function Pipelines() {
               value={dealForm.title}
               onChange={(e) => setDealForm({ ...dealForm, title: e.target.value })}
               placeholder="Deal title"
-              className="w-full rounded-lg border border-border bg-slate-800 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
             />
           </div>
           <div>
@@ -229,7 +229,7 @@ export default function Pipelines() {
               value={dealForm.value}
               onChange={(e) => setDealForm({ ...dealForm, value: e.target.value })}
               placeholder="0"
-              className="w-full rounded-lg border border-border bg-slate-800 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
             />
           </div>
           <div>
@@ -242,10 +242,10 @@ export default function Pipelines() {
                 if (!e.target.value) setDealForm({ ...dealForm, companyId: '', contactId: '' });
               }}
               placeholder="Search companies..."
-              className="w-full rounded-lg border border-border bg-slate-800 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
             />
             {companyOptions.length > 0 && !dealForm.companyId && (
-              <div className="mt-1 max-h-32 overflow-y-auto rounded-lg border border-border bg-slate-800">
+              <div className="mt-1 max-h-32 overflow-y-auto rounded-lg border border-border bg-white">
                 {companyOptions.map((c) => (
                   <button
                     key={c.id}
@@ -254,7 +254,7 @@ export default function Pipelines() {
                       setCompanySearch(c.name);
                       setCompanyOptions([]);
                     }}
-                    className="w-full px-3 py-2 text-left text-sm text-gray-200 hover:bg-gray-800"
+                    className="w-full px-3 py-2 text-left text-sm text-gray-900 hover:bg-gray-100"
                   >
                     {c.name}
                   </button>
@@ -267,7 +267,7 @@ export default function Pipelines() {
             <select
               value={dealForm.pipelineId}
               onChange={(e) => handlePipelineChangeDeal(e.target.value)}
-              className="w-full rounded-lg border border-border bg-slate-800 px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
             >
               <option value="">Select pipeline...</option>
               {pipelines.map((p) => (
@@ -281,7 +281,7 @@ export default function Pipelines() {
               <select
                 value={dealForm.stageId}
                 onChange={(e) => setDealForm({ ...dealForm, stageId: e.target.value })}
-                className="w-full rounded-lg border border-border bg-slate-800 px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
               >
                 {pipelines.find((p) => p.id === dealForm.pipelineId)?.stages.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
@@ -295,7 +295,7 @@ export default function Pipelines() {
               <select
                 value={dealForm.contactId}
                 onChange={(e) => setDealForm({ ...dealForm, contactId: e.target.value })}
-                className="w-full rounded-lg border border-border bg-slate-800 px-3 py-2 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
               >
                 <option value="">None</option>
                 {contactOptions.map((c) => (
@@ -307,7 +307,7 @@ export default function Pipelines() {
           <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => setShowCreateDeal(false)}
-              className="rounded-lg border border-border bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
+              className="rounded-lg border border-border bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
             >
               Cancel
             </button>

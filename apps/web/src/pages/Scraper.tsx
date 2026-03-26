@@ -108,7 +108,7 @@ export default function Scraper() {
 
       {/* Scrape Form */}
       <div className="bg-surface border border-border rounded-lg p-5 mb-6">
-        <h3 className="font-semibold text-gray-200 mb-4">New Scrape Job</h3>
+        <h3 className="font-semibold text-gray-900 mb-4">New Scrape Job</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -118,7 +118,7 @@ export default function Scraper() {
                 onChange={e => setZipInput(e.target.value)}
                 placeholder={"75201, 75202, 75203\nOr one per line..."}
                 rows={3}
-                className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600 resize-none focus:outline-none focus:border-blue-500"
+                className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:border-blue-500"
               />
               <p className="text-xs text-gray-600 mt-1">
                 Comma or newline separated. {zipInput.split(/[,\s\n]+/).filter(z => /^\d{5}$/.test(z.trim())).length} valid zip(s) entered.
@@ -131,7 +131,7 @@ export default function Scraper() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder='e.g., "plumbers", "restaurants", "roofing contractors"'
-                className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500"
               />
               <p className="text-xs text-gray-600 mt-3">
                 Estimated cost: ~$34 per 1,000 leads (Google Places API).
@@ -140,7 +140,7 @@ export default function Scraper() {
           </div>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-md px-3 py-2">
+            <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-md px-3 py-2">
               {error}
             </div>
           )}
@@ -157,17 +157,17 @@ export default function Scraper() {
 
       {/* Job History */}
       <div className="bg-surface border border-border rounded-lg p-5">
-        <h3 className="font-semibold text-gray-200 mb-4">Scrape Jobs</h3>
+        <h3 className="font-semibold text-gray-900 mb-4">Scrape Jobs</h3>
 
         {jobs.length === 0 ? (
           <p className="text-sm text-gray-600 text-center py-6">No scrape jobs yet. Start one above.</p>
         ) : (
           <div className="space-y-3">
             {jobs.map(job => (
-              <div key={job.id} className="bg-slate-900 border border-border rounded-lg p-4">
+              <div key={job.id} className="bg-gray-50 border border-border rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-gray-300">
+                    <span className="text-sm font-medium text-gray-400">
                       &ldquo;{job.searchQuery}&rdquo;
                     </span>
                     <span className="text-xs text-gray-500">
@@ -193,7 +193,7 @@ export default function Scraper() {
                 <div className="grid grid-cols-4 gap-4 text-sm">
                   <div>
                     <span className="text-gray-500">Found:</span>{' '}
-                    <span className="text-gray-300 font-medium">{job.totalFound}</span>
+                    <span className="text-gray-900 font-medium">{job.totalFound}</span>
                   </div>
                   <div>
                     <span className="text-gray-500">New Leads:</span>{' '}
@@ -201,18 +201,18 @@ export default function Scraper() {
                   </div>
                   <div>
                     <span className="text-gray-500">Duplicates:</span>{' '}
-                    <span className="text-gray-400">{job.duplicatesSkipped}</span>
+                    <span className="text-gray-500">{job.duplicatesSkipped}</span>
                   </div>
                   <div>
                     <span className="text-gray-500">Duration:</span>{' '}
-                    <span className="text-gray-300">
+                    <span className="text-gray-400">
                       {formatDuration(job.startedAt, job.completedAt)}
                     </span>
                   </div>
                 </div>
 
                 {job.errorMessage && (
-                  <div className="mt-2 text-xs text-red-400 bg-red-500/10 rounded px-2 py-1">
+                  <div className="mt-2 text-xs text-red-600 bg-red-50 rounded px-2 py-1">
                     {job.errorMessage}
                   </div>
                 )}

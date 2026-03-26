@@ -41,14 +41,14 @@ export default function DataTable<T>({
             <tr>
               <td colSpan={columns.length} className="px-4 py-12 text-center">
                 <div className="flex flex-col items-center gap-2">
-                  <svg className="h-8 w-8 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z" />
                   </svg>
                   <p className="text-sm text-gray-500">{emptyMessage}</p>
                   {emptyAction && (
                     <button
                       onClick={emptyAction.onClick}
-                      className="mt-1 rounded-md bg-gray-800 px-3 py-1.5 text-xs font-medium text-gray-300 transition-colors hover:bg-gray-700"
+                      className="mt-1 rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200"
                     >
                       {emptyAction.label}
                     </button>
@@ -62,11 +62,11 @@ export default function DataTable<T>({
                 key={i}
                 onClick={() => onRowClick?.(row)}
                 className={`border-b border-border transition-colors ${
-                  onRowClick ? 'cursor-pointer hover:bg-gray-800/50' : ''
-                } ${i % 2 === 0 ? 'bg-gray-900/30' : 'bg-gray-900/10'}`}
+                  onRowClick ? 'cursor-pointer hover:bg-gray-100' : ''
+                } ${i % 2 === 0 ? 'bg-gray-50/50' : 'bg-white'}`}
               >
                 {columns.map((col) => (
-                  <td key={col.key} className="px-4 py-3 text-gray-300">
+                  <td key={col.key} className="px-4 py-3 text-gray-700">
                     {col.render
                       ? col.render(row)
                       : String((row as Record<string, unknown>)[col.key] ?? '--')}

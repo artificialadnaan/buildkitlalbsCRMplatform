@@ -44,36 +44,36 @@ export default function InvoiceForm({ initialLineItems = [], initialDueDate = ''
   return (
     <div className="space-y-4">
       <div>
-        <label className="text-sm text-gray-400 block mb-1">Due Date</label>
+        <label className="text-sm text-gray-500 block mb-1">Due Date</label>
         <input
           type="date"
           value={dueDate}
           onChange={e => setDueDate(e.target.value)}
-          className="bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300 w-48"
+          className="bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 w-48"
         />
       </div>
 
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="text-sm text-gray-400">Line Items</label>
-          <button onClick={addLineItem} className="text-xs text-blue-400 hover:text-blue-300">+ Add Item</button>
+          <label className="text-sm text-gray-500">Line Items</label>
+          <button onClick={addLineItem} className="text-xs text-blue-600 hover:text-blue-700">+ Add Item</button>
         </div>
 
         <div className="space-y-2">
           {lineItems.map((item, i) => (
-            <div key={i} className="flex gap-2 items-start bg-slate-900 border border-border rounded-md p-3">
+            <div key={i} className="flex gap-2 items-start bg-gray-50 border border-border rounded-md p-3">
               <div className="flex-1">
                 <input
                   placeholder="Description"
                   value={item.description}
                   onChange={e => updateLineItem(i, 'description', e.target.value)}
-                  className="w-full bg-transparent text-sm text-gray-300 placeholder-gray-600 outline-none mb-2"
+                  className="w-full bg-transparent text-sm text-gray-900 placeholder-gray-400 outline-none mb-2"
                 />
                 <div className="flex gap-2">
                   <select
                     value={item.type}
                     onChange={e => updateLineItem(i, 'type', e.target.value)}
-                    className="bg-slate-800 border border-border rounded text-xs text-gray-400 px-2 py-1"
+                    className="bg-white border border-border rounded text-xs text-gray-500 px-2 py-1"
                   >
                     <option value="fixed">Fixed</option>
                     <option value="time_entry">Time Entry</option>
@@ -84,7 +84,7 @@ export default function InvoiceForm({ initialLineItems = [], initialDueDate = ''
                     placeholder="Qty"
                     value={item.quantity}
                     onChange={e => updateLineItem(i, 'quantity', parseInt(e.target.value) || 1)}
-                    className="bg-slate-800 border border-border rounded text-xs text-gray-300 px-2 py-1 w-16"
+                    className="bg-white border border-gray-300 rounded text-xs text-gray-700 px-2 py-1 w-16"
                   />
                   <div className="flex items-center gap-1">
                     <span className="text-xs text-gray-500">$</span>
@@ -95,15 +95,15 @@ export default function InvoiceForm({ initialLineItems = [], initialDueDate = ''
                       placeholder="Unit price"
                       value={(item.unitPriceCents / 100).toFixed(2)}
                       onChange={e => updateLineItem(i, 'unitPriceCents', e.target.value)}
-                      className="bg-slate-800 border border-border rounded text-xs text-gray-300 px-2 py-1 w-24"
+                      className="bg-white border border-gray-300 rounded text-xs text-gray-700 px-2 py-1 w-24"
                     />
                   </div>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-sm text-gray-300 mb-1">${((item.quantity * item.unitPriceCents) / 100).toFixed(2)}</div>
+                <div className="text-sm text-gray-700 mb-1">${((item.quantity * item.unitPriceCents) / 100).toFixed(2)}</div>
                 {lineItems.length > 1 && (
-                  <button onClick={() => removeLineItem(i)} className="text-xs text-red-500 hover:text-red-400">Remove</button>
+                  <button onClick={() => removeLineItem(i)} className="text-xs text-red-500 hover:text-red-600">Remove</button>
                 )}
               </div>
             </div>
@@ -112,8 +112,8 @@ export default function InvoiceForm({ initialLineItems = [], initialDueDate = ''
       </div>
 
       <div className="flex justify-between items-center pt-2 border-t border-border">
-        <div className="text-sm text-gray-400">
-          Total: <span className="text-lg font-bold text-gray-200">${(total / 100).toFixed(2)}</span>
+        <div className="text-sm text-gray-500">
+          Total: <span className="text-lg font-bold text-gray-900">${(total / 100).toFixed(2)}</span>
         </div>
         <button
           onClick={() => onSubmit({ dueDate, lineItems })}

@@ -85,18 +85,18 @@ export default function InvoiceDetail() {
         <TopBar
           title="New Invoice"
           actions={
-            <button onClick={() => navigate('/invoices')} className="bg-border border border-gray-700 px-3 py-2 rounded-md text-sm text-gray-400">
+            <button onClick={() => navigate('/invoices')} className="bg-gray-100 border border-gray-300 px-3 py-2 rounded-md text-sm text-gray-500">
               Cancel
             </button>
           }
         />
         <div className="bg-surface border border-border rounded-lg p-6 max-w-2xl">
           <div className="mb-4">
-            <label className="text-sm text-gray-400 block mb-1">Project</label>
+            <label className="text-sm text-gray-500 block mb-1">Project</label>
             <select
               value={selectedProjectId}
               onChange={e => setSelectedProjectId(e.target.value)}
-              className="bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300 w-full max-w-sm"
+              className="bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 w-full max-w-sm"
             >
               <option value="">Select a project...</option>
               {projects.map(p => (
@@ -132,7 +132,7 @@ export default function InvoiceDetail() {
                 {sending ? 'Sending...' : 'Send Invoice'}
               </button>
             )}
-            <button onClick={() => navigate('/invoices')} className="bg-border border border-gray-700 px-3 py-2 rounded-md text-sm text-gray-400">
+            <button onClick={() => navigate('/invoices')} className="bg-gray-100 border border-gray-300 px-3 py-2 rounded-md text-sm text-gray-500">
               Back
             </button>
           </div>
@@ -144,7 +144,7 @@ export default function InvoiceDetail() {
           <div className="flex items-center gap-3 mb-4">
             <Badge label={invoice.status} variant={statusVariant[invoice.status] || 'gray'} />
             <span className="text-sm text-gray-500">
-              Total: <span className="text-lg font-bold text-gray-200">${(invoice.amountCents / 100).toFixed(2)}</span>
+              Total: <span className="text-lg font-bold text-gray-900">${(invoice.amountCents / 100).toFixed(2)}</span>
             </span>
           </div>
 
@@ -158,7 +158,7 @@ export default function InvoiceDetail() {
           ) : (
             <div className="space-y-2">
               {invoice.lineItems.map((item, i) => (
-                <div key={i} className="flex justify-between text-sm text-gray-300 py-2 border-b border-border last:border-0">
+                <div key={i} className="flex justify-between text-sm text-gray-400 py-2 border-b border-border last:border-0">
                   <span>{item.description}</span>
                   <span>{item.quantity} x ${(item.unitPriceCents / 100).toFixed(2)} = ${((item.quantity * item.unitPriceCents) / 100).toFixed(2)}</span>
                 </div>
@@ -168,10 +168,10 @@ export default function InvoiceDetail() {
         </div>
 
         <div className="bg-surface border border-border rounded-lg p-4">
-          <h3 className="font-semibold text-gray-200 mb-3">Details</h3>
+          <h3 className="font-semibold text-gray-900 mb-3">Details</h3>
           <div className="space-y-2 text-sm">
-            <div><span className="text-gray-500">Due:</span> <span className="text-gray-300">{new Date(invoice.dueDate).toLocaleDateString()}</span></div>
-            {invoice.sentAt && <div><span className="text-gray-500">Sent:</span> <span className="text-gray-300">{new Date(invoice.sentAt).toLocaleDateString()}</span></div>}
+            <div><span className="text-gray-500">Due:</span> <span className="text-gray-700">{new Date(invoice.dueDate).toLocaleDateString()}</span></div>
+            {invoice.sentAt && <div><span className="text-gray-500">Sent:</span> <span className="text-gray-700">{new Date(invoice.sentAt).toLocaleDateString()}</span></div>}
             {invoice.paidAt && <div><span className="text-gray-500">Paid:</span> <span className="text-green-500">{new Date(invoice.paidAt).toLocaleDateString()}</span></div>}
           </div>
         </div>

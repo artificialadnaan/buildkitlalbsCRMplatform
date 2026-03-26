@@ -93,9 +93,9 @@ export default function EnrollSequenceModal({
             <h4 className="text-xs font-medium text-gray-500 mb-2">Current Enrollments</h4>
             <div className="space-y-2">
               {enrollments.map(e => (
-                <div key={e.id} className="bg-slate-900 border border-border rounded-md px-3 py-2 flex items-center justify-between">
+                <div key={e.id} className="bg-gray-50 border border-border rounded-md px-3 py-2 flex items-center justify-between">
                   <div>
-                    <span className="text-sm text-gray-300">{e.sequenceName}</span>
+                    <span className="text-sm text-gray-900">{e.sequenceName}</span>
                     <div className="flex items-center gap-2 mt-0.5">
                       <Badge label={e.status} variant={statusVariant[e.status] || 'gray'} />
                       <span className="text-xs text-gray-600">Step {e.currentStep}</span>
@@ -106,17 +106,17 @@ export default function EnrollSequenceModal({
                   </div>
                   <div className="flex gap-1">
                     {e.status === 'active' && (
-                      <button onClick={() => handlePause(e.id)} className="text-xs text-amber-500 hover:text-amber-400 px-2 py-1">
+                      <button onClick={() => handlePause(e.id)} className="text-xs text-amber-500 hover:text-amber-600 px-2 py-1">
                         Pause
                       </button>
                     )}
                     {e.status === 'paused' && (
-                      <button onClick={() => handleResume(e.id)} className="text-xs text-green-500 hover:text-green-400 px-2 py-1">
+                      <button onClick={() => handleResume(e.id)} className="text-xs text-green-500 hover:text-green-500 px-2 py-1">
                         Resume
                       </button>
                     )}
                     {(e.status === 'active' || e.status === 'paused') && (
-                      <button onClick={() => handleCancel(e.id)} className="text-xs text-red-500 hover:text-red-400 px-2 py-1">
+                      <button onClick={() => handleCancel(e.id)} className="text-xs text-red-500 hover:text-red-600 px-2 py-1">
                         Cancel
                       </button>
                     )}
@@ -133,7 +133,7 @@ export default function EnrollSequenceModal({
           <select
             value={selectedSequenceId}
             onChange={e => setSelectedSequenceId(e.target.value)}
-            className="w-full bg-slate-900 border border-border rounded-md px-3 py-2 text-sm text-gray-300 mb-2"
+            className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 mb-2"
           >
             <option value="">Select a sequence...</option>
             {sequences.map(s => (

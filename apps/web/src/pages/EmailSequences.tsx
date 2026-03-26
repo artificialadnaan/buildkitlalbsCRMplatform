@@ -55,7 +55,7 @@ export default function EmailSequences() {
       render: (row: Sequence) => (
         <button
           onClick={(e) => { e.stopPropagation(); deleteSequence(row.id); }}
-          className="text-red-500 hover:text-red-400 text-xs"
+          className="text-red-500 hover:text-red-600 text-xs"
         >
           Delete
         </button>
