@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../lib/auth.js';
+import { GridIcon } from '../ui/BuildKitLogo.js';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -55,18 +56,14 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
       >
         {/* Logo */}
         <div className="mb-8 px-4 pt-5 flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-orange-700 to-orange-500 rounded flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-white" style={{ fontVariationSettings: "'FILL' 1" }}>
-              construction
-            </span>
-          </div>
+          <GridIcon size={collapsed ? 28 : 36} />
           {!collapsed && (
             <div>
-              <h1 className="text-2xl font-black text-slate-100 tracking-tighter uppercase leading-none">
-                BuildKit
+              <h1 className="text-xl font-extrabold text-white tracking-tight leading-none">
+                Build<span className="text-orange-400">Kit</span>
               </h1>
-              <p className="text-[10px] text-slate-400 font-label tracking-[0.1em] uppercase">
-                Digital Foreman
+              <p className="text-[10px] text-slate-400 font-label tracking-[0.15em] uppercase">
+                Software + Web Dev
               </p>
             </div>
           )}

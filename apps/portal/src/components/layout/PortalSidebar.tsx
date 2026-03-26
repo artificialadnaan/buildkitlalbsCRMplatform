@@ -15,11 +15,24 @@ export default function PortalSidebar() {
 
   return (
     <aside className="w-52 bg-sidebar border-r border-border flex flex-col h-screen fixed left-0 top-0">
-      <div className="p-4 border-b border-border">
-        <h1 className="text-sm font-extrabold bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent">
-          BuildKit Labs
-        </h1>
-        <p className="text-xs text-gray-600 mt-1">Client Portal</p>
+      <div className="p-4 border-b border-border flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="none" width={28} height={28} className="shrink-0">
+          <rect x="0" y="0" width="10" height="10" rx="2" fill="#d97706" opacity={0.3}/>
+          <rect x="13" y="0" width="10" height="10" rx="2" fill="#d97706" opacity={0.35}/>
+          <rect x="26" y="0" width="10" height="10" rx="2" fill="#d97706" opacity={0.5}/>
+          <rect x="0" y="13" width="10" height="10" rx="2" fill="#d97706" opacity={0.35}/>
+          <rect x="13" y="13" width="10" height="10" rx="2" fill="#f59e0b" opacity={0.6}/>
+          <rect x="26" y="13" width="10" height="10" rx="2" fill="#f59e0b" opacity={0.8}/>
+          <rect x="0" y="26" width="10" height="10" rx="2" fill="#d97706" opacity={0.5}/>
+          <rect x="13" y="26" width="10" height="10" rx="2" fill="#f59e0b" opacity={0.8}/>
+          <rect x="26" y="26" width="10" height="10" rx="2" fill="#f97316" opacity={1}/>
+        </svg>
+        <div>
+          <h1 className="text-sm font-extrabold text-gray-200 tracking-tight">
+            Build<span className="text-orange-400">Kit</span>
+          </h1>
+          <p className="text-[10px] text-gray-500 tracking-wider uppercase">Client Portal</p>
+        </div>
       </div>
 
       {activeProject && (

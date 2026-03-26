@@ -32,8 +32,21 @@ export default function MagicLinkRequest() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-950">
       <div className="bg-surface border border-border rounded-xl p-8 w-full max-w-sm text-center">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent mb-1">
-          BuildKit Labs
+        <div className="flex justify-center mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="none" width={40} height={40}>
+            <rect x="0" y="0" width="10" height="10" rx="2" fill="#d97706" opacity={0.3}/>
+            <rect x="13" y="0" width="10" height="10" rx="2" fill="#d97706" opacity={0.35}/>
+            <rect x="26" y="0" width="10" height="10" rx="2" fill="#d97706" opacity={0.5}/>
+            <rect x="0" y="13" width="10" height="10" rx="2" fill="#d97706" opacity={0.35}/>
+            <rect x="13" y="13" width="10" height="10" rx="2" fill="#f59e0b" opacity={0.6}/>
+            <rect x="26" y="13" width="10" height="10" rx="2" fill="#f59e0b" opacity={0.8}/>
+            <rect x="0" y="26" width="10" height="10" rx="2" fill="#d97706" opacity={0.5}/>
+            <rect x="13" y="26" width="10" height="10" rx="2" fill="#f59e0b" opacity={0.8}/>
+            <rect x="26" y="26" width="10" height="10" rx="2" fill="#f97316" opacity={1}/>
+          </svg>
+        </div>
+        <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight mb-1">
+          Build<span className="text-orange-600">Kit</span> Labs
         </h1>
         <p className="text-gray-500 text-sm mb-6">Client Portal</p>
 

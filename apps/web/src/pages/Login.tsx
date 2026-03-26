@@ -1,15 +1,14 @@
+import { BuildKitLogoFull } from '../components/ui/BuildKitLogo.js';
+
 export default function Login() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-8 text-center shadow-lg">
+    <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4">
+      <div className="w-full max-w-sm rounded-lg border border-slate-800 bg-slate-900 p-8 text-center shadow-2xl">
         {/* Logo */}
-        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-[#1F4D78]">
-          <span className="text-lg font-bold text-white">BK</span>
+        <div className="mb-6">
+          <BuildKitLogoFull size={48} variant="dark" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          BuildKit CRM
-        </h1>
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="text-sm text-slate-400">
           Sign in to manage your pipeline
         </p>
 

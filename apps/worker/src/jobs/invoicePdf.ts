@@ -86,7 +86,7 @@ function generateInvoicePdf(params: {
 
     // Header
     doc.fontSize(24).fillColor('#1e293b').text('BuildKit Labs', 50, 50);
-    doc.fontSize(10).fillColor('#64748b').text('Custom Software Development', 50, 78);
+    doc.fontSize(8).fillColor('#a8a29e').text('SOFTWARE + WEB DEVELOPMENT', 50, 78);
     doc.moveDown(2);
 
     // Invoice info
