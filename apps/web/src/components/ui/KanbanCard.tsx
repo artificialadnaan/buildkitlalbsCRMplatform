@@ -14,7 +14,7 @@ export default function KanbanCard({ id, title, companyName, value }: KanbanCard
   return (
     <button
       onClick={() => navigate(`/deals/${id}`)}
-      className="w-full rounded-md border border-border bg-gray-900/60 p-3 text-left transition-colors hover:border-gray-600 hover:bg-gray-800/60"
+      className="w-full rounded-md border border-border bg-gray-900/60 p-3 text-left cursor-pointer transition-all duration-150 ease-out hover:border-gray-600 hover:bg-gray-800/60 hover:-translate-y-0.5 hover:shadow-lg"
     >
       <p className="text-sm font-medium text-gray-200 truncate">{title}</p>
       {companyName && (

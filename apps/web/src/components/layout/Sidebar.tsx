@@ -118,10 +118,10 @@ export default function Sidebar() {
             to={item.to}
             end={item.to === '/'}
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
+              `flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-150 ease-out ${
                 isActive
                   ? 'border-l-2 border-[#1F4D78] bg-[#1F4D78]/15 text-white'
-                  : 'border-l-2 border-transparent text-gray-400 hover:bg-gray-800/50 hover:text-gray-200'
+                  : 'border-l-2 border-transparent text-gray-400 hover:bg-gray-800/50 hover:text-gray-200 hover:border-gray-700'
               }`
             }
           >

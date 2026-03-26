@@ -18,3 +18,6 @@
 {"t":0,"agent":"af59595","agent_type":"designer","event":"agent_start","parent_mode":"none"}
 {"t":0,"agent":"a99bb3a","agent_type":"designer","event":"agent_stop","success":true,"duration_ms":86855}
 {"t":0,"agent":"af59595","agent_type":"designer","event":"agent_stop","success":true,"duration_ms":73404}
+{"t":0,"agent":"a0545a4","agent_type":"designer","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"a23af5b","agent_type":"designer","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"a090f2b","agent_type":"designer","event":"agent_stop","success":true,"duration_ms":160358}

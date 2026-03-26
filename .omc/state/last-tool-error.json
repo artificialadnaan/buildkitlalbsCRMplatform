@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"railway variable delete RAILWAY_START_COMMAND --service \\\"@buildkit/web\\\" --yes 2>&1 && railway variable delete RAILWAY_START_COMMAND --service \\\"@buildkit/portal\\\" --yes 2>&1 && railway v...",
-  "error": "Exit code 2\nerror: unexpected argument '--yes' found\n\n  tip: to pass '--yes' as a value, use '-- --yes'\n\nUsage: railway variable delete --service <SERVICE> <KEY>\n\nFor more information, try '--help'.",
-  "timestamp": "2026-03-26T05:20:57.059Z",
-  "retry_count": 1
+  "tool_input_preview": "{\"command\":\"cd /Users/adnaaniqbal/Developer/Consulting/buildkit-crm/apps/web && npx tsc --noEmit 2>&1\",\"description\":\"TypeScript type check on the web app\"}",
+  "error": "Exit code 2\nsrc/components/email/EnrollSequenceModal.tsx(100,47): error TS2322: Type '\"green\" | \"red\" | \"gray\" | \"blue\" | \"amber\" | \"purple\"' is not assignable to type 'BadgeVariant | undefined'.\n  Type '\"purple\"' is not assignable to type 'BadgeVariant | undefined'.\nsrc/components/ui/MilestoneTimeline.tsx(67,62): error TS2322: Type '\"green\" | \"red\" | \"gray\" | \"blue\" | \"amber\" | \"purple\"' is not assignable to type 'BadgeVariant | undefined'.\n  Type '\"purple\"' is not assignable to type 'BadgeVari...",
+  "timestamp": "2026-03-26T06:03:16.501Z",
+  "retry_count": 2
 }
