@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api.js';
+import { formatCurrency } from '../lib/format.js';
 import TopBar from '../components/layout/TopBar.js';
 import KanbanBoard from '../components/ui/KanbanBoard.js';
 import Modal from '../components/ui/Modal.js';
@@ -96,7 +97,6 @@ export default function Pipelines() {
     loadDeals();
   }, [activePipelineId]);
 
-  // Search companies when typing
   useEffect(() => {
     if (!companySearch.trim()) {
       setCompanyOptions([]);
@@ -110,7 +110,6 @@ export default function Pipelines() {
     return () => clearTimeout(timeout);
   }, [companySearch]);
 
-  // Load contacts when company is selected
   useEffect(() => {
     if (!dealForm.companyId) {
       setContactOptions([]);
@@ -168,72 +167,122 @@ export default function Pipelines() {
 
   const activePipeline = pipelines.find((p) => p.id === activePipelineId);
 
+  // Pipeline summary stats
+  const totalValue = deals.reduce((sum, d) => sum + (d.deal.value || 0), 0);
+  const totalDeals = deals.length;
+
   return (
     <div>
-      <TopBar
-        title="Pipelines"
-        subtitle={activePipeline?.description ?? undefined}
-        actions={
-          <button
-            onClick={openCreateDeal}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500"
-          >
-            + Add Deal
-          </button>
-        }
-      />
+      <TopBar title="Pipelines" />
 
-      {loading ? <LoadingSpinner /> : <div className="p-6">
-        {/* Pipeline Tabs */}
-        {pipelines.length > 1 && (
-          <div className="mb-4 flex gap-2">
-            {pipelines.map((p) => (
+      {loading ? <LoadingSpinner /> : (
+        <div className="px-6 py-8 max-w-7xl mx-auto space-y-10">
+          {/* Page Header */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="max-w-xl">
+              <span className="text-orange-700 font-bold tracking-[0.2em] text-[10px] uppercase mb-2 block">
+                Deal Management
+              </span>
+              <h2 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-slate-900 mb-4">
+                {activePipeline?.name ?? 'Pipeline'}
+              </h2>
+              {activePipeline?.description && (
+                <p className="text-slate-500 text-lg font-medium leading-relaxed">
+                  {activePipeline.description}
+                </p>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-3">
               <button
-                key={p.id}
-                onClick={() => setActivePipelineId(p.id)}
-                className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                  p.id === activePipelineId
-                    ? 'bg-blue-600 text-white'
-                    : 'border border-border bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                onClick={() => window.location.href = '/analytics'}
+                className="px-6 py-3 bg-[#d5e3fd] text-slate-700 rounded-lg font-bold text-sm tracking-wide shadow-sm hover:-translate-y-px transition-transform"
               >
-                {p.name}
+                VIEW ANALYTICS
               </button>
-            ))}
+              <button
+                onClick={openCreateDeal}
+                className="px-6 py-3 bg-gradient-to-r from-orange-700 to-orange-500 text-white rounded-lg font-bold text-sm tracking-wide shadow-lg shadow-orange-600/20 hover:-translate-y-px transition-transform"
+              >
+                NEW PIPELINE ENTRY
+              </button>
+            </div>
           </div>
-        )}
 
-        {/* Kanban */}
-        {activePipeline && (
-          <KanbanBoard stages={activePipeline.stages} deals={deals} />
-        )}
-      </div>}
+          {/* Pipeline Tabs */}
+          {pipelines.length > 1 && (
+            <div className="flex gap-2">
+              {pipelines.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => setActivePipelineId(p.id)}
+                  className={`px-4 py-2 text-sm font-bold uppercase tracking-wide transition-all ${
+                    p.id === activePipelineId
+                      ? 'bg-gradient-to-r from-orange-700 to-orange-500 text-white rounded-md shadow-lg shadow-orange-600/20'
+                      : 'bg-[#e7eeff] text-slate-600 rounded-md hover:bg-[#d8e3fb]'
+                  }`}
+                >
+                  {p.name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Kanban Board */}
+          {activePipeline && (
+            <KanbanBoard stages={activePipeline.stages} deals={deals} />
+          )}
+
+          {/* Pipeline Summary Footer */}
+          <div className="bg-slate-900 text-white rounded-xl p-8 flex flex-col md:flex-row justify-between items-center gap-8 border-t-4 border-orange-600">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-12 w-full">
+              <div>
+                <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 block mb-1">Total Pipeline Value</span>
+                <div className="text-3xl font-black tracking-tighter text-white">{formatCurrency(totalValue)}</div>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 block mb-1">Active Deals</span>
+                <div className="text-3xl font-black tracking-tighter text-orange-500">{totalDeals}</div>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 block mb-1">Stages</span>
+                <div className="text-3xl font-black tracking-tighter text-white">{activePipeline?.stages.length ?? 0}</div>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 block mb-1">Avg Deal Value</span>
+                <div className="text-3xl font-black tracking-tighter text-white">
+                  {totalDeals > 0 ? formatCurrency(Math.round(totalValue / totalDeals)) : '$0'}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Create Deal Modal */}
       <Modal open={showCreateDeal} onClose={() => setShowCreateDeal(false)} title="Create Deal">
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-medium uppercase text-gray-500 mb-1">Title *</label>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Title *</label>
             <input
               type="text"
               value={dealForm.title}
               onChange={(e) => setDealForm({ ...dealForm, title: e.target.value })}
               placeholder="Deal title"
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium uppercase text-gray-500 mb-1">Value ($)</label>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Value ($)</label>
             <input
               type="number"
               value={dealForm.value}
               onChange={(e) => setDealForm({ ...dealForm, value: e.target.value })}
               placeholder="0"
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium uppercase text-gray-500 mb-1">Company *</label>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Company *</label>
             <input
               type="text"
               value={companySearch}
@@ -242,10 +291,10 @@ export default function Pipelines() {
                 if (!e.target.value) setDealForm({ ...dealForm, companyId: '', contactId: '' });
               }}
               placeholder="Search companies..."
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none"
             />
             {companyOptions.length > 0 && !dealForm.companyId && (
-              <div className="mt-1 max-h-32 overflow-y-auto rounded-lg border border-border bg-white">
+              <div className="mt-1 max-h-32 overflow-y-auto rounded-lg border border-slate-200 bg-white">
                 {companyOptions.map((c) => (
                   <button
                     key={c.id}
@@ -254,7 +303,7 @@ export default function Pipelines() {
                       setCompanySearch(c.name);
                       setCompanyOptions([]);
                     }}
-                    className="w-full px-3 py-2 text-left text-sm text-gray-900 hover:bg-gray-100"
+                    className="w-full px-3 py-2 text-left text-sm text-slate-900 hover:bg-orange-50"
                   >
                     {c.name}
                   </button>
@@ -263,11 +312,11 @@ export default function Pipelines() {
             )}
           </div>
           <div>
-            <label className="block text-xs font-medium uppercase text-gray-500 mb-1">Pipeline *</label>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Pipeline *</label>
             <select
               value={dealForm.pipelineId}
               onChange={(e) => handlePipelineChangeDeal(e.target.value)}
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none"
             >
               <option value="">Select pipeline...</option>
               {pipelines.map((p) => (
@@ -277,11 +326,11 @@ export default function Pipelines() {
           </div>
           {dealForm.pipelineId && (
             <div>
-              <label className="block text-xs font-medium uppercase text-gray-500 mb-1">Stage *</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Stage *</label>
               <select
                 value={dealForm.stageId}
                 onChange={(e) => setDealForm({ ...dealForm, stageId: e.target.value })}
-                className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none"
               >
                 {pipelines.find((p) => p.id === dealForm.pipelineId)?.stages.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
@@ -291,11 +340,11 @@ export default function Pipelines() {
           )}
           {contactOptions.length > 0 && (
             <div>
-              <label className="block text-xs font-medium uppercase text-gray-500 mb-1">Contact</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Contact</label>
               <select
                 value={dealForm.contactId}
                 onChange={(e) => setDealForm({ ...dealForm, contactId: e.target.value })}
-                className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none"
               >
                 <option value="">None</option>
                 {contactOptions.map((c) => (
@@ -307,14 +356,14 @@ export default function Pipelines() {
           <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => setShowCreateDeal(false)}
-              className="rounded-lg border border-border bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
+              className="rounded-lg bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-200"
             >
               Cancel
             </button>
             <button
               onClick={handleCreateDeal}
               disabled={dealSubmitting || !dealForm.title.trim() || !dealForm.pipelineId || !dealForm.stageId || !dealForm.companyId}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-lg bg-gradient-to-r from-orange-700 to-orange-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-orange-600/20 transition-all hover:-translate-y-px disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {dealSubmitting ? 'Creating...' : 'Create Deal'}
             </button>
