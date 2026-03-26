@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api.js';
+import { useAuth } from '../lib/auth.js';
 import { formatCurrency } from '../lib/format.js';
 import TopBar from '../components/layout/TopBar.js';
 import KanbanBoard from '../components/ui/KanbanBoard.js';
@@ -63,6 +64,8 @@ interface ContactsResponse {
 }
 
 export default function Pipelines() {
+  const { user } = useAuth();
+  const [myPipeline, setMyPipeline] = useState(true);
   const [pipelines, setPipelines] = useState<Pipeline[]>([]);
   const [activePipelineId, setActivePipelineId] = useState<string | null>(null);
   const [deals, setDeals] = useState<DealRow[]>([]);
@@ -76,7 +79,9 @@ export default function Pipelines() {
 
   const loadDeals = () => {
     if (!activePipelineId) return;
-    api<DealsResponse>(`/api/deals?pipelineId=${activePipelineId}`)
+    const params = new URLSearchParams({ pipelineId: activePipelineId });
+    if (myPipeline && user?.id) params.set('assignedTo', user.id);
+    api<DealsResponse>(`/api/deals?${params.toString()}`)
       .then((res) => setDeals(res.data))
       .catch(console.error);
   };
@@ -95,7 +100,7 @@ export default function Pipelines() {
 
   useEffect(() => {
     loadDeals();
-  }, [activePipelineId]);
+  }, [activePipelineId, myPipeline, user?.id]);
 
   useEffect(() => {
     if (!companySearch.trim()) {
@@ -210,6 +215,26 @@ export default function Pipelines() {
                 NEW PIPELINE ENTRY
               </button>
             </div>
+          </div>
+
+          {/* My Pipeline / Company Pipeline Toggle */}
+          <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-100 p-1 w-fit">
+            <button
+              onClick={() => setMyPipeline(true)}
+              className={`rounded-md px-4 py-1.5 text-sm font-bold uppercase tracking-wide transition-colors ${
+                myPipeline ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              My Pipeline
+            </button>
+            <button
+              onClick={() => setMyPipeline(false)}
+              className={`rounded-md px-4 py-1.5 text-sm font-bold uppercase tracking-wide transition-colors ${
+                !myPipeline ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Company Pipeline
+            </button>
           </div>
 
           {/* Pipeline Tabs */}

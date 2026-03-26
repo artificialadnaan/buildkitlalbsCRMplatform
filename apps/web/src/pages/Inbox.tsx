@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { api } from '../lib/api.js';
 import { formatRelativeTime } from '../lib/format.js';
 import TopBar from '../components/layout/TopBar.js';
+import ClickToCall from '../components/ui/ClickToCall.js';
 
 interface Conversation {
   id: string;
@@ -289,6 +290,15 @@ export default function Inbox() {
                   )}
                 </div>
               </div>
+              {selected.contactPhone && (
+                <ClickToCall
+                  contactId={selected.contactId}
+                  phone={selected.contactPhone}
+                  contactName={selected.contactName}
+                  dealId={selected.dealId}
+                  size="md"
+                />
+              )}
               <span className={`px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-widest ${channelBadge[selected.channel]}`}>
                 {selected.channel}
               </span>

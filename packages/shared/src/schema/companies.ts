@@ -1,5 +1,6 @@
 import { pgTable, uuid, varchar, integer, numeric, jsonb, timestamp, pgEnum } from 'drizzle-orm/pg-core';
 import { scrapeJobs } from './scrape-jobs.js';
+import { users } from './users.js';
 
 export const companyTypeEnum = pgEnum('company_type', ['local', 'construction']);
 export const companySourceEnum = pgEnum('company_source', ['scraped', 'manual']);
@@ -24,5 +25,6 @@ export const companies = pgTable('companies', {
   websiteAudit: jsonb('website_audit'),
   websiteScore: integer('website_score').default(0),
   websiteAuditedAt: timestamp('website_audited_at', { withTimezone: true }),
+  assignedTo: uuid('assigned_to').references(() => users.id),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });

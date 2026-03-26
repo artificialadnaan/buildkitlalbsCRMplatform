@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { eq, ilike, sql, and, desc, isNotNull } from 'drizzle-orm';
-import { db, companies, contacts, deals, activities, emailSends } from '@buildkit/shared';
+import { db, companies, contacts, deals, activities, emailSends, users } from '@buildkit/shared';
 import { createWebsiteAuditQueue } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
 import { requireRole } from '../middleware/requireRole.js';
@@ -28,18 +28,49 @@ router.get('/', async (req, res) => {
   const type = req.query.type as CompanyType | undefined;
   const sort = req.query.sort as string | undefined;
   const scrapeJobId = req.query.scrapeJobId as string | undefined;
+  const assignedTo = req.query.assignedTo as string | undefined;
 
   const conditions = [];
   if (search) conditions.push(ilike(companies.name, `%${search}%`));
   if (type) conditions.push(eq(companies.type, type));
   if (scrapeJobId) conditions.push(eq(companies.scrapeJobId, scrapeJobId));
+  if (assignedTo) conditions.push(eq(companies.assignedTo, assignedTo));
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
   const orderBy = sort === 'score' ? desc(companies.score) : companies.createdAt;
 
   const [data, countResult] = await Promise.all([
-    db.select().from(companies).where(where).limit(limit).offset(offset).orderBy(orderBy),
+    db.select({
+      id: companies.id,
+      name: companies.name,
+      type: companies.type,
+      website: companies.website,
+      phone: companies.phone,
+      address: companies.address,
+      city: companies.city,
+      state: companies.state,
+      zip: companies.zip,
+      googlePlaceId: companies.googlePlaceId,
+      googleRating: companies.googleRating,
+      industry: companies.industry,
+      employeeCount: companies.employeeCount,
+      source: companies.source,
+      score: companies.score,
+      scrapeJobId: companies.scrapeJobId,
+      websiteAudit: companies.websiteAudit,
+      websiteScore: companies.websiteScore,
+      websiteAuditedAt: companies.websiteAuditedAt,
+      assignedTo: companies.assignedTo,
+      createdAt: companies.createdAt,
+      assignedToName: users.name,
+    })
+      .from(companies)
+      .leftJoin(users, eq(companies.assignedTo, users.id))
+      .where(where)
+      .limit(limit)
+      .offset(offset)
+      .orderBy(orderBy),
     db.select({ count: sql<number>`count(*)::int` }).from(companies).where(where),
   ]);
 
@@ -117,6 +148,24 @@ router.patch('/:id', async (req, res) => {
     return;
   }
   logAudit({ userId: req.user!.userId, action: 'update', entity: 'company', entityId: id, changes: { before, after: company } });
+  res.json(company);
+});
+
+// Reassign lead to a different rep
+router.patch('/:id/assign', async (req, res) => {
+  const id = req.params.id as string;
+  const { assignedTo } = req.body as { assignedTo: string | null };
+
+  const [company] = await db.update(companies)
+    .set({ assignedTo: assignedTo ?? null })
+    .where(eq(companies.id, id))
+    .returning();
+
+  if (!company) {
+    res.status(404).json({ error: 'Company not found' });
+    return;
+  }
+  logAudit({ userId: req.user!.userId, action: 'update', entity: 'company', entityId: id, changes: { after: { assignedTo } } });
   res.json(company);
 });
 

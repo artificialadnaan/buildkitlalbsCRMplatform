@@ -7,6 +7,7 @@ import Modal from '../components/ui/Modal.js';
 import ComposeEmailModal from '../components/email/ComposeEmailModal.js';
 import EnrollSequenceModal from '../components/email/EnrollSequenceModal.js';
 import SendSmsModal from '../components/ui/SendSmsModal.js';
+import ClickToCall from '../components/ui/ClickToCall.js';
 
 interface DealResult {
   deal: {
@@ -26,6 +27,7 @@ interface DealResult {
   companyName: string | null;
   contactName: string | null;
   contactEmail: string | null;
+  contactPhone: string | null;
   stageName: string | null;
 }
 
@@ -401,6 +403,17 @@ export default function DealDetail() {
               <div className="space-y-3">
                 <ActionButton icon="mail" label="Send Email" onClick={() => setShowEmailModal(true)} />
                 <ActionButton icon="sms" label="Send SMS" onClick={() => setShowSmsModal(true)} />
+                {deal.contactId && result.contactPhone && (
+                  <div className="w-full">
+                    <ClickToCall
+                      contactId={deal.contactId}
+                      phone={result.contactPhone}
+                      contactName={result.contactName ?? undefined}
+                      dealId={deal.id}
+                      size="md"
+                    />
+                  </div>
+                )}
                 <ActionButton icon="automation" label="Start Sequence" onClick={() => setShowSequenceModal(true)} />
                 <ActionButton icon="history_edu" label="Log Activity" onClick={() => setModalOpen(true)} />
                 <ActionButton icon="rebase_edit" label="Move Stage" onClick={() => { setSelectedStageId(deal.stageId); setShowStageModal(true); }} />

@@ -7,6 +7,7 @@ import Modal from '../components/ui/Modal.js';
 import WebsiteAuditCard, { type WebsiteAudit } from '../components/ui/WebsiteAuditCard.js';
 import CompanyTimeline from '../components/ui/CompanyTimeline.js';
 import SendSmsModal from '../components/ui/SendSmsModal.js';
+import ClickToCall from '../components/ui/ClickToCall.js';
 
 interface Deal {
   id: string;
@@ -260,13 +261,21 @@ export default function LeadDetail() {
                       <p className="text-xs text-gray-500 mt-0.5">{contact.phone}</p>
                     )}
                     {contact.phone && (
-                      <button
-                        onClick={() => { setSmsContact(contact); setShowSmsModal(true); }}
-                        className="mt-1 flex items-center gap-1 rounded-md bg-orange-50 border border-orange-200 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-orange-700 hover:bg-orange-100 transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-xs">sms</span>
-                        SMS
-                      </button>
+                      <div className="mt-1 flex items-center gap-2">
+                        <button
+                          onClick={() => { setSmsContact(contact); setShowSmsModal(true); }}
+                          className="flex items-center gap-1 rounded-md bg-orange-50 border border-orange-200 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-orange-700 hover:bg-orange-100 transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-xs">sms</span>
+                          SMS
+                        </button>
+                        <ClickToCall
+                          contactId={contact.id}
+                          phone={contact.phone}
+                          contactName={`${contact.firstName} ${contact.lastName ?? ''}`.trim()}
+                          size="sm"
+                        />
+                      </div>
                     )}
                   </div>
                 </div>

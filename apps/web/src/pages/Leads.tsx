@@ -9,6 +9,7 @@ import Modal from '../components/ui/Modal.js';
 import LoadingSpinner from '../components/ui/LoadingSpinner.js';
 import { useToast } from '../components/ui/Toast.js';
 import ContextualActionButton from '../components/ui/ContextualActionButton.js';
+import ClickToCall from '../components/ui/ClickToCall.js';
 
 interface Company {
   id: string;
@@ -23,6 +24,8 @@ interface Company {
   googleRating: string | null;
   score: number;
   websiteAudit: { score: number } | null;
+  assignedTo: string | null;
+  assignedToName: string | null;
 }
 
 interface CompanyResponse {
@@ -97,6 +100,9 @@ export default function Leads() {
   const [rescoring, setRescoring] = useState(false);
   const { showError, showSuccess, ToastComponent } = useToast();
 
+  // My Leads / All Leads toggle — default to My Leads
+  const [myLeads, setMyLeads] = useState(true);
+
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [usersList, setUsersList] = useState<UserItem[]>([]);
@@ -129,6 +135,7 @@ export default function Leads() {
     if (typeFilter) params.set('type', typeFilter);
     if (sortByScore) params.set('sort', 'score');
     if (scrapeJobId) params.set('scrapeJobId', scrapeJobId);
+    if (myLeads && user?.id) params.set('assignedTo', user.id);
     const qs = params.toString();
 
     try {
@@ -142,7 +149,7 @@ export default function Leads() {
   useEffect(() => {
     setLoading(true);
     loadCompanies().finally(() => setLoading(false));
-  }, [search, typeFilter, sortByScore, scrapeJobId]);
+  }, [search, typeFilter, sortByScore, scrapeJobId, myLeads, user?.id]);
 
   async function handleRescore() {
     setRescoring(true);
@@ -166,6 +173,42 @@ export default function Leads() {
       setUsersList(data);
     } catch (err) {
       console.error('Failed to load users:', err);
+    }
+  }
+
+  async function handleBulkAssign(assignedTo: string) {
+    try {
+      const ids = Array.from(selectedIds);
+      await Promise.all(
+        ids.map((id) =>
+          api(`/api/companies/${id}/assign`, {
+            method: 'PATCH',
+            body: JSON.stringify({ assignedTo }),
+          })
+        )
+      );
+      const rep = usersList.find((u) => u.id === assignedTo);
+      showSuccess(`Assigned ${ids.length} leads to ${rep?.name ?? 'rep'}`);
+      setSelectedIds(new Set());
+      await loadCompanies();
+    } catch (err) {
+      console.error('Bulk assign failed:', err);
+      showError(err instanceof Error ? err.message : 'Bulk assign failed');
+    }
+  }
+
+  async function handleReassign(companyId: string, assignedTo: string) {
+    try {
+      await api(`/api/companies/${companyId}/assign`, {
+        method: 'PATCH',
+        body: JSON.stringify({ assignedTo }),
+      });
+      const rep = usersList.find((u) => u.id === assignedTo);
+      showSuccess(`Reassigned to ${rep?.name ?? 'rep'}`);
+      await loadCompanies();
+    } catch (err) {
+      console.error('Reassign failed:', err);
+      showError(err instanceof Error ? err.message : 'Reassign failed');
     }
   }
 
@@ -233,7 +276,13 @@ export default function Leads() {
         <Badge label={row.type} variant={typeVariants[row.type] ?? 'gray'} />
       ),
     },
-    { key: 'phone', label: 'Phone' },
+    {
+      key: 'phone',
+      label: 'Phone',
+      render: (row) => row.phone
+        ? <ClickToCall contactId={row.id} phone={row.phone} size="sm" />
+        : <span className="text-sm text-gray-400">—</span>,
+    },
     {
       key: 'city',
       label: 'Location',
@@ -253,9 +302,38 @@ export default function Leads() {
       render: (row) => <WebsiteScoreBadge audit={row.websiteAudit} />,
     },
     {
+      key: 'assignedToName',
+      label: 'Assigned To',
+      render: (row) => row.assignedToName
+        ? <span className="text-sm text-gray-700">{row.assignedToName}</span>
+        : <span className="text-sm text-gray-400">Unassigned</span>,
+    },
+    {
       key: 'id',
       label: 'Action',
-      render: (row) => <ContextualActionButton company={row} />,
+      render: (row) => (
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <ContextualActionButton company={row} />
+          {isAdmin && (
+            <select
+              defaultValue=""
+              onFocus={loadUsers}
+              onChange={(e) => {
+                if (e.target.value) {
+                  handleReassign(row.id, e.target.value);
+                  e.target.value = '';
+                }
+              }}
+              className="rounded border border-border bg-white px-2 py-1 text-xs text-gray-600 focus:border-blue-500 focus:outline-none"
+            >
+              <option value="" disabled>Reassign</option>
+              {usersList.map((u) => (
+                <option key={u.id} value={u.id}>{u.name}</option>
+              ))}
+            </select>
+          )}
+        </div>
+      ),
     },
   ];
 
@@ -306,6 +384,26 @@ export default function Leads() {
       />
 
       {loading ? <LoadingSpinner /> : <div className="p-6">
+        {/* My Leads / All Leads Toggle */}
+        <div className="mb-4 flex items-center gap-1 rounded-lg border border-border bg-gray-100 p-1 w-fit">
+          <button
+            onClick={() => setMyLeads(true)}
+            className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+              myLeads ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            My Leads
+          </button>
+          <button
+            onClick={() => setMyLeads(false)}
+            className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+              !myLeads ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            All Leads
+          </button>
+        </div>
+
         {/* Filters */}
         <div className="mb-4 flex items-center gap-3">
           <input
@@ -371,8 +469,7 @@ export default function Leads() {
                 defaultValue=""
                 onChange={(e) => {
                   if (e.target.value) {
-                    showSuccess(`Assigned ${selectedIds.size} leads to user`);
-                    // Future: call assign API
+                    handleBulkAssign(e.target.value);
                     e.target.value = '';
                   }
                 }}
