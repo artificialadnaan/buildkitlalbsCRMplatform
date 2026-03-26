@@ -42,7 +42,7 @@ export default function KanbanBoard({ stages, deals }: KanbanBoardProps) {
                 className="h-2.5 w-2.5 rounded-full"
                 style={{ backgroundColor: stage.color ?? '#6b7280' }}
               />
-              <span className="text-sm font-medium text-gray-300">{stage.name}</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-gray-300">{stage.name}</span>
               <span className="ml-auto text-xs text-gray-500">{stageDeals.length}</span>
             </div>
             <div className="flex flex-col gap-2 p-3 min-h-[120px]">

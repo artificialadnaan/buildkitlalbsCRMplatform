@@ -121,8 +121,8 @@ export default function DealDetail() {
 
   const infoFields = [
     { label: 'Status', value: <Badge label={deal.status} variant={statusVariants[deal.status] ?? 'gray'} /> },
-    { label: 'Stage', value: result.stageName ?? '--' },
     { label: 'Value', value: formatCurrency(deal.value) },
+    { label: 'Stage', value: result.stageName ?? '--' },
     { label: 'Contact', value: result.contactName ?? '--' },
     { label: 'Close Date', value: formatDate(deal.expectedCloseDate) },
     { label: 'Created', value: formatDate(deal.createdAt) },
@@ -146,7 +146,7 @@ export default function DealDetail() {
       <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-3">
         {/* Deal Info */}
         <div className="lg:col-span-2 rounded-lg border border-border bg-surface p-5">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-400">
+          <h2 className="mb-4 text-base font-semibold text-gray-200">
             Deal Information
           </h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
@@ -161,7 +161,7 @@ export default function DealDetail() {
 
         {/* Quick Actions */}
         <div className="rounded-lg border border-border bg-surface p-5">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-400">
+          <h2 className="mb-4 text-base font-semibold text-gray-200">
             Quick Actions
           </h2>
           <div className="flex flex-col gap-2">
@@ -185,6 +185,7 @@ export default function DealDetail() {
             </button>
             {deal.status === 'open' && (
               <>
+                <div className="my-1 border-t border-border" />
                 <button
                   onClick={() => handleStatusChange('won')}
                   className="w-full rounded-lg bg-emerald-600/20 border border-emerald-500/30 px-4 py-2.5 text-sm font-medium text-emerald-400 transition-colors hover:bg-emerald-600/30"
@@ -206,7 +207,7 @@ export default function DealDetail() {
       {/* Activity Timeline */}
       <div className="px-6 pb-6">
         <div className="rounded-lg border border-border bg-surface p-5">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-400">
+          <h2 className="mb-3 text-base font-semibold text-gray-200">
             Activity Timeline
           </h2>
           {activities.length === 0 ? (

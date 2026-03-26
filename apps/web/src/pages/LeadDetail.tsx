@@ -72,7 +72,7 @@ export default function LeadDetail() {
       <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-2">
         {/* Company Info */}
         <div className="rounded-lg border border-border bg-surface p-5">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-400">
+          <h2 className="mb-4 text-base font-semibold text-gray-200">
             Company Details
           </h2>
           <div className="grid grid-cols-2 gap-4">
@@ -87,7 +87,7 @@ export default function LeadDetail() {
 
         {/* Contacts */}
         <div className="rounded-lg border border-border bg-surface p-5">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-400">
+          <h2 className="mb-4 text-base font-semibold text-gray-200">
             Contacts ({contacts.length})
           </h2>
           {contacts.length === 0 ? (
