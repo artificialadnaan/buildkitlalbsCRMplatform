@@ -99,12 +99,14 @@ export default function Inbox() {
       .finally(() => setMessagesLoading(false));
   }
 
+  const [sendError, setSendError] = useState<string | null>(null);
+
   async function handleSend() {
     if (!reply.trim() || !selected) return;
     setSending(true);
+    setSendError(null);
     try {
       if (selected.channel === 'sms') {
-        // Send SMS
         await api('/api/sms/send', {
           method: 'POST',
           body: JSON.stringify({
@@ -114,7 +116,6 @@ export default function Inbox() {
           }),
         });
       } else if (selected.channel === 'email') {
-        // Send email via compose endpoint
         await api('/api/email-sends', {
           method: 'POST',
           body: JSON.stringify({
@@ -124,12 +125,17 @@ export default function Inbox() {
             bodyHtml: `<p>${reply.trim().replace(/\n/g, '<br/>')}</p>`,
           }),
         });
+      } else {
+        setSendError(`Cannot send via ${selected.channel} channel`);
+        return;
       }
       setReply('');
       loadMessages(selected.id);
       loadConversations();
     } catch (err) {
-      console.error('Failed to send message:', err);
+      const msg = err instanceof Error ? err.message : 'Failed to send';
+      setSendError(msg);
+      setTimeout(() => setSendError(null), 5000);
     } finally {
       setSending(false);
     }
@@ -358,6 +364,9 @@ export default function Inbox() {
                 )}
               </button>
             </div>
+            {sendError && (
+              <p className="px-4 pb-2 text-xs text-red-500 font-medium">{sendError}</p>
+            )}
           </div>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center bg-[#f0f3ff]">

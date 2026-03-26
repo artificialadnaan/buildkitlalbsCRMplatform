@@ -23,6 +23,7 @@ const navItems = [
   { to: '/time', label: 'Time', icon: 'timer' },
   { to: '/analytics', label: 'Analytics', icon: 'leaderboard' },
   { to: '/outreach', label: 'Outreach', icon: 'campaign' },
+  { to: '/email-history', label: 'Email Log', icon: 'mark_email_read' },
   { to: '/reports', label: 'Reports', icon: 'summarize' },
 ];
 
