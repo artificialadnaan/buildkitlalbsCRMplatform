@@ -1,159 +1,161 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api.js';
 import TopBar from '../components/layout/TopBar.js';
-import { formatCurrency } from '../lib/format.js';
-
-interface FunnelStep {
-  label: string;
-  count: number;
-  conversionRate: number | null;
-}
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
 interface ROIData {
-  funnel: FunnelStep[];
+  totalLeadsScraped: number;
+  scraperCost: number;
+  totalDealsCreated: number;
+  totalDealsWon: number;
   totalRevenue: number;
-  avgDealSize: number;
+  leadToDealRate: number;
+  dealToWonRate: number;
+  costPerLead: number;
+  costPerDeal: number;
+  costPerWon: number;
+  roi: number;
+  range: string;
 }
 
-function defaultDate(offsetDays: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  return d.toISOString().slice(0, 10);
-}
-
-const FUNNEL_COLORS = [
-  'bg-blue-600',
-  'bg-blue-500',
-  'bg-blue-400',
-  'bg-emerald-500',
-  'bg-emerald-400',
-  'bg-emerald-300',
+const RANGES = [
+  { label: '30d', value: '30d' },
+  { label: '90d', value: '90d' },
+  { label: 'YTD', value: 'ytd' },
+  { label: 'All Time', value: 'all' },
 ];
 
 export default function ROICalculator() {
-  const [from, setFrom] = useState(defaultDate(-90));
-  const [to, setTo] = useState(defaultDate(0));
   const [data, setData] = useState<ROIData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function load() {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await api<ROIData>(`/api/reports/roi?from=${from}&to=${to}`);
-      setData(result);
-    } catch (err) {
-      console.error('Failed to load ROI data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load ROI data');
-    } finally {
-      setLoading(false);
-    }
-  }
+  const [range, setRange] = useState('90d');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    load();
-  }, []);
+    setLoading(true);
+    api<ROIData>(`/api/reports/roi?range=${range}`)
+      .then(setData)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [range]);
 
-  const maxCount = data ? Math.max(...data.funnel.map((s) => s.count), 1) : 1;
+  const funnelData = data
+    ? [
+        { name: 'Leads Scraped', value: data.totalLeadsScraped },
+        { name: 'Deals Created', value: data.totalDealsCreated },
+        { name: 'Deals Won', value: data.totalDealsWon },
+      ]
+    : [];
 
   return (
     <div>
-      <TopBar title="ROI Calculator" subtitle="Revenue funnel and return on outreach" />
+      <TopBar title="ROI Calculator" subtitle="Scraper cost vs revenue from closed deals" />
 
       <div className="p-6 space-y-6">
-        {/* Date range */}
-        <div className="flex items-end gap-3">
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">From</label>
-            <input
-              type="date"
-              value={from}
-              onChange={(e) => setFrom(e.target.value)}
-              className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">To</label>
-            <input
-              type="date"
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-              className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none"
-            />
-          </div>
-          <button
-            onClick={load}
-            disabled={loading}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
-          >
-            {loading ? 'Loading...' : 'Apply'}
-          </button>
+        {/* Range selector */}
+        <div className="flex items-center gap-2">
+          {RANGES.map((r) => (
+            <button
+              key={r.value}
+              onClick={() => setRange(r.value)}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                range === r.value
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white border border-border text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
         </div>
 
-        {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
+        {loading && (
+          <div className="flex items-center justify-center py-20">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
           </div>
         )}
 
-        {data && (
+        {!loading && data && data.totalLeadsScraped === 0 && (
+          <div className="rounded-lg border border-border bg-surface p-12 text-center">
+            <p className="text-sm text-gray-500">Run the scraper to start tracking ROI</p>
+          </div>
+        )}
+
+        {!loading && data && data.totalLeadsScraped > 0 && (
           <>
-            {/* Funnel visualization */}
-            <div className="rounded-lg border border-border bg-surface p-5">
-              <h2 className="mb-6 text-base font-semibold text-gray-900">Outreach Funnel</h2>
-              <div className="space-y-3">
-                {data.funnel.map((step, i) => {
-                  const widthPct = Math.max((step.count / maxCount) * 100, 4);
-                  return (
-                    <div key={step.label} className="flex items-center gap-4">
-                      <span className="w-24 shrink-0 text-xs font-medium text-gray-600 text-right">
-                        {step.label}
-                      </span>
-                      <div className="flex-1 relative">
-                        <div className="h-10 bg-gray-100 rounded-lg overflow-hidden">
-                          <div
-                            className={`h-full rounded-lg transition-all duration-500 ${FUNNEL_COLORS[i] ?? 'bg-blue-400'}`}
-                            style={{ width: `${widthPct}%` }}
-                          />
-                        </div>
-                        <div className="absolute inset-0 flex items-center px-4">
-                          <span className="text-sm font-semibold text-white drop-shadow-sm">
-                            {step.count.toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="w-20 shrink-0 text-xs text-gray-500 text-right">
-                        {step.conversionRate != null
-                          ? `${step.conversionRate.toFixed(1)}% conv.`
-                          : ''}
-                      </div>
-                    </div>
-                  );
-                })}
+            {/* Highlight cards */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-5">
+                <p className="text-xs font-medium uppercase text-emerald-600">Total Revenue</p>
+                <p className="mt-2 text-3xl font-semibold text-gray-900">
+                  ${data.totalRevenue.toLocaleString()}
+                </p>
+                <p className="mt-1 text-xs text-emerald-600">from won deals in period</p>
+              </div>
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-5">
+                <p className="text-xs font-medium uppercase text-amber-600">Total Cost</p>
+                <p className="mt-2 text-3xl font-semibold text-gray-900">
+                  ${data.scraperCost.toLocaleString()}
+                </p>
+                <p className="mt-1 text-xs text-amber-600">scraper cost at $0.034/lead</p>
+              </div>
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-5">
+                <p className="text-xs font-medium uppercase text-blue-600">ROI</p>
+                <p className="mt-2 text-3xl font-semibold text-gray-900">{data.roi}%</p>
+                <p className="mt-1 text-xs text-blue-600">return on scraper spend</p>
               </div>
             </div>
 
-            {/* Revenue summary */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="rounded-lg border border-border bg-surface p-5">
-                <p className="text-xs font-medium uppercase text-gray-500">Total Revenue</p>
-                <p className="mt-2 text-3xl font-semibold text-gray-900">
-                  {formatCurrency(data.totalRevenue)}
-                </p>
-                <p className="mt-1 text-xs text-gray-400">from won deals in period</p>
-              </div>
-              <div className="rounded-lg border border-border bg-surface p-5">
-                <p className="text-xs font-medium uppercase text-gray-500">Avg Deal Size</p>
-                <p className="mt-2 text-3xl font-semibold text-gray-900">
-                  {formatCurrency(data.avgDealSize)}
-                </p>
-                <p className="mt-1 text-xs text-gray-400">per closed deal</p>
-              </div>
+            {/* Funnel bar chart */}
+            <div className="rounded-lg border border-border bg-surface p-5">
+              <h2 className="mb-4 text-base font-semibold text-gray-900">Pipeline Funnel</h2>
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={funnelData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontSize: 12, fill: '#6b7280' }}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 12, fill: '#6b7280' }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <Tooltip
+                    contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
+                  />
+                  <Bar dataKey="value" name="Count" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Metrics grid */}
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              <MetricCard label="Cost per Lead" value={`$${data.costPerLead}`} />
+              <MetricCard label="Cost per Deal" value={`$${data.costPerDeal}`} />
+              <MetricCard label="Cost per Won" value={`$${data.costPerWon}`} />
+              <MetricCard label="Lead → Deal" value={`${data.leadToDealRate}%`} />
+              <MetricCard label="Deal → Won" value={`${data.dealToWonRate}%`} />
+              <MetricCard label="Leads Scraped" value={data.totalLeadsScraped.toLocaleString()} />
             </div>
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+function MetricCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-surface p-4">
+      <p className="text-xs font-medium uppercase text-gray-500">{label}</p>
+      <p className="mt-1 text-xl font-semibold text-gray-900">{value}</p>
     </div>
   );
 }

@@ -81,76 +81,46 @@ router.get('/sales-performance', async (req, res) => {
 
 // GET /api/reports/roi
 router.get('/roi', async (req, res) => {
-  const { from, to } = req.query;
+  const range = (req.query.range as string) || '90d';
+  let dateFilter: Date;
+  const now = new Date();
 
-  const fromDate = from ? new Date(from as string) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  const toDate = to ? new Date(to as string) : new Date();
+  switch (range) {
+    case '30d': dateFilter = new Date(now.getTime() - 30 * 86400000); break;
+    case '90d': dateFilter = new Date(now.getTime() - 90 * 86400000); break;
+    case 'ytd': dateFilter = new Date(now.getFullYear(), 0, 1); break;
+    default: dateFilter = new Date(0);
+  }
 
-  const [leadsScrapedResult] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(companies)
-    .where(and(
-      eq(companies.source, 'scraped'),
-      gte(companies.createdAt, fromDate),
-      lte(companies.createdAt, toDate),
-    ));
+  const [leadStats] = await db.select({
+    totalScraped: sql<number>`count(*) filter (where ${companies.source} = 'scraped' and ${companies.createdAt} >= ${dateFilter})::int`,
+  }).from(companies);
 
-  const [leadsAuditedResult] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(companies)
-    .where(and(
-      sql`${companies.websiteAuditedAt} is not null`,
-      gte(companies.websiteAuditedAt, fromDate),
-      lte(companies.websiteAuditedAt, toDate),
-    ));
+  const [dealStats] = await db.select({
+    created: sql<number>`count(*) filter (where ${deals.createdAt} >= ${dateFilter})::int`,
+    won: sql<number>`count(*) filter (where ${deals.status} = 'won' and ${deals.closedAt} >= ${dateFilter})::int`,
+    revenue: sql<number>`coalesce(sum(${deals.value}) filter (where ${deals.status} = 'won' and ${deals.closedAt} >= ${dateFilter}), 0)::int`,
+  }).from(deals);
 
-  const [leadsEnrolledResult] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(sequenceEnrollments)
-    .where(and(
-      gte(sequenceEnrollments.enrolledAt, fromDate),
-      lte(sequenceEnrollments.enrolledAt, toDate),
-    ));
-
-  const [repliesResult] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(sequenceEnrollments)
-    .where(and(
-      eq(sequenceEnrollments.status, 'paused'),
-      eq(sequenceEnrollments.pausedReason, 'reply_received'),
-      gte(sequenceEnrollments.enrolledAt, fromDate),
-      lte(sequenceEnrollments.enrolledAt, toDate),
-    ));
-
-  const [dealsCreatedResult] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(deals)
-    .where(and(
-      gte(deals.createdAt, fromDate),
-      lte(deals.createdAt, toDate),
-    ));
-
-  const [dealsWonResult] = await db
-    .select({
-      count: sql<number>`count(*)::int`,
-      revenue: sql<number>`coalesce(sum(${deals.value}), 0)::int`,
-    })
-    .from(deals)
-    .where(and(
-      eq(deals.status, 'won'),
-      sql`${deals.closedAt} is not null`,
-      gte(deals.closedAt, fromDate),
-      lte(deals.closedAt, toDate),
-    ));
+  const totalLeads = leadStats.totalScraped;
+  const scraperCost = +(totalLeads * 0.034).toFixed(2);
+  const totalDeals = dealStats.created;
+  const totalWon = dealStats.won;
+  const totalRevenue = dealStats.revenue;
 
   res.json({
-    leadsScraped: leadsScrapedResult.count,
-    leadsAudited: leadsAuditedResult.count,
-    leadsEnrolled: leadsEnrolledResult.count,
-    repliesReceived: repliesResult.count,
-    dealsCreated: dealsCreatedResult.count,
-    dealsWon: dealsWonResult.count,
-    revenue: dealsWonResult.revenue,
+    totalLeadsScraped: totalLeads,
+    scraperCost,
+    totalDealsCreated: totalDeals,
+    totalDealsWon: totalWon,
+    totalRevenue,
+    leadToDealRate: totalLeads > 0 ? +((totalDeals / totalLeads) * 100).toFixed(1) : 0,
+    dealToWonRate: totalDeals > 0 ? +((totalWon / totalDeals) * 100).toFixed(1) : 0,
+    costPerLead: totalLeads > 0 ? +(scraperCost / totalLeads).toFixed(2) : 0,
+    costPerDeal: totalDeals > 0 ? +(scraperCost / totalDeals).toFixed(2) : 0,
+    costPerWon: totalWon > 0 ? +(scraperCost / totalWon).toFixed(2) : 0,
+    roi: scraperCost > 0 ? +(((totalRevenue - scraperCost) / scraperCost) * 100).toFixed(0) : 0,
+    range,
   });
 });
 
