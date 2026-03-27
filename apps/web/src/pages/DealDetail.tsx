@@ -235,12 +235,22 @@ export default function DealDetail() {
               </span>
             </div>
           </div>
-          <div className="bg-white p-6 rounded-xl border-l-8 border-orange-600 shadow-sm min-w-[240px]">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total Quoted Value</p>
-            <p className="text-4xl font-black text-slate-900 tracking-tight">
-              {deal.value != null ? formatCurrency(deal.value) : '$0'}
-              <span className="text-slate-300 text-lg ml-1">USD</span>
-            </p>
+          <div className="flex flex-col items-end gap-3">
+            <button
+              onClick={() => window.open(`${import.meta.env.VITE_API_URL}/deals/${id}/pdf`)}
+              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+              title="Download PDF"
+            >
+              <span className="material-symbols-outlined text-base">download</span>
+              PDF
+            </button>
+            <div className="bg-white p-6 rounded-xl border-l-8 border-orange-600 shadow-sm min-w-[240px]">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total Quoted Value</p>
+              <p className="text-4xl font-black text-slate-900 tracking-tight">
+                {deal.value != null ? formatCurrency(deal.value) : '$0'}
+                <span className="text-slate-300 text-lg ml-1">USD</span>
+              </p>
+            </div>
           </div>
         </section>
 
