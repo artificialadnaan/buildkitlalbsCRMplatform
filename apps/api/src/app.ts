@@ -46,6 +46,7 @@ import { requireRole } from './middleware/requireRole.js';
 export function createApp() {
   const app = express();
 
+  app.set('trust proxy', 1); // Railway runs behind a reverse proxy
   app.use(helmet());
   app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 
