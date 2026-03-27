@@ -58,8 +58,16 @@ router.post('/:id/pay', async (req, res) => {
   }
 
   try {
-    const stripeInvoice = await stripe().invoices.retrieve(invoice.stripeInvoiceId);
-    const paymentUrl = stripeInvoice.hosted_invoice_url;
+    let paymentUrl: string | null = null;
+
+    // stripeInvoiceId may be a Checkout Session ID (cs_...) or a Stripe Invoice ID (in_...)
+    if (invoice.stripeInvoiceId.startsWith('cs_')) {
+      const session = await stripe().checkout.sessions.retrieve(invoice.stripeInvoiceId);
+      paymentUrl = session.url ?? null;
+    } else {
+      const stripeInvoice = await stripe().invoices.retrieve(invoice.stripeInvoiceId);
+      paymentUrl = stripeInvoice.hosted_invoice_url ?? null;
+    }
 
     if (!paymentUrl) {
       res.status(500).json({ error: 'No payment URL available' });

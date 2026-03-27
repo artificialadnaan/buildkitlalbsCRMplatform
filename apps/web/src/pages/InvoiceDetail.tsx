@@ -36,6 +36,7 @@ export default function InvoiceDetail() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [sending, setSending] = useState(false);
+  const [generatingLink, setGeneratingLink] = useState(false);
 
   useEffect(() => {
     if (!isNew && id) {
@@ -76,6 +77,24 @@ export default function InvoiceDetail() {
       console.error('Failed to send invoice:', err);
     } finally {
       setSending(false);
+    }
+  }
+
+  async function generatePaymentLink() {
+    if (!invoice) return;
+    setGeneratingLink(true);
+    try {
+      const result = await api<{ checkoutUrl: string }>(`/api/invoices/${invoice.id}/checkout`, { method: 'POST' });
+      if (result.checkoutUrl) {
+        window.open(result.checkoutUrl, '_blank');
+        // Reload invoice to reflect updated status/sentAt
+        const updated = await api<Invoice>(`/api/invoices/${invoice.id}`);
+        setInvoice(updated);
+      }
+    } catch (err) {
+      console.error('Failed to generate payment link:', err);
+    } finally {
+      setGeneratingLink(false);
     }
   }
 
@@ -130,6 +149,15 @@ export default function InvoiceDetail() {
                 className="bg-blue-600 px-3 py-2 rounded-md text-sm text-white hover:bg-blue-500 disabled:opacity-50"
               >
                 {sending ? 'Sending...' : 'Send Invoice'}
+              </button>
+            )}
+            {(invoice.status === 'sent' || invoice.status === 'overdue') && (
+              <button
+                onClick={generatePaymentLink}
+                disabled={generatingLink}
+                className="bg-green-600 px-3 py-2 rounded-md text-sm text-white hover:bg-green-500 disabled:opacity-50"
+              >
+                {generatingLink ? 'Generating...' : 'Get Payment Link'}
               </button>
             )}
             <button onClick={() => navigate('/invoices')} className="bg-gray-100 border border-gray-300 px-3 py-2 rounded-md text-sm text-gray-500">

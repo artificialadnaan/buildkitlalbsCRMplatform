@@ -121,6 +121,60 @@ router.post('/:id/send', authMiddleware, async (req: Request<IdParams>, res) => 
   }
 });
 
+// Generate a Stripe Checkout Session for direct payment
+router.post('/:id/checkout', authMiddleware, async (req: Request<IdParams>, res) => {
+  const [invoice] = await db.select()
+    .from(invoices)
+    .where(eq(invoices.id, req.params.id))
+    .limit(1);
+
+  if (!invoice) {
+    res.status(404).json({ error: 'Invoice not found' });
+    return;
+  }
+
+  if (invoice.status === 'paid') {
+    res.status(400).json({ error: 'Invoice already paid' });
+    return;
+  }
+
+  const items = invoice.lineItems as Array<{ description: string; quantity: number; unitPriceCents: number }>;
+
+  const lineItems = items.map(item => ({
+    price_data: {
+      currency: 'usd',
+      product_data: { name: item.description || 'Service' },
+      unit_amount: item.unitPriceCents || 0,
+    },
+    quantity: item.quantity || 1,
+  }));
+
+  try {
+    const session = await getStripe().checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: lineItems,
+      mode: 'payment',
+      success_url: `${process.env.PORTAL_URL || process.env.FRONTEND_URL}/invoices/${invoice.id}?paid=true`,
+      cancel_url: `${process.env.PORTAL_URL || process.env.FRONTEND_URL}/invoices/${invoice.id}`,
+      metadata: { invoiceId: invoice.id },
+    });
+
+    await db.update(invoices)
+      .set({
+        stripeInvoiceId: session.id,
+        status: 'sent',
+        sentAt: new Date(),
+      })
+      .where(eq(invoices.id, invoice.id));
+
+    logAudit({ userId: req.user!.userId, action: 'update', entity: 'invoice', entityId: invoice.id, changes: { before: { status: invoice.status }, after: { status: 'sent', stripeCheckoutSessionId: session.id } } });
+    res.json({ checkoutUrl: session.url });
+  } catch (err) {
+    console.error('Stripe checkout session error:', err);
+    res.status(500).json({ error: 'Failed to create Stripe Checkout session' });
+  }
+});
+
 // Stripe webhook handler — req.body is a raw Buffer (set by express.raw in app.ts)
 router.post('/webhook', async (req, res) => {
   const sig = req.headers['stripe-signature'] as string;
@@ -136,6 +190,20 @@ router.post('/webhook', async (req, res) => {
     console.error('Webhook signature verification failed:', err);
     res.status(400).json({ error: 'Invalid signature' });
     return;
+  }
+
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object as Stripe.Checkout.Session;
+    const invoiceId = session.metadata?.invoiceId;
+    if (invoiceId) {
+      await db.update(invoices)
+        .set({
+          status: 'paid',
+          paidAt: new Date(),
+        })
+        .where(eq(invoices.id, invoiceId));
+      console.log(`[stripe] Invoice ${invoiceId} marked as paid via Checkout Session`);
+    }
   }
 
   if (event.type === 'invoice.paid') {
