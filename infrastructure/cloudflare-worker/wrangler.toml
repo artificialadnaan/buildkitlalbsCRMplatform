@@ -1,0 +1,11 @@
+name = "buildkit-preview"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+# Route: buildkitlabs.com/preview/*
+# Configure after first deploy via Cloudflare dashboard or CLI:
+#   wrangler routes add "buildkitlabs.com/preview/*" --zone <zone-id>
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "buildkit-files"
