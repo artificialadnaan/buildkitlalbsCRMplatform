@@ -33,12 +33,7 @@ async function getClient(): Promise<Client> {
       },
     );
 
-    const client = new Client({
-      name: 'buildkit-worker',
-      version: '1.0.0',
-    }, {
-      requestTimeoutMs: 300_000, // 5 min — Stitch generation takes 3-5 min
-    });
+    const client = new Client({ name: 'buildkit-worker', version: '1.0.0' });
     await client.connect(transport);
     clientInstance = client;
     return client;
@@ -72,7 +67,7 @@ async function listScreenIds(client: Client, projectId: string): Promise<Map<str
   const result = await client.callTool({
     name: 'list_screens',
     arguments: { projectId },
-  });
+  }, undefined, { timeout: 60_000 });
 
   const screens = new Map<string, StitchScreen>();
   // Parse the response — list_screens returns JSON with a screens array
@@ -116,7 +111,7 @@ export async function generatePreview(prompt: string, modelId = 'GEMINI_3_1_PRO'
   // 1. Snapshot existing screens
   const existingScreens = await listScreenIds(client, projectId);
 
-  // 2. Generate
+  // 2. Generate (5 min timeout — Stitch generation takes 3-5 min)
   await client.callTool({
     name: 'generate_screen_from_text',
     arguments: {
@@ -125,7 +120,7 @@ export async function generatePreview(prompt: string, modelId = 'GEMINI_3_1_PRO'
       deviceType: 'MOBILE',
       modelId,
     },
-  });
+  }, undefined, { timeout: 300_000 });
 
   // 3. Poll for new screen
   const POLL_INTERVAL_MS = 15_000;
