@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { eq, desc, sql } from 'drizzle-orm';
-import { db, scrapeJobs, users, auditLog, createScrapeQueue } from '@buildkit/shared';
+import { eq, desc, sql, and } from 'drizzle-orm';
+import { db, scrapeJobs, users, auditLog, createScrapeQueue, companies, contacts } from '@buildkit/shared';
 import type { ScrapeJobData } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
 
@@ -19,8 +19,9 @@ function getQueue() {
 
 // Enqueue a new scrape job
 router.post('/', async (req, res) => {
-  const { zipCodes, searchQuery, maxLeads } = req.body;
+  const { zipCodes, searchQuery, maxLeads, mode, prospectConfig } = req.body;
   const leadLimit = Math.min(Math.max(1, parseInt(maxLeads) || 50), 500);
+  const resolvedMode: 'standard' | 'ai-prospect' = mode === 'ai-prospect' ? 'ai-prospect' : 'standard';
 
   // Validate input
   if (!zipCodes || !Array.isArray(zipCodes) || zipCodes.length === 0) {
@@ -46,6 +47,7 @@ router.post('/', async (req, res) => {
     startedBy: req.user!.userId,
     zipCodes,
     searchQuery: resolvedQuery,
+    mode: resolvedMode,
   }).returning();
 
   // Audit log
@@ -54,7 +56,7 @@ router.post('/', async (req, res) => {
     action: 'scrape_started',
     entity: 'scrape_job',
     entityId: job.id,
-    changes: { zipCodes, searchQuery: resolvedQuery, maxLeads: leadLimit },
+    changes: { zipCodes, searchQuery: resolvedQuery, maxLeads: leadLimit, mode: resolvedMode },
   });
 
   // Enqueue BullMQ job
@@ -64,6 +66,8 @@ router.post('/', async (req, res) => {
     searchQuery: resolvedQuery,
     startedBy: req.user!.userId,
     maxLeads: leadLimit,
+    mode: resolvedMode,
+    ...(prospectConfig != null && { prospectConfig }),
   };
 
   try {
@@ -122,6 +126,37 @@ router.get('/jobs/:id', async (req, res) => {
   }
 
   res.json(job);
+});
+
+// Get enriched prospect results for an AI prospect job
+router.get('/jobs/:id/prospects', async (req, res) => {
+  const { id } = req.params;
+
+  const prospects = await db.select({
+    id: companies.id,
+    name: companies.name,
+    phone: companies.phone,
+    website: companies.website,
+    city: companies.city,
+    state: companies.state,
+    industry: companies.industry,
+    googleRating: companies.googleRating,
+    score: companies.score,
+    websiteScore: companies.websiteScore,
+    prospectingStatus: companies.prospectingStatus,
+    prospectingData: companies.prospectingData,
+    contactFirstName: contacts.firstName,
+    contactLastName: contacts.lastName,
+    contactEmail: contacts.email,
+    contactPhone: contacts.phone,
+    contactTitle: contacts.title,
+  })
+    .from(companies)
+    .leftJoin(contacts, and(eq(contacts.companyId, companies.id), eq(contacts.isPrimary, true)))
+    .where(sql`${companies.prospectingData}->>'scrapeJobId' = ${id}`)
+    .orderBy(desc(companies.createdAt));
+
+  res.json({ data: prospects });
 });
 
 export default router;

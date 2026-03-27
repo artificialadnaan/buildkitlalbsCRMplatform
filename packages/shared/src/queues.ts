@@ -39,6 +39,8 @@ export interface ScrapeJobData {
   searchQuery: string;
   startedBy: string;
   maxLeads?: number;
+  mode?: 'standard' | 'ai-prospect';
+  prospectConfig?: { minReviews?: number; maxWebsiteScore?: number };
 }
 
 export interface ScrapeJobProgress {
