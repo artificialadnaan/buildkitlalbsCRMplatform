@@ -16,6 +16,7 @@ interface ScrapeJob {
   completedAt: string | null;
   createdAt: string;
   userName: string | null;
+  mode?: string;
 }
 
 interface RecentLead {
@@ -31,7 +32,53 @@ interface RecentLead {
   contactEmail?: string | null;
 }
 
+interface ProspectData {
+  reviewCount?: number;
+  filterReason?: string;
+  templatePreviewUrl?: string;
+  generatedEmail?: { subject: string; body: string };
+  callPrepNotes?: string[];
+  enrichmentSources?: string[];
+}
+
+interface Prospect {
+  id: string;
+  name: string;
+  phone: string | null;
+  website: string | null;
+  city: string | null;
+  state: string | null;
+  industry: string | null;
+  googleRating: number | null;
+  score: number | null;
+  websiteScore: number | null;
+  prospectingStatus: 'qualifying' | 'enriching' | 'generating' | 'ready' | 'filtered' | 'no-contact' | 'failed';
+  prospectingData: ProspectData | null;
+  contactFirstName: string | null;
+  contactLastName: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  contactTitle: string | null;
+}
+
 const QUICK_TAGS = ['roofing contractors', 'plumbing', 'hvac', 'electrical', 'general contractor', 'landscaping'];
+
+function StatusBadge({ status }: { status: string }) {
+  const styles: Record<string, string> = {
+    qualifying: 'bg-blue-100 text-blue-700',
+    enriching: 'bg-purple-100 text-purple-700',
+    generating: 'bg-amber-100 text-amber-700',
+    ready: 'bg-green-100 text-green-700',
+    filtered: 'bg-gray-100 text-gray-500',
+    'no-contact': 'bg-orange-100 text-orange-600',
+    failed: 'bg-red-100 text-red-600',
+  };
+  return (
+    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${styles[status] || 'bg-gray-100 text-gray-500'}`}>
+      {status}
+    </span>
+  );
+}
 
 export default function Scraper() {
   const navigate = useNavigate();
@@ -43,10 +90,21 @@ export default function Scraper() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  // Mode toggle
+  const [mode, setMode] = useState<'standard' | 'ai-prospect'>('standard');
+  const [minReviews, setMinReviews] = useState(20);
+  const [maxWebsiteScore, setMaxWebsiteScore] = useState(70);
+
   // Toggle states
   const [extractEmails, setExtractEmails] = useState(true);
   const [findContact, setFindContact] = useState(true);
   const [aiResearch, setAiResearch] = useState(false);
+
+  // Prospect view state
+  const [viewingProspectsJobId, setViewingProspectsJobId] = useState<string | null>(null);
+  const [prospects, setProspects] = useState<Prospect[]>([]);
+  const [prospectsLoading, setProspectsLoading] = useState(false);
+  const [prospectsError, setProspectsError] = useState('');
 
   const validZipCount = zipInput.split(/[,\s\n]+/).filter(z => /^\d{5}$/.test(z.trim())).length;
 
@@ -99,13 +157,18 @@ export default function Scraper() {
     }
     setSubmitting(true);
     try {
+      const body: Record<string, unknown> = {
+        zipCodes,
+        searchQuery: searchQuery.trim() || 'local businesses',
+        maxLeads,
+      };
+      if (mode === 'ai-prospect') {
+        body.mode = 'ai-prospect';
+        body.prospectConfig = { minReviews, maxWebsiteScore };
+      }
       await api('/api/scrape', {
         method: 'POST',
-        body: JSON.stringify({
-          zipCodes,
-          searchQuery: searchQuery.trim() || 'local businesses',
-          maxLeads,
-        }),
+        body: JSON.stringify(body),
       });
       setZipInput('');
       setSearchQuery('');
@@ -121,6 +184,53 @@ export default function Scraper() {
     const token = localStorage.getItem('token');
     const baseUrl = import.meta.env.VITE_API_URL || '';
     window.open(`${baseUrl}/api/export/companies?token=${token}`, '_blank');
+  }
+
+  async function handleViewProspects(jobId: string) {
+    setViewingProspectsJobId(jobId);
+    setProspectsLoading(true);
+    setProspectsError('');
+    try {
+      const res = await api<{ data: Prospect[] }>(`/api/scrape/jobs/${jobId}/prospects`);
+      setProspects(res.data ?? []);
+    } catch (err) {
+      setProspectsError(err instanceof Error ? err.message : 'Failed to load prospects');
+    } finally {
+      setProspectsLoading(false);
+    }
+  }
+
+  function handleSendEmail(prospect: Prospect) {
+    const prospectData = prospect.prospectingData;
+    if (prospectData?.generatedEmail) {
+      navigate(`/leads/${prospect.id}?compose=1&subject=${encodeURIComponent(prospectData.generatedEmail.subject)}`);
+    } else {
+      navigate(`/leads/${prospect.id}`);
+    }
+  }
+
+  function handleCall(prospect: Prospect) {
+    if (!prospect.contactPhone) return;
+    api('/api/sms/call', {
+      method: 'POST',
+      body: JSON.stringify({ contactId: prospect.id }),
+    }).catch(console.error);
+  }
+
+  async function handleAddToPipeline(prospect: Prospect) {
+    try {
+      const res = await api<{ data: { id: string } }>('/api/deals', {
+        method: 'POST',
+        body: JSON.stringify({
+          companyId: prospect.id,
+          title: prospect.name,
+          stage: 'new',
+        }),
+      });
+      navigate(`/deals/${res.data.id}`);
+    } catch (err) {
+      console.error('Failed to add to pipeline', err);
+    }
   }
 
   function getStatusDisplay(job: ScrapeJob) {
@@ -149,6 +259,187 @@ export default function Scraper() {
     );
   }
 
+  // Prospect results view
+  if (viewingProspectsJobId !== null) {
+    return (
+      <div>
+        <TopBar title="AI Prospects" subtitle="Operational Command" />
+        <div className="p-8">
+          <div className="flex items-center gap-4 mb-6">
+            <button
+              onClick={() => setViewingProspectsJobId(null)}
+              className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors"
+            >
+              <span className="material-symbols-outlined text-sm">arrow_back</span>
+              Back to Scraper
+            </button>
+            <h2 className="text-xl font-black tracking-tighter text-slate-900 uppercase">
+              AI Prospect Results
+            </h2>
+            <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">
+              {prospects.length} prospects
+            </span>
+          </div>
+
+          {prospectsLoading && (
+            <div className="flex items-center justify-center py-24">
+              <span className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mr-3" />
+              <span className="text-sm text-slate-500">Loading prospects...</span>
+            </div>
+          )}
+
+          {prospectsError && (
+            <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-md px-4 py-3 flex items-center gap-2">
+              <span className="material-symbols-outlined text-sm">error</span>
+              {prospectsError}
+            </div>
+          )}
+
+          {!prospectsLoading && !prospectsError && prospects.length === 0 && (
+            <div className="text-center py-24">
+              <span className="material-symbols-outlined text-4xl text-slate-300">person_search</span>
+              <p className="text-sm text-slate-400 mt-2">No prospects found for this job.</p>
+            </div>
+          )}
+
+          {!prospectsLoading && prospects.length > 0 && (
+            <div className="max-w-3xl space-y-3">
+              {prospects.map(prospect => {
+                const prospectData = prospect.prospectingData;
+                const PIPELINE_STAGES = ['qualifying', 'enriching', 'generating', 'ready'];
+                const currentIdx = PIPELINE_STAGES.indexOf(prospect.prospectingStatus);
+                return (
+                  <div key={prospect.id} className="rounded-lg border border-gray-200 bg-white p-4">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <h4 className="font-semibold text-gray-900">{prospect.name}</h4>
+                        <p className="text-xs text-gray-500">
+                          {prospect.industry} · {prospect.city}, {prospect.state}
+                        </p>
+                      </div>
+                      <StatusBadge status={prospect.prospectingStatus} />
+                    </div>
+
+                    {/* Pipeline progress dots */}
+                    <div className="flex items-center gap-1 mb-3">
+                      {PIPELINE_STAGES.map((stage, i) => {
+                        const isComplete = i <= currentIdx || prospect.prospectingStatus === 'ready';
+                        const isCurrent = PIPELINE_STAGES[i] === prospect.prospectingStatus;
+                        return (
+                          <div key={stage} className="flex items-center">
+                            <div
+                              className={`w-2.5 h-2.5 rounded-full ${
+                                isComplete
+                                  ? 'bg-green-500'
+                                  : isCurrent
+                                  ? 'bg-blue-500 animate-pulse'
+                                  : 'bg-gray-200'
+                              }`}
+                            />
+                            {i < 3 && (
+                              <div className={`w-8 h-0.5 ${isComplete ? 'bg-green-300' : 'bg-gray-200'}`} />
+                            )}
+                          </div>
+                        );
+                      })}
+                      <span className="text-xs text-gray-400 ml-2">{prospect.prospectingStatus}</span>
+                    </div>
+
+                    {/* Owner info */}
+                    {prospect.contactFirstName && (
+                      <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                        <p className="text-sm font-medium">
+                          {prospect.contactFirstName} {prospect.contactLastName}
+                          {prospect.contactTitle ? ` — ${prospect.contactTitle}` : ''}
+                        </p>
+                        {prospect.contactEmail && (
+                          <p className="text-xs text-blue-600">{prospect.contactEmail}</p>
+                        )}
+                        {prospect.contactPhone && (
+                          <p className="text-xs text-gray-500">{prospect.contactPhone}</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Template preview */}
+                    {prospectData?.templatePreviewUrl && (
+                      <img
+                        src={prospectData.templatePreviewUrl}
+                        alt="Website preview"
+                        className="rounded-lg border mb-3 w-full max-h-48 object-cover object-top"
+                      />
+                    )}
+
+                    {/* Generated email */}
+                    {prospectData?.generatedEmail && (
+                      <details className="mb-3">
+                        <summary className="text-xs font-medium text-purple-600 cursor-pointer">
+                          Generated Email: {prospectData.generatedEmail.subject}
+                        </summary>
+                        <div className="mt-2 text-sm text-gray-700 bg-gray-50 rounded p-3 whitespace-pre-line">
+                          {prospectData.generatedEmail.body}
+                        </div>
+                      </details>
+                    )}
+
+                    {/* Call prep notes */}
+                    {prospectData?.callPrepNotes && prospectData.callPrepNotes.length > 0 && (
+                      <details className="mb-3">
+                        <summary className="text-xs font-medium text-blue-600 cursor-pointer">
+                          Call Prep Notes ({prospectData.callPrepNotes.length})
+                        </summary>
+                        <ul className="mt-2 text-sm text-gray-700 list-disc pl-5">
+                          {prospectData.callPrepNotes.map((note: string, i: number) => (
+                            <li key={i}>{note}</li>
+                          ))}
+                        </ul>
+                      </details>
+                    )}
+
+                    {/* Filter reason */}
+                    {prospect.prospectingStatus === 'filtered' && prospectData?.filterReason && (
+                      <p className="text-xs text-amber-600 italic">Filtered: {prospectData.filterReason}</p>
+                    )}
+
+                    {/* Action buttons (ready only) */}
+                    {prospect.prospectingStatus === 'ready' && (
+                      <div className="flex gap-2 mt-3 pt-3 border-t">
+                        <button
+                          onClick={() => handleSendEmail(prospect)}
+                          className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 flex items-center gap-1"
+                        >
+                          <span className="material-symbols-outlined text-sm">mail</span>
+                          Send Email
+                        </button>
+                        {prospect.contactPhone && (
+                          <button
+                            onClick={() => handleCall(prospect)}
+                            className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 flex items-center gap-1"
+                          >
+                            <span className="material-symbols-outlined text-sm">call</span>
+                            Call Owner
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleAddToPipeline(prospect)}
+                          className="text-xs bg-purple-600 text-white px-3 py-1.5 rounded-lg hover:bg-purple-700 flex items-center gap-1"
+                        >
+                          <span className="material-symbols-outlined text-sm">add</span>
+                          Add to Pipeline
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <TopBar title="Lead Scraper" subtitle="Operational Command" />
@@ -170,6 +461,31 @@ export default function Scraper() {
               <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">
                 Engine 2.0
               </span>
+            </div>
+
+            {/* Mode toggle */}
+            <div className="flex rounded-lg border border-gray-200 overflow-hidden mb-4">
+              <button
+                type="button"
+                onClick={() => setMode('standard')}
+                className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+                  mode === 'standard' ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                Standard Scrape
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('ai-prospect')}
+                className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+                  mode === 'ai-prospect'
+                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
+                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm align-middle mr-1">psychology</span>
+                AI Prospecting
+              </button>
             </div>
 
             <div className="grid grid-cols-2 gap-6 mb-8">
@@ -234,6 +550,40 @@ export default function Scraper() {
               </p>
             </div>
 
+            {/* AI Prospecting Config */}
+            {mode === 'ai-prospect' && (
+              <div className="mt-4 p-4 rounded-lg border border-purple-200 bg-purple-50/50 mb-6">
+                <p className="text-xs font-semibold text-purple-700 uppercase tracking-wider mb-3">AI Prospecting Config</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-gray-500 block mb-1">Min Google Reviews</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="200"
+                      value={minReviews}
+                      onChange={e => setMinReviews(parseInt(e.target.value) || 20)}
+                      className="w-full text-sm border rounded-lg px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 block mb-1">Max Website Score</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={maxWebsiteScore}
+                      onChange={e => setMaxWebsiteScore(parseInt(e.target.value) || 70)}
+                      className="w-full text-sm border rounded-lg px-3 py-2"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400 mt-2">
+                  Only businesses with &gt;= {minReviews} reviews and website score &lt; {maxWebsiteScore} will be enriched
+                </p>
+              </div>
+            )}
+
             {/* Intelligence Settings */}
             <div className="border-t border-[#e7eeff] pt-6">
               <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900 mb-6 flex items-center gap-2">
@@ -273,12 +623,21 @@ export default function Scraper() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-8 py-3 bg-gradient-to-r from-orange-700 to-orange-500 text-white rounded-lg font-bold text-sm tracking-wide shadow-lg shadow-orange-600/20 hover:-translate-y-px transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`px-8 py-3 text-white rounded-lg font-bold text-sm tracking-wide shadow-lg hover:-translate-y-px transition-transform disabled:opacity-50 disabled:cursor-not-allowed ${
+                  mode === 'ai-prospect'
+                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 shadow-purple-600/20'
+                    : 'bg-gradient-to-r from-orange-700 to-orange-500 shadow-orange-600/20'
+                }`}
               >
                 {submitting ? (
                   <span className="flex items-center gap-2">
                     <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     Deploying...
+                  </span>
+                ) : mode === 'ai-prospect' ? (
+                  <span className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-sm">psychology</span>
+                    Launch AI Prospector
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
@@ -320,7 +679,15 @@ export default function Scraper() {
                     {jobs.map(job => (
                       <tr key={job.id} className="hover:bg-[#f0f3ff]/50 transition-colors group">
                         <td className="px-8 py-5">
-                          <p className="font-bold text-slate-900">{job.searchQuery}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-bold text-slate-900">{job.searchQuery}</p>
+                            {job.mode === 'ai-prospect' && (
+                              <span className="bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide flex items-center gap-0.5">
+                                <span className="material-symbols-outlined text-[10px]">psychology</span>
+                                AI
+                              </span>
+                            )}
+                          </div>
                           <p className="text-[10px] text-slate-400">
                             {new Date(job.createdAt).toLocaleString()}
                           </p>
@@ -356,6 +723,15 @@ export default function Scraper() {
                                 className="border border-slate-300 text-slate-600 px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest hover:border-orange-500 hover:text-orange-600 transition-all"
                               >
                                 Export CSV
+                              </button>
+                            )}
+                            {job.mode === 'ai-prospect' && job.status === 'done' && (
+                              <button
+                                onClick={() => handleViewProspects(job.id)}
+                                className="bg-purple-100 text-purple-700 px-4 py-2 rounded text-[10px] font-bold uppercase tracking-widest hover:bg-purple-600 hover:text-white transition-all flex items-center gap-1"
+                              >
+                                <span className="material-symbols-outlined text-[11px]">psychology</span>
+                                View Prospects
                               </button>
                             )}
                             <button
