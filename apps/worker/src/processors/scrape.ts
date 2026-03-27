@@ -1,7 +1,7 @@
 import type { Job, Queue } from 'bullmq';
 import { eq } from 'drizzle-orm';
-import { db, scrapeJobs, companies, contacts } from '@buildkit/shared';
-import type { ScrapeJobData, ScrapeJobProgress, WebsiteAuditJobData, EnrichmentJobData } from '@buildkit/shared';
+import { db, scrapeJobs, companies, contacts, createProspectQueue } from '@buildkit/shared';
+import type { ScrapeJobData, ScrapeJobProgress, WebsiteAuditJobData, EnrichmentJobData, ProspectJobData } from '@buildkit/shared';
 import { createWebsiteAuditQueue, createEnrichmentQueue } from '@buildkit/shared';
 import { searchPlaces, parsePlace } from '../lib/google-places.js';
 import { extractEmailsFromUrl } from '../lib/email-extractor.js';
@@ -16,6 +16,12 @@ let enrichmentQueue: Queue<EnrichmentJobData> | null = null;
 function getEnrichmentQueue(): Queue<EnrichmentJobData> {
   if (!enrichmentQueue) enrichmentQueue = createEnrichmentQueue();
   return enrichmentQueue;
+}
+
+let prospectQueue: Queue<ProspectJobData> | null = null;
+function getProspectQueue(): Queue<ProspectJobData> {
+  if (!prospectQueue) prospectQueue = createProspectQueue();
+  return prospectQueue;
 }
 
 const API_KEY = process.env.GOOGLE_PLACES_API_KEY || '';
@@ -110,6 +116,23 @@ export async function processScrapeJob(job: Job<ScrapeJobData>): Promise<void> {
         }
 
         newLeads++;
+
+        // Check if this is an AI prospect job
+        const scrapeJobRow = await db.select({ mode: scrapeJobs.mode }).from(scrapeJobs).where(eq(scrapeJobs.id, jobId)).limit(1);
+        if (scrapeJobRow[0]?.mode === 'ai-prospect') {
+          // The new Places API v1 does not return review count — store 0 as baseline
+          const reviewCount = 0;
+          await db.update(companies).set({
+            prospectingStatus: 'qualifying',
+            prospectingData: {
+              scrapeJobId: jobId,
+              reviewCount,
+              config: (job.data as ScrapeJobData & { prospectConfig?: Record<string, unknown> }).prospectConfig || {},
+            },
+          }).where(eq(companies.id, newCompany.id));
+
+          await getProspectQueue().add('qualify', { companyId: newCompany.id, scrapeJobId: jobId, stage: 'qualify' });
+        }
       }
 
       // Stop outer loop if limit reached

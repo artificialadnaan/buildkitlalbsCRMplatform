@@ -7,13 +7,14 @@ import {
   OUTREACH_PIPELINE_QUEUE,
   SMS_SEND_QUEUE,
   ENRICHMENT_QUEUE,
+  PROSPECT_QUEUE_NAME,
   getRedisConnection,
   createOutreachPipelineQueue,
   db,
   outreachCampaigns,
 } from '@buildkit/shared';
 import { eq } from 'drizzle-orm';
-import type { ScrapeJobData, WebsiteAuditJobData, OutreachPipelineJobData, SmsJobData, EnrichmentJobData } from '@buildkit/shared';
+import type { ScrapeJobData, WebsiteAuditJobData, OutreachPipelineJobData, SmsJobData, EnrichmentJobData, ProspectJobData } from '@buildkit/shared';
 import { processScrapeJob } from './processors/scrape.js';
 import { processWebsiteAudit } from './processors/website-audit.js';
 import { processEnrichment } from './processors/enrichment.js';
@@ -22,6 +23,7 @@ import { processInvoicePdf } from './jobs/invoicePdf.js';
 import { processInvoiceReminders } from './jobs/invoiceReminder.js';
 import { setupEmailQueues } from './setup-email-queues.js';
 import { processSmsSend } from './processors/sms-send.js';
+import { processProspectQualify } from './processors/prospect-qualify.js';
 import { checkStaleDeals } from './jobs/staleDealChecker.js';
 import { sendDailyDigest } from './jobs/dailyDigest.js';
 import { checkFollowUpReminders } from './jobs/follow-up-reminders.js';
@@ -247,3 +249,28 @@ enrichmentWorker.on('failed', (job, err) => {
 });
 
 console.log(`[Worker] Enrichment worker started — listening on queue "${ENRICHMENT_QUEUE}"`);
+
+// Prospect pipeline worker
+const prospectWorker = new Worker<ProspectJobData>(
+  PROSPECT_QUEUE_NAME,
+  async (job) => {
+    console.log(`[Worker] Processing prospect job ${job.id} — stage: ${job.data.stage}, company: ${job.data.companyId}`);
+    switch (job.data.stage) {
+      case 'qualify': return processProspectQualify(job);
+      case 'enrich': console.log('[prospect] Enrich stage — not yet implemented'); break;
+      case 'mockup': console.log('[prospect] Mockup stage — not yet implemented'); break;
+      case 'outreach': console.log('[prospect] Outreach stage — not yet implemented'); break;
+    }
+  },
+  { connection, concurrency: 3 },
+);
+
+prospectWorker.on('completed', (job) => {
+  console.log(`[Worker] Prospect job ${job.id} completed (stage: ${job.data.stage})`);
+});
+
+prospectWorker.on('failed', (job, err) => {
+  console.error(`[Worker] Prospect job ${job?.id} failed:`, err.message);
+});
+
+console.log(`[Worker] Prospect pipeline worker started — listening on queue "${PROSPECT_QUEUE_NAME}"`);
