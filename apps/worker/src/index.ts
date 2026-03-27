@@ -8,6 +8,7 @@ import {
   SMS_SEND_QUEUE,
   ENRICHMENT_QUEUE,
   PROSPECT_QUEUE_NAME,
+  PROSPECT_MOCKUP_QUEUE_NAME,
   getRedisConnection,
   createOutreachPipelineQueue,
   db,
@@ -34,6 +35,14 @@ import { checkFollowUpReminders } from './jobs/follow-up-reminders.js';
 console.log('[worker] Starting BuildKit CRM worker...');
 
 const connection = getRedisConnection();
+
+// Validate Stitch env vars early — fail fast rather than mid-job
+if (!process.env.STITCH_API_KEY) {
+  console.warn('[Worker] WARNING: STITCH_API_KEY not set — mockup generation will fail');
+}
+if (!process.env.STITCH_PROJECT_ID) {
+  console.warn('[Worker] WARNING: STITCH_PROJECT_ID not set — mockup generation will fail');
+}
 
 const worker = new Worker<ScrapeJobData>(
   SCRAPE_QUEUE_NAME,
@@ -261,7 +270,7 @@ const prospectWorker = new Worker<ProspectJobData>(
     switch (job.data.stage) {
       case 'qualify': return processProspectQualify(job);
       case 'enrich': return processProspectEnrich(job);
-      case 'mockup': return processProspectMockup(job);
+      // mockup is now on its own queue (PROSPECT_MOCKUP_QUEUE_NAME)
       case 'outreach': return processProspectOutreach(job);
     }
   },
@@ -277,3 +286,28 @@ prospectWorker.on('failed', (job, err) => {
 });
 
 console.log(`[Worker] Prospect pipeline worker started — listening on queue "${PROSPECT_QUEUE_NAME}"`);
+
+// Dedicated mockup worker — concurrency 1 to respect Stitch API rate limits
+// Separate queue prevents job-stealing race condition with the main prospect worker
+const mockupWorker = new Worker<ProspectJobData>(
+  PROSPECT_MOCKUP_QUEUE_NAME,
+  async (job) => {
+    console.log(`[Worker] Processing mockup job ${job.id} — company: ${job.data.companyId}`);
+    await processProspectMockup(job);
+  },
+  {
+    connection,
+    concurrency: 1,
+    lockDuration: 900_000, // 15 min lock for long-running Stitch generation
+  },
+);
+
+mockupWorker.on('completed', (job) => {
+  console.log(`[Worker] Mockup job ${job.id} completed`);
+});
+
+mockupWorker.on('failed', (job, err) => {
+  console.error(`[Worker] Mockup job ${job?.id} failed:`, err.message);
+});
+
+console.log(`[Worker] Mockup worker started (concurrency: 1, 15min lock) — queue: "${PROSPECT_MOCKUP_QUEUE_NAME}"`);

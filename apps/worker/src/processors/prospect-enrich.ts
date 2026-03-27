@@ -1,6 +1,6 @@
 import type { Job } from 'bullmq';
 import { eq } from 'drizzle-orm';
-import { db, companies, contacts, createProspectQueue } from '@buildkit/shared';
+import { db, companies, contacts, createProspectQueue, createProspectMockupQueue } from '@buildkit/shared';
 import type { ProspectJobData } from '@buildkit/shared';
 import { scrapeAboutPage, scrapeBBB, searchTexasSOS, apolloLookup } from '../lib/enrichment-sources.js';
 
@@ -10,6 +10,12 @@ let queue: ReturnType<typeof createProspectQueue> | null = null;
 function getQueue() {
   if (!queue) queue = createProspectQueue();
   return queue;
+}
+
+let mockupQueue: ReturnType<typeof createProspectMockupQueue> | null = null;
+function getMockupQueue() {
+  if (!mockupQueue) mockupQueue = createProspectMockupQueue();
+  return mockupQueue;
 }
 
 export async function processProspectEnrich(job: Job<ProspectJobData>): Promise<void> {
@@ -71,6 +77,7 @@ export async function processProspectEnrich(job: Job<ProspectJobData>): Promise<
     prospectingData: { ...prospData, enrichedAt: new Date().toISOString(), enrichmentSources: [result.source], contactId: contact.id },
   }).where(eq(companies.id, companyId));
 
-  await getQueue().add('mockup', { companyId, scrapeJobId, stage: 'mockup' });
+  // Route mockup jobs to dedicated queue to prevent BullMQ job-stealing
+  await getMockupQueue().add('mockup', { companyId, scrapeJobId, stage: 'mockup' });
   console.log(`[prospect-enrich] ${company.name} enriched via ${result.source} → mockup`);
 }

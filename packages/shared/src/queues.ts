@@ -135,6 +135,21 @@ export function createProspectQueue() {
   });
 }
 
+// Dedicated mockup queue — separate from prospect pipeline to allow concurrency: 1
+export const PROSPECT_MOCKUP_QUEUE_NAME = 'prospect-mockup';
+
+export function createProspectMockupQueue() {
+  return new Queue<ProspectJobData>(PROSPECT_MOCKUP_QUEUE_NAME, {
+    connection: getRedisConnection(),
+    defaultJobOptions: {
+      attempts: 2,
+      backoff: { type: 'exponential' as const, delay: 30000 }, // 30s backoff for rate limits
+      removeOnComplete: { count: 100 },
+      removeOnFail: { count: 50 },
+    },
+  });
+}
+
 // Enrichment queue
 export const ENRICHMENT_QUEUE = 'lead-enrichment';
 
