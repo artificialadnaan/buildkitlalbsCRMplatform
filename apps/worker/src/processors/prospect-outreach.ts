@@ -15,6 +15,7 @@ export async function processProspectOutreach(job: Job<ProspectJobData>): Promis
     .where(eq(contacts.companyId, companyId)).limit(1);
 
   const prospData = (company.prospectingData as Record<string, any>) || {};
+  const previewUrl = (prospData.previewUrl as string | undefined) ?? null;
   const audit = company.websiteAudit as { score?: number; findings?: string; checks?: Record<string, any> } | null;
   const firstName = contact?.firstName ?? 'there';
   const ownerTitle = contact?.title ?? 'owner';
@@ -48,7 +49,9 @@ Key facts:
 - They have a ${company.googleRating ?? 'good'} Google rating with loyal customers
 - Specific issues: ${auditSummary}
 - We build websites for local businesses starting at $1,000
-- We included a preview of what their new site could look like
+${previewUrl ? `- We built a free preview of what their new site could look like: ${previewUrl}` : ''}
+
+${previewUrl ? 'Include the preview link naturally in the email body (not just at the end). Make it the centerpiece — "we put together a quick preview of what a modern site for [business] could look like" type framing.' : 'Mention that we can show them a preview of their new site.'}
 
 Tone: conversational, direct, no fluff. Reference their specific business by name. End with a soft CTA to schedule a 10-minute call. Sign off as Adnaan from BuildKit Labs.
 
