@@ -21,5 +21,6 @@ export const deals = pgTable('deals', {
   closedAt: timestamp('closed_at', { withTimezone: true }),
   callPrep: jsonb('call_prep'),
   callPrepGeneratedAt: timestamp('call_prep_generated_at', { withTimezone: true }),
+  lastActivityAt: timestamp('last_activity_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });

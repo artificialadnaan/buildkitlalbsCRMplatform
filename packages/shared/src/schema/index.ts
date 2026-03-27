@@ -3,6 +3,7 @@ export * from './companies.js';
 export * from './contacts.js';
 export * from './pipelines.js';
 export * from './deals.js';
+export * from './deal-events.js';
 export * from './activities.js';
 export * from './email-templates.js';
 export * from './email-sequences.js';

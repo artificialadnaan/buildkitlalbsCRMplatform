@@ -13,4 +13,5 @@ export const pipelineStages = pgTable('pipeline_stages', {
   name: varchar('name', { length: 100 }).notNull(),
   position: integer('position').notNull(),
   color: varchar('color', { length: 20 }),
+  followUpDays: integer('follow_up_days'),
 });
