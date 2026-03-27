@@ -65,7 +65,7 @@ export function buildStitchPrompt(input: PromptInput): string {
   const style = getStyleDirection(industry);
   const sections = getIndustrySections(industry);
 
-  let prompt = `A modern, mobile-friendly landing page for "${name}" — a ${industryLabel} in ${location}.`;
+  let prompt = `A production-ready, full-width, mobile-friendly landing page for "${name}" — a ${industryLabel} in ${location}. This must be a complete, polished website page — NOT a wireframe, NOT a design mockup, NOT a narrow preview. It should look like a real, live business website with full-width sections, real content, and professional layout that fills the entire screen.`;
 
   if (googleRating && reviewCount) {
     prompt += ` ${googleRating} stars from ${reviewCount} Google reviews.`;
@@ -85,7 +85,7 @@ export function buildStitchPrompt(input: PromptInput): string {
     prompt += `\n\nThis business's current website has these issues: ${websiteAuditFindings}. Make sure the new design specifically addresses these weaknesses.`;
   }
 
-  prompt += `\n\nStyle: ${style}. The page should feel like a premium ${industryLabel} website, not a template. Make it unique and memorable.`;
+  prompt += `\n\nStyle: ${style}. The page should feel like a premium ${industryLabel} website, not a template. Make it unique and memorable. Use full-width hero images, edge-to-edge sections, and real placeholder photography. No dotted backgrounds, no wireframe elements, no narrow centered columns — this needs to look like a finished, deployed website.`;
 
   return prompt;
 }
