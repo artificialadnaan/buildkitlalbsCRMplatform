@@ -24,6 +24,7 @@ import { processInvoiceReminders } from './jobs/invoiceReminder.js';
 import { setupEmailQueues } from './setup-email-queues.js';
 import { processSmsSend } from './processors/sms-send.js';
 import { processProspectQualify } from './processors/prospect-qualify.js';
+import { processProspectEnrich } from './processors/prospect-enrich.js';
 import { checkStaleDeals } from './jobs/staleDealChecker.js';
 import { sendDailyDigest } from './jobs/dailyDigest.js';
 import { checkFollowUpReminders } from './jobs/follow-up-reminders.js';
@@ -257,7 +258,7 @@ const prospectWorker = new Worker<ProspectJobData>(
     console.log(`[Worker] Processing prospect job ${job.id} — stage: ${job.data.stage}, company: ${job.data.companyId}`);
     switch (job.data.stage) {
       case 'qualify': return processProspectQualify(job);
-      case 'enrich': console.log('[prospect] Enrich stage — not yet implemented'); break;
+      case 'enrich': return processProspectEnrich(job);
       case 'mockup': console.log('[prospect] Mockup stage — not yet implemented'); break;
       case 'outreach': console.log('[prospect] Outreach stage — not yet implemented'); break;
     }
