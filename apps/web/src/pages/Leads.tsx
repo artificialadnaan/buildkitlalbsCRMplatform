@@ -179,14 +179,10 @@ export default function Leads() {
   async function handleBulkAssign(assignedTo: string) {
     try {
       const ids = Array.from(selectedIds);
-      await Promise.all(
-        ids.map((id) =>
-          api(`/api/companies/${id}/assign`, {
-            method: 'PATCH',
-            body: JSON.stringify({ assignedTo }),
-          })
-        )
-      );
+      await api('/api/companies/bulk-assign', {
+        method: 'PATCH',
+        body: JSON.stringify({ ids, assignedTo }),
+      });
       const rep = usersList.find((u) => u.id === assignedTo);
       showSuccess(`Assigned ${ids.length} leads to ${rep?.name ?? 'rep'}`);
       setSelectedIds(new Set());
@@ -194,6 +190,23 @@ export default function Leads() {
     } catch (err) {
       console.error('Bulk assign failed:', err);
       showError(err instanceof Error ? err.message : 'Bulk assign failed');
+    }
+  }
+
+  async function handleBulkCreateDeals() {
+    try {
+      const pipelines = await api<{ id: string; name: string }[]>('/api/pipelines');
+      const firstPipeline = pipelines[0];
+      if (!firstPipeline) { showError('No pipelines found'); return; }
+      const res = await api<{ created: number }>('/api/deals/bulk', {
+        method: 'POST',
+        body: JSON.stringify({ companyIds: Array.from(selectedIds), pipelineId: firstPipeline.id }),
+      });
+      showSuccess(`Created ${res.created} deals`);
+      setSelectedIds(new Set());
+    } catch (err) {
+      console.error('Bulk create deals failed:', err);
+      showError(err instanceof Error ? err.message : 'Failed to create deals');
     }
   }
 
@@ -216,9 +229,10 @@ export default function Leads() {
     setBulkDeleting(true);
     try {
       const ids = Array.from(selectedIds);
-      for (const id of ids) {
-        await api(`/api/companies/${id}`, { method: 'DELETE' });
-      }
+      await api('/api/companies/bulk', {
+        method: 'DELETE',
+        body: JSON.stringify({ ids }),
+      });
       showSuccess(`Deleted ${ids.length} companies`);
       setSelectedIds(new Set());
       setShowDeleteConfirm(false);
@@ -495,6 +509,18 @@ export default function Leads() {
               className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               Export CSV
+            </button>
+            <button
+              onClick={handleBulkCreateDeals}
+              className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              Create Deals
+            </button>
+            <button
+              onClick={() => navigate(`/outreach/new?companyIds=${[...selectedIds].join(',')}`)}
+              className="rounded-lg bg-purple-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-purple-700"
+            >
+              Add to Campaign
             </button>
             <button
               onClick={() => showSuccess('Sequence enrollment coming soon')}

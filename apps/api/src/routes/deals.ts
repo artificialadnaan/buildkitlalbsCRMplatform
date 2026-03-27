@@ -46,6 +46,29 @@ router.get('/', async (req, res) => {
   res.json({ data, total: countResult[0].count, page, limit });
 });
 
+// Bulk create one deal per company
+router.post('/bulk', async (req, res) => {
+  const { companyIds, pipelineId } = req.body as { companyIds: string[]; pipelineId: string };
+  if (!companyIds?.length || !pipelineId) { res.status(400).json({ error: 'companyIds and pipelineId required' }); return; }
+  const [firstStage] = await db.select().from(pipelineStages)
+    .where(eq(pipelineStages.pipelineId, pipelineId))
+    .orderBy(pipelineStages.position).limit(1);
+  if (!firstStage) { res.status(400).json({ error: 'Pipeline has no stages' }); return; }
+
+  const created = [];
+  for (const companyId of companyIds) {
+    const [company] = await db.select({ name: companies.name }).from(companies).where(eq(companies.id, companyId)).limit(1);
+    if (!company) continue;
+    const [deal] = await db.insert(deals).values({
+      companyId, pipelineId, stageId: firstStage.id,
+      title: `${company.name} — New Deal`,
+      assignedTo: req.user!.userId,
+    }).returning();
+    created.push(deal);
+  }
+  res.status(201).json({ created: created.length, deals: created });
+});
+
 // Get single deal with joined metadata
 router.get('/:id', async (req, res) => {
   const [result] = await db.select({

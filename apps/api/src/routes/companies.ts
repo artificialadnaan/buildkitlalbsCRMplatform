@@ -124,6 +124,23 @@ router.post('/rescore', async (req, res) => {
   res.json({ success: true, total: allCompanies.length, updated });
 });
 
+// Bulk assign companies to a user
+router.patch('/bulk-assign', async (req, res) => {
+  const { ids, assignedTo } = req.body as { ids: string[]; assignedTo: string };
+  if (!ids?.length || !assignedTo) { res.status(400).json({ error: 'ids and assignedTo required' }); return; }
+  await db.update(companies).set({ assignedTo }).where(sql`${companies.id} = ANY(${ids})`);
+  res.json({ success: true, updated: ids.length });
+});
+
+// Bulk delete companies (admin only)
+router.delete('/bulk', async (req, res) => {
+  if (req.user!.role !== 'admin') { res.status(403).json({ error: 'Admin only' }); return; }
+  const { ids } = req.body as { ids: string[] };
+  if (!ids?.length) { res.status(400).json({ error: 'ids required' }); return; }
+  await db.delete(companies).where(sql`${companies.id} = ANY(${ids})`);
+  res.json({ success: true, deleted: ids.length });
+});
+
 // Get single company
 router.get('/:id', async (req, res) => {
   const id = req.params.id as string;
