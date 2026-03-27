@@ -127,18 +127,35 @@ export async function generatePreview(prompt: string, modelId = 'GEMINI_3_1_PRO'
     },
   }, undefined, { timeout: 300_000 });
 
-  // 3. Poll for new screen
+  // 3. Poll for new screen (two phases: find screen, then wait for htmlCode)
   const POLL_INTERVAL_MS = 15_000;
   const MAX_POLLS = 20; // 5 minutes total
   let newScreen: StitchScreen | null = null;
 
+  // Phase 1: Find new screen by ID (may not have htmlCode yet)
   for (let i = 0; i < MAX_POLLS; i++) {
     await sleep(POLL_INTERVAL_MS);
     const current = await listScreenIds(client, projectId);
 
     for (const [id, screen] of current) {
-      if (!existingScreens.has(id) && screen.htmlDownloadUrl) {
-        newScreen = screen;
+      if (!existingScreens.has(id)) {
+        if (screen.htmlDownloadUrl) {
+          // Screen has htmlCode ready — done
+          newScreen = screen;
+        } else {
+          console.log(`[stitch] Found new screen ${id} (${screen.title}) — waiting for htmlCode...`);
+          // Phase 2: Keep polling until htmlCode appears
+          for (let j = i + 1; j < MAX_POLLS; j++) {
+            await sleep(POLL_INTERVAL_MS);
+            const updated = await listScreenIds(client, projectId);
+            const refreshed = updated.get(id);
+            if (refreshed?.htmlDownloadUrl) {
+              newScreen = refreshed;
+              break;
+            }
+            console.log(`[stitch] Waiting for htmlCode... attempt ${j + 1}/${MAX_POLLS}`);
+          }
+        }
         break;
       }
     }
@@ -147,7 +164,7 @@ export async function generatePreview(prompt: string, modelId = 'GEMINI_3_1_PRO'
   }
 
   if (!newScreen) {
-    throw new Error('[stitch] Screen did not appear after 5 minutes of polling');
+    throw new Error('[stitch] Screen did not appear (or htmlCode not ready) after 5 minutes of polling');
   }
 
   // 4. Download HTML + screenshot
