@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { eq, desc, sql, and } from 'drizzle-orm';
-import { db, scrapeJobs, users, auditLog, createScrapeQueue, companies, contacts } from '@buildkit/shared';
+import { db, scrapeJobs, users, auditLog, createScrapeQueue, createProspectMockupQueue, companies, contacts } from '@buildkit/shared';
 import type { ScrapeJobData } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
 
@@ -157,6 +157,18 @@ router.get('/jobs/:id/prospects', async (req, res) => {
     .orderBy(desc(companies.createdAt));
 
   res.json({ data: prospects });
+});
+
+// Test endpoint: manually enqueue a mockup job for a company
+router.post('/test-mockup/:companyId', async (req, res) => {
+  const { companyId } = req.params;
+  const [company] = await db.select().from(companies).where(eq(companies.id, companyId)).limit(1);
+  if (!company) { res.status(404).json({ error: 'Company not found' }); return; }
+
+  let mockupQ: ReturnType<typeof createProspectMockupQueue> | null = null;
+  if (!mockupQ) mockupQ = createProspectMockupQueue();
+  const job = await mockupQ.add('mockup', { companyId, scrapeJobId: 'test', stage: 'mockup' as const });
+  res.json({ message: `Mockup job enqueued for ${company.name}`, jobId: job.id });
 });
 
 export default router;
