@@ -36,6 +36,9 @@ interface ProspectData {
   reviewCount?: number;
   filterReason?: string;
   templatePreviewUrl?: string;
+  previewUrl?: string;
+  previewSlug?: string;
+  thumbnailUrl?: string;
   generatedEmail?: { subject: string; body: string };
   callPrepNotes?: string[];
   enrichmentSources?: string[];
@@ -52,7 +55,7 @@ interface Prospect {
   googleRating: number | null;
   score: number | null;
   websiteScore: number | null;
-  prospectingStatus: 'qualifying' | 'enriching' | 'generating' | 'ready' | 'filtered' | 'no-contact' | 'failed';
+  prospectingStatus: 'qualifying' | 'enriching' | 'generating' | 'ready' | 'filtered' | 'no-contact' | 'failed' | 'mockup-failed' | 'mockup-queued';
   prospectingData: ProspectData | null;
   contactFirstName: string | null;
   contactLastName: string | null;
@@ -72,6 +75,8 @@ function StatusBadge({ status }: { status: string }) {
     filtered: 'bg-gray-100 text-gray-500',
     'no-contact': 'bg-orange-100 text-orange-600',
     failed: 'bg-red-100 text-red-600',
+    'mockup-failed': 'bg-red-100 text-red-600',
+    'mockup-queued': 'bg-amber-100 text-amber-700',
   };
   return (
     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${styles[status] || 'bg-gray-100 text-gray-500'}`}>
@@ -308,6 +313,8 @@ export default function Scraper() {
                 const prospectData = prospect.prospectingData;
                 const PIPELINE_STAGES = ['qualifying', 'enriching', 'generating', 'ready'];
                 const currentIdx = PIPELINE_STAGES.indexOf(prospect.prospectingStatus);
+                const isErrorState = ['mockup-failed', 'mockup-queued', 'failed'].includes(prospect.prospectingStatus);
+                const displayIdx = isErrorState ? 2 : currentIdx;
                 return (
                   <div key={prospect.id} className="rounded-lg border border-gray-200 bg-white p-4">
                     {/* Header */}
@@ -324,17 +331,17 @@ export default function Scraper() {
                     {/* Pipeline progress dots */}
                     <div className="flex items-center gap-1 mb-3">
                       {PIPELINE_STAGES.map((stage, i) => {
-                        const isComplete = i <= currentIdx || prospect.prospectingStatus === 'ready';
+                        const isComplete = i <= displayIdx || prospect.prospectingStatus === 'ready';
                         const isCurrent = PIPELINE_STAGES[i] === prospect.prospectingStatus;
+                        const isError = isErrorState && i === displayIdx;
                         return (
                           <div key={stage} className="flex items-center">
                             <div
                               className={`w-2.5 h-2.5 rounded-full ${
-                                isComplete
-                                  ? 'bg-green-500'
-                                  : isCurrent
-                                  ? 'bg-blue-500 animate-pulse'
-                                  : 'bg-gray-200'
+                                isError ? 'bg-red-400' :
+                                isComplete ? 'bg-green-400' :
+                                isCurrent ? 'bg-blue-400 animate-pulse' :
+                                'bg-gray-200'
                               }`}
                             />
                             {i < 3 && (
@@ -362,14 +369,34 @@ export default function Scraper() {
                       </div>
                     )}
 
-                    {/* Template preview */}
-                    {prospectData?.templatePreviewUrl && (
+                    {/* Live preview link + thumbnail */}
+                    {prospectData?.previewUrl ? (
+                      <div className="mb-3">
+                        <a
+                          href={prospectData.previewUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block group"
+                        >
+                          {prospectData.thumbnailUrl && (
+                            <img
+                              src={prospectData.thumbnailUrl}
+                              alt={`Website preview for ${prospect.name}`}
+                              className="rounded-lg border w-full max-h-48 object-cover object-top group-hover:ring-2 group-hover:ring-indigo-400 transition-all"
+                            />
+                          )}
+                          <span className="text-xs text-indigo-600 hover:text-indigo-800 mt-1 inline-flex items-center gap-1">
+                            View live preview →
+                          </span>
+                        </a>
+                      </div>
+                    ) : prospectData?.templatePreviewUrl ? (
                       <img
                         src={prospectData.templatePreviewUrl}
                         alt="Website preview"
                         className="rounded-lg border mb-3 w-full max-h-48 object-cover object-top"
                       />
-                    )}
+                    ) : null}
 
                     {/* Generated email */}
                     {prospectData?.generatedEmail && (
