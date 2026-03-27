@@ -298,7 +298,7 @@ const mockupWorker = new Worker<ProspectJobData>(
   {
     connection,
     concurrency: 1,
-    lockDuration: 900_000, // 15 min lock for long-running Stitch generation
+    lockDuration: 1_200_000, // 20 min lock — Stitch generation + polling takes up to 10 min
   },
 );
 

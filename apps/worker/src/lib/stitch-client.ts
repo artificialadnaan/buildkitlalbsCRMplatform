@@ -70,15 +70,9 @@ async function listScreenIds(client: Client, projectId: string): Promise<Map<str
   }, undefined, { timeout: 60_000 });
 
   const screens = new Map<string, StitchScreen>();
-  // Parse the response — list_screens returns JSON with a screens array
   const contentArr = result.content as Array<{ type: string; text?: string }>;
-  console.log(`[stitch] list_screens raw content (${contentArr.length} blocks):`, JSON.stringify(contentArr).slice(0, 500));
   const text = contentArr.find(c => c.type === 'text')?.text;
-  if (!text) {
-    console.log('[stitch] No text content found in list_screens response');
-    return screens;
-  }
-  console.log(`[stitch] list_screens text (${text.length} chars):`, text.slice(0, 300));
+  if (!text) return screens;
 
   try {
     const parsed = JSON.parse(text);
@@ -128,8 +122,9 @@ export async function generatePreview(prompt: string, modelId = 'GEMINI_3_1_PRO'
   }, undefined, { timeout: 300_000 });
 
   // 3. Poll for new screen (two phases: find screen, then wait for htmlCode)
-  const POLL_INTERVAL_MS = 15_000;
-  const MAX_POLLS = 20; // 5 minutes total
+  // Fresh projects take ~7-10 min (design system + screen generation)
+  const POLL_INTERVAL_MS = 20_000;
+  const MAX_POLLS = 30; // 10 minutes total
   let newScreen: StitchScreen | null = null;
 
   // Phase 1: Find new screen by ID (may not have htmlCode yet)
@@ -164,7 +159,7 @@ export async function generatePreview(prompt: string, modelId = 'GEMINI_3_1_PRO'
   }
 
   if (!newScreen) {
-    throw new Error('[stitch] Screen did not appear (or htmlCode not ready) after 5 minutes of polling');
+    throw new Error('[stitch] Screen did not appear (or htmlCode not ready) after 10 minutes of polling');
   }
 
   // 4. Download HTML + screenshot
