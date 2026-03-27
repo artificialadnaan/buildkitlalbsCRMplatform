@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { eq, asc } from 'drizzle-orm';
-import { db, projects, milestones } from '@buildkit/shared';
+import { eq, asc, sql } from 'drizzle-orm';
+import { db, projects, milestones, tasks } from '@buildkit/shared';
 import { portalAuthMiddleware } from '../middleware/portalAuth.js';
 
 const router = Router();
@@ -66,6 +66,58 @@ router.get('/:id', async (req, res) => {
     ...project,
     milestones: projectMilestones,
     progressPercent,
+  });
+});
+
+// Get milestone + task progress for a project
+router.get('/:id/progress', async (req, res) => {
+  const companyId = req.portalUser!.companyId;
+  const { id } = req.params;
+
+  // Verify project belongs to this company
+  const [project] = await db.select()
+    .from(projects)
+    .where(eq(projects.id, id))
+    .limit(1);
+
+  if (!project || project.companyId !== companyId) {
+    res.status(404).json({ error: 'Project not found' });
+    return;
+  }
+
+  const projectMilestones = await db.select({
+    id: milestones.id,
+    name: milestones.name,
+    status: milestones.status,
+    position: milestones.position,
+  }).from(milestones).where(eq(milestones.projectId, id)).orderBy(asc(milestones.position));
+
+  const milestonesWithTasks = await Promise.all(projectMilestones.map(async (m) => {
+    const [taskStats] = await db.select({
+      total: sql<number>`count(*)::int`,
+      completed: sql<number>`count(*) filter (where ${tasks.status} = 'done')::int`,
+    }).from(tasks).where(eq(tasks.milestoneId, m.id));
+
+    const total = taskStats?.total ?? 0;
+    const completed = taskStats?.completed ?? 0;
+
+    return {
+      ...m,
+      taskTotal: total,
+      taskCompleted: completed,
+      completionPercent: total > 0 ? Math.round((completed / total) * 100) : 0,
+    };
+  }));
+
+  const completedCount = milestonesWithTasks.filter(m => m.status === 'done').length;
+
+  res.json({
+    milestones: milestonesWithTasks,
+    overallProgress: projectMilestones.length > 0
+      ? Math.round((completedCount / projectMilestones.length) * 100)
+      : 0,
+    completedCount,
+    totalCount: projectMilestones.length,
   });
 });
 
