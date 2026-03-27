@@ -33,7 +33,12 @@ async function getClient(): Promise<Client> {
       },
     );
 
-    const client = new Client({ name: 'buildkit-worker', version: '1.0.0' });
+    const client = new Client({
+      name: 'buildkit-worker',
+      version: '1.0.0',
+    }, {
+      requestTimeoutMs: 300_000, // 5 min — Stitch generation takes 3-5 min
+    });
     await client.connect(transport);
     clientInstance = client;
     return client;
