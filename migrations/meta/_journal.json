@@ -15,6 +15,13 @@
       "when": 1774508716379,
       "tag": "0001_nostalgic_masque",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1774569899025,
+      "tag": "0002_last_killer_shrike",
+      "breakpoints": true
     }
   ]
 }
