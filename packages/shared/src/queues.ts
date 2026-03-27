@@ -117,6 +117,22 @@ export function createReportQueue() {
   });
 }
 
+// Prospect queue
+export const PROSPECT_QUEUE_NAME = 'prospect-pipeline';
+
+export interface ProspectJobData {
+  companyId: string;
+  scrapeJobId: string;
+  stage: 'qualify' | 'enrich' | 'mockup' | 'outreach';
+}
+
+export function createProspectQueue() {
+  return new Queue<ProspectJobData>(PROSPECT_QUEUE_NAME, {
+    connection: getRedisConnection(),
+    defaultJobOptions: { attempts: 2, backoff: { type: 'exponential' as const, delay: 5000 } },
+  });
+}
+
 // Enrichment queue
 export const ENRICHMENT_QUEUE = 'lead-enrichment';
 

@@ -27,5 +27,7 @@ export const companies = pgTable('companies', {
   websiteAuditedAt: timestamp('website_audited_at', { withTimezone: true }),
   assignedTo: uuid('assigned_to').references(() => users.id),
   enrichmentStatus: varchar('enrichment_status', { length: 20 }).default('pending'),
+  prospectingData: jsonb('prospecting_data'),
+  prospectingStatus: varchar('prospecting_status', { length: 20 }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });

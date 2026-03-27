@@ -12,6 +12,7 @@ export const scrapeJobs = pgTable('scrape_jobs', {
   totalFound: integer('total_found').default(0),
   newLeads: integer('new_leads').default(0),
   duplicatesSkipped: integer('duplicates_skipped').default(0),
+  mode: varchar('mode', { length: 20 }).notNull().default('standard'),
   errorMessage: varchar('error_message', { length: 1000 }),
   startedAt: timestamp('started_at', { withTimezone: true }),
   completedAt: timestamp('completed_at', { withTimezone: true }),
