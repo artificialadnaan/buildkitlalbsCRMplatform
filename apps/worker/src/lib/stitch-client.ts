@@ -71,9 +71,14 @@ async function listScreenIds(client: Client, projectId: string): Promise<Map<str
 
   const screens = new Map<string, StitchScreen>();
   // Parse the response — list_screens returns JSON with a screens array
-  const text = (result.content as Array<{ type: string; text?: string }>)
-    .find(c => c.type === 'text')?.text;
-  if (!text) return screens;
+  const contentArr = result.content as Array<{ type: string; text?: string }>;
+  console.log(`[stitch] list_screens raw content (${contentArr.length} blocks):`, JSON.stringify(contentArr).slice(0, 500));
+  const text = contentArr.find(c => c.type === 'text')?.text;
+  if (!text) {
+    console.log('[stitch] No text content found in list_screens response');
+    return screens;
+  }
+  console.log(`[stitch] list_screens text (${text.length} chars):`, text.slice(0, 300));
 
   try {
     const parsed = JSON.parse(text);
