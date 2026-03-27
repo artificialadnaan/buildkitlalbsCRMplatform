@@ -3,6 +3,7 @@ import { Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/auth.js';
 import Sidebar from './Sidebar.js';
 import CommandPalette from '../ui/CommandPalette.js';
+import NotificationDropdown from '../ui/NotificationDropdown.js';
 
 const COLLAPSED_KEY = 'sidebar-collapsed';
 
@@ -65,6 +66,11 @@ export default function AppLayout() {
       </main>
 
       <CommandPalette isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+
+      {/* Global notification bell — fixed top-right, always accessible */}
+      <div className="fixed top-4 right-4 z-40">
+        <NotificationDropdown />
+      </div>
 
       {/* FAB - New Lead (hidden on /inbox to avoid overlap) */}
       <button

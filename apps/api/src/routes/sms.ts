@@ -12,6 +12,7 @@ import { authMiddleware } from '../middleware/auth.js';
 import { sendSms, twilioClient, TWILIO_PHONE_NUMBER } from '../lib/twilio.js';
 import { createFollowUpTask } from '../lib/auto-task.js';
 import { logDealEvent } from '../lib/deal-event.js';
+import { notify } from '../lib/notify.js';
 
 const router = Router();
 
@@ -356,6 +357,16 @@ router.post('/webhook/inbound', async (req, res) => {
       status: 'received',
     });
 
+    // Notify admins of inbound SMS
+    notify({
+      allAdmins: true,
+      type: 'reply_received',
+      title: `New SMS from ${contactName}`,
+      body: body.slice(0, 100),
+      entityType: 'conversation',
+      entityId: conversationId,
+    }).catch(console.error);
+
     // Auto-create follow-up task if contact is known
     if (contactId) {
       // Look up the contact's most recent open deal
@@ -441,6 +452,15 @@ router.post('/webhook/voice', async (req, res) => {
       twilioSid: callSid,
       status: 'received',
     });
+
+    // Notify admins of inbound call
+    notify({
+      allAdmins: true,
+      type: 'reply_received',
+      title: `Incoming call from ${contactName}`,
+      entityType: 'conversation',
+      entityId: conversationId,
+    }).catch(console.error);
 
     // Auto-create follow-up task
     const { createFollowUpTask } = await import('../lib/auto-task.js');
