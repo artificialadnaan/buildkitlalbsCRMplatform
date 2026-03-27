@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { eq, desc } from 'drizzle-orm';
-import { db, activities } from '@buildkit/shared';
+import { db, activities, deals } from '@buildkit/shared';
+import { rescoreCompany } from '../lib/lead-scoring.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { logAudit } from '../lib/audit.js';
 
@@ -24,6 +25,10 @@ router.post('/', async (req, res) => {
     userId: req.user!.userId,
   }).returning();
   logAudit({ userId: req.user!.userId, action: 'create', entity: 'activity', entityId: activity.id, changes: { after: activity } });
+  if (activity.dealId) {
+    const [deal] = await db.select({ companyId: deals.companyId }).from(deals).where(eq(deals.id, activity.dealId)).limit(1);
+    if (deal?.companyId) rescoreCompany(deal.companyId).catch(err => console.error('[rescore] Error:', err));
+  }
   res.status(201).json(activity);
 });
 

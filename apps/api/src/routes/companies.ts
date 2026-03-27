@@ -4,7 +4,7 @@ import { db, companies, contacts, deals, activities, emailSends, users } from '@
 import { createWebsiteAuditQueue, createEnrichmentQueue } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
 import { requireRole } from '../middleware/requireRole.js';
-import { calculateLeadScore } from '../lib/lead-scoring.js';
+import { calculateLeadScore, rescoreCompany } from '../lib/lead-scoring.js';
 import { logAudit } from '../lib/audit.js';
 import type { CompanyType, WebsiteAuditJobData, EnrichmentJobData } from '@buildkit/shared';
 import type { Queue } from 'bullmq';

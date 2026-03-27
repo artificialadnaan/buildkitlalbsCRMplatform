@@ -1,3 +1,6 @@
+import { db, companies, contacts, deals } from '@buildkit/shared';
+import { eq, sql } from 'drizzle-orm';
+
 const TARGET_INDUSTRIES = [
   'construction',
   'plumbing',
@@ -76,4 +79,32 @@ export function calculateLeadScore(
   score += Math.min(Math.round((websiteScore || 0) / 5), 20);
 
   return Math.min(score, 100);
+}
+
+export async function rescoreCompany(companyId: string): Promise<number> {
+  const [company] = await db.select().from(companies).where(eq(companies.id, companyId)).limit(1);
+  if (!company) return 0;
+
+  const [contactStats] = await db.select({
+    count: sql<number>`count(*)::int`,
+    hasEmail: sql<boolean>`bool_or(${contacts.email} IS NOT NULL)`,
+  }).from(contacts).where(eq(contacts.companyId, companyId));
+
+  const [dealStats] = await db.select({
+    count: sql<number>`count(*)::int`,
+  }).from(deals).where(eq(deals.companyId, companyId));
+
+  const audit = company.websiteAudit as { score?: number } | null;
+  const websiteScore = audit?.score;
+
+  const newScore = calculateLeadScore(
+    company,
+    contactStats.count,
+    dealStats.count,
+    contactStats.hasEmail ?? false,
+    websiteScore,
+  );
+
+  await db.update(companies).set({ score: newScore }).where(eq(companies.id, companyId));
+  return newScore;
 }

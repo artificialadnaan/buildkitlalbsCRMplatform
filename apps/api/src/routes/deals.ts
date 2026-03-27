@@ -5,6 +5,7 @@ import { db, deals, companies, contacts, pipelineStages, projects, milestones, p
 import { authMiddleware } from '../middleware/auth.js';
 import { logAudit } from '../lib/audit.js';
 import { generateCallPrep } from '../lib/call-prep.js';
+import { rescoreCompany } from '../lib/lead-scoring.js';
 
 const router = Router();
 router.use(authMiddleware);
@@ -99,6 +100,7 @@ router.post('/', async (req, res) => {
     assignedTo: req.body.assignedTo || req.user!.userId,
   }).returning();
   logAudit({ userId: req.user!.userId, action: 'create', entity: 'deal', entityId: deal.id, changes: { after: deal } });
+  if (deal.companyId) rescoreCompany(deal.companyId).catch(err => console.error('[rescore] Error:', err));
   res.status(201).json(deal);
 });
 

@@ -3,6 +3,7 @@ import { eq, sql } from 'drizzle-orm';
 import { db, contacts } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
 import { logAudit } from '../lib/audit.js';
+import { rescoreCompany } from '../lib/lead-scoring.js';
 
 const router = Router();
 router.use(authMiddleware);
@@ -37,6 +38,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   const [contact] = await db.insert(contacts).values(req.body).returning();
   logAudit({ userId: req.user!.userId, action: 'create', entity: 'contact', entityId: contact.id, changes: { after: contact } });
+  if (contact.companyId) rescoreCompany(contact.companyId).catch(err => console.error('[rescore] Error:', err));
   res.status(201).json(contact);
 });
 
