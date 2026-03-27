@@ -24,6 +24,7 @@ import { setupEmailQueues } from './setup-email-queues.js';
 import { processSmsSend } from './processors/sms-send.js';
 import { checkStaleDeals } from './jobs/staleDealChecker.js';
 import { sendDailyDigest } from './jobs/dailyDigest.js';
+import { checkFollowUpReminders } from './jobs/follow-up-reminders.js';
 
 console.log('[worker] Starting BuildKit CRM worker...');
 
@@ -189,6 +190,13 @@ cron.schedule('0 9 * * *', async () => {
 });
 
 console.log('[Worker] Stale deal checker and daily digest crons registered');
+
+// Follow-up reminders — daily at 9:00 AM CT (14:00 UTC)
+cron.schedule('0 14 * * *', () => {
+  checkFollowUpReminders().catch(err => console.error('[follow-up] Cron error:', err));
+});
+
+console.log('[Worker] Follow-up reminder cron registered');
 
 // Start email workers (send, sequence-tick, gmail-sync)
 setupEmailQueues();

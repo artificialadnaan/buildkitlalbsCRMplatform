@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../lib/api.js';
 import { useAuth } from '../lib/auth.js';
 import TopBar from '../components/layout/TopBar.js';
@@ -9,6 +9,7 @@ interface Stage {
   position: number;
   color: string | null;
   pipelineId: string;
+  followUpDays: number | null;
 }
 
 interface Pipeline {
@@ -61,6 +62,17 @@ function StageRow({
   const [color, setColor] = useState(stage.color ?? '#6b7280');
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [followUpDays, setFollowUpDays] = useState<string>(stage.followUpDays != null ? String(stage.followUpDays) : '');
+  const followUpDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleFollowUpDaysChange = (value: string) => {
+    setFollowUpDays(value);
+    if (followUpDebounce.current) clearTimeout(followUpDebounce.current);
+    followUpDebounce.current = setTimeout(() => {
+      const parsed = parseInt(value);
+      onUpdate(stage.id, { followUpDays: value === '' ? null : isNaN(parsed) ? null : parsed });
+    }, 600);
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -129,7 +141,22 @@ function StageRow({
         className="h-3 w-3 rounded-full shrink-0"
         style={{ backgroundColor: stage.color ?? '#6b7280' }}
       />
-      <span className="text-sm text-gray-900">{stage.name}</span>
+      <div className="flex flex-col">
+        <span className="text-sm text-gray-900">{stage.name}</span>
+        <div className="flex items-center gap-2 mt-1">
+          <span className="text-xs text-gray-400">Follow-up after</span>
+          <input
+            type="number"
+            min="0"
+            max="90"
+            value={followUpDays}
+            onChange={(e) => handleFollowUpDaysChange(e.target.value)}
+            className="w-14 text-xs border border-gray-200 rounded px-1.5 py-0.5 text-center"
+            placeholder="—"
+          />
+          <span className="text-xs text-gray-400">days</span>
+        </div>
+      </div>
       <span className="ml-auto text-xs text-gray-500">Position {stage.position}</span>
 
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
