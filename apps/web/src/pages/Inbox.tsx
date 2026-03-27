@@ -18,6 +18,14 @@ interface Conversation {
   dealId?: string;
 }
 
+interface MessageMetadata {
+  recordingUrl?: string;
+  recordingDuration?: number;
+  recordingSid?: string;
+  duration?: number;
+  status?: string;
+}
+
 interface Message {
   id: string;
   body: string;
@@ -25,6 +33,7 @@ interface Message {
   status: string;
   createdAt: string;
   channel: 'sms' | 'email' | 'call';
+  metadata?: MessageMetadata;
 }
 
 type FilterTab = 'all' | 'email' | 'sms' | 'call';
@@ -101,6 +110,9 @@ export default function Inbox() {
   }
 
   const [sendError, setSendError] = useState<string | null>(null);
+  const [showNotes, setShowNotes] = useState<string | null>(null);
+  const [callNotes, setCallNotes] = useState('');
+  const [callOutcome, setCallOutcome] = useState('');
 
   async function handleSend() {
     if (!reply.trim() || !selected) return;
@@ -145,6 +157,27 @@ export default function Inbox() {
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
       handleSend();
+    }
+  }
+
+  async function saveCallNotes() {
+    if (!selected || !callNotes.trim()) return;
+    try {
+      await api('/api/activities', {
+        method: 'POST',
+        body: JSON.stringify({
+          type: 'call',
+          notes: callNotes.trim(),
+          outcome: callOutcome || undefined,
+          contactId: selected.contactId,
+          dealId: selected.dealId || undefined,
+        }),
+      });
+      setShowNotes(null);
+      setCallNotes('');
+      setCallOutcome('');
+    } catch (err) {
+      console.error('Failed to save call notes:', err);
     }
   }
 
@@ -318,6 +351,7 @@ export default function Inbox() {
               ) : (
                 messages.map((msg) => {
                   const isOutbound = msg.direction === 'outbound';
+                  const metadata = msg.metadata;
                   return (
                     <div
                       key={msg.id}
@@ -332,6 +366,18 @@ export default function Inbox() {
                           }`}
                         >
                           {msg.body}
+                          {metadata?.recordingUrl && (
+                            <div className="mt-2">
+                              <audio controls className="h-8 w-full max-w-xs">
+                                <source src={`${metadata.recordingUrl}.mp3`} type="audio/mpeg" />
+                              </audio>
+                              {metadata.recordingDuration != null && (
+                                <span className="text-xs text-gray-400 ml-2">
+                                  {Math.floor(metadata.recordingDuration / 60)}:{String(metadata.recordingDuration % 60).padStart(2, '0')}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                         <div className={`flex items-center gap-2 ${isOutbound ? 'justify-end' : 'justify-start'}`}>
                           <span className="text-[10px] text-slate-400">{formatRelativeTime(msg.createdAt)}</span>
@@ -341,6 +387,42 @@ export default function Inbox() {
                             </span>
                           )}
                         </div>
+                        {msg.channel === 'call' && showNotes !== msg.id && (
+                          <button
+                            onClick={() => setShowNotes(msg.id)}
+                            className="text-xs text-blue-600 hover:underline mt-1"
+                          >
+                            Log call notes
+                          </button>
+                        )}
+                        {showNotes === msg.id && (
+                          <div className="mt-2 space-y-2">
+                            <textarea
+                              value={callNotes}
+                              onChange={e => setCallNotes(e.target.value)}
+                              placeholder="What happened on this call?"
+                              className="w-full text-sm border rounded p-2 h-20 text-slate-900"
+                            />
+                            <select
+                              value={callOutcome}
+                              onChange={e => setCallOutcome(e.target.value)}
+                              className="text-sm border rounded px-2 py-1 text-slate-900"
+                            >
+                              <option value="">Outcome...</option>
+                              <option value="interested">Interested</option>
+                              <option value="not_interested">Not Interested</option>
+                              <option value="follow_up">Follow Up</option>
+                              <option value="voicemail">Voicemail</option>
+                              <option value="no_answer">No Answer</option>
+                            </select>
+                            <button
+                              onClick={saveCallNotes}
+                              className="text-sm bg-blue-600 text-white px-3 py-1 rounded"
+                            >
+                              Save
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );

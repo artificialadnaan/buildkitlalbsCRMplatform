@@ -24,11 +24,18 @@ export async function sendSms(to: string, body: string): Promise<{ sid: string; 
 }
 
 export async function makeCall(to: string, callerId?: string): Promise<{ sid: string; status: string }> {
+  const apiBaseUrl = process.env.API_BASE_URL || (process.env.RAILWAY_PUBLIC_DOMAIN
+    ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+    : 'https://buildkitapi-production.up.railway.app');
+
   const call = await twilioClient.calls.create({
     to,
     from: TWILIO_PHONE_NUMBER,
     url: 'http://twimlets.com/holdmusic?Bucket=com.twilio.music.classical&Message=Connecting+you+now',
-    // Bridges the call to the CRM user's phone
+    record: true,
+    recordingStatusCallback: `${apiBaseUrl}/sms/webhook/recording`,
+    statusCallback: `${apiBaseUrl}/sms/webhook/call-status`,
+    statusCallbackEvent: ['completed'],
   });
 
   return { sid: call.sid, status: call.status };

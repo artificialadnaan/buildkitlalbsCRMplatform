@@ -514,4 +514,54 @@ router.post('/webhook/voice/status', async (req, res) => {
   res.sendStatus(200);
 });
 
+// POST /webhook/call-status — Outbound call status callback (no auth)
+router.post('/webhook/call-status', async (req, res) => {
+  try {
+    const callSid = req.body.CallSid;
+    const duration = req.body.CallDuration;
+    const status = req.body.CallStatus;
+
+    if (callSid) {
+      const [msg] = await db.select().from(conversationMessages).where(eq(conversationMessages.twilioSid, callSid)).limit(1);
+      if (msg) {
+        const existingMeta = (msg.metadata as Record<string, unknown>) || {};
+        await db.update(conversationMessages).set({
+          metadata: { ...existingMeta, duration: parseInt(duration) || 0, status },
+          status: status === 'completed' ? 'delivered' : (status as any),
+        }).where(eq(conversationMessages.id, msg.id));
+        console.log(`[call-status] Updated call ${callSid} — status: ${status}, duration: ${duration}s`);
+      }
+    }
+  } catch (err) {
+    console.error('[call-status] Error:', err instanceof Error ? err.message : err);
+  }
+  res.sendStatus(200);
+});
+
+// POST /webhook/recording — Twilio recording status callback (no auth)
+router.post('/webhook/recording', async (req, res) => {
+  try {
+    const { RecordingSid, RecordingUrl, RecordingDuration, CallSid } = req.body;
+    if (CallSid && RecordingUrl) {
+      const [msg] = await db.select().from(conversationMessages)
+        .where(eq(conversationMessages.twilioSid, CallSid)).limit(1);
+      if (msg) {
+        const existingMeta = (msg.metadata as Record<string, unknown>) || {};
+        await db.update(conversationMessages).set({
+          metadata: {
+            ...existingMeta,
+            recordingSid: RecordingSid,
+            recordingUrl: RecordingUrl,
+            recordingDuration: parseInt(RecordingDuration) || 0,
+          },
+        }).where(eq(conversationMessages.id, msg.id));
+        console.log(`[recording] Saved recording for call ${CallSid}`);
+      }
+    }
+  } catch (err) {
+    console.error('[recording/webhook] Error:', err instanceof Error ? err.message : err);
+  }
+  res.sendStatus(200);
+});
+
 export default router;
