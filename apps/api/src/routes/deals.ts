@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import crypto from 'crypto';
-import { eq, and, sql } from 'drizzle-orm';
-import { db, deals, companies, contacts, pipelineStages, projects, milestones, portalUsers, milestoneTemplates, milestoneTemplateItems, pipelines } from '@buildkit/shared';
+import { eq, and, sql, desc } from 'drizzle-orm';
+import { db, deals, companies, contacts, pipelineStages, projects, milestones, portalUsers, milestoneTemplates, milestoneTemplateItems, pipelines, dealEvents, users } from '@buildkit/shared';
 import { authMiddleware } from '../middleware/auth.js';
 import { logAudit } from '../lib/audit.js';
 import { generateCallPrep } from '../lib/call-prep.js';
 import { rescoreCompany } from '../lib/lead-scoring.js';
+import { logDealEvent } from '../lib/deal-event.js';
 
 const router = Router();
 router.use(authMiddleware);
@@ -229,7 +230,50 @@ router.patch('/:id', async (req, res) => {
   }
 
   logAudit({ userId: req.user!.userId, action: 'update', entity: 'deal', entityId: deal.id, changes: { before: dealBefore, after: deal } });
+
+  // Log stage change event
+  if (updates.stageId && updates.stageId !== dealBefore?.stageId) {
+    const [fromStage] = await db.select({ name: pipelineStages.name }).from(pipelineStages).where(eq(pipelineStages.id, dealBefore.stageId)).limit(1);
+    const [toStage] = await db.select({ name: pipelineStages.name }).from(pipelineStages).where(eq(pipelineStages.id, updates.stageId)).limit(1);
+    logDealEvent({ dealId: deal.id, type: 'stage_change', fromValue: fromStage?.name, toValue: toStage?.name, userId: req.user!.userId }).catch(console.error);
+  }
+
+  // Log status change event
+  if (updates.status && updates.status !== dealBefore?.status) {
+    logDealEvent({ dealId: deal.id, type: 'status_change', fromValue: dealBefore.status, toValue: updates.status, userId: req.user!.userId }).catch(console.error);
+  }
+
   res.json(deal);
+});
+
+// Get deal event timeline
+router.get('/:id/events', async (req, res) => {
+  const { id } = req.params;
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = Math.min(100, parseInt(req.query.limit as string) || 50);
+  const offset = (page - 1) * limit;
+
+  const [events, countResult] = await Promise.all([
+    db.select({
+      id: dealEvents.id,
+      type: dealEvents.type,
+      fromValue: dealEvents.fromValue,
+      toValue: dealEvents.toValue,
+      userId: dealEvents.userId,
+      metadata: dealEvents.metadata,
+      createdAt: dealEvents.createdAt,
+      userName: users.name,
+    })
+      .from(dealEvents)
+      .leftJoin(users, eq(dealEvents.userId, users.id))
+      .where(eq(dealEvents.dealId, id))
+      .orderBy(desc(dealEvents.createdAt))
+      .limit(limit)
+      .offset(offset),
+    db.select({ count: sql<number>`count(*)::int` }).from(dealEvents).where(eq(dealEvents.dealId, id)),
+  ]);
+
+  res.json({ data: events, total: countResult[0].count, page, limit });
 });
 
 // Move deal to a different stage (drag-and-drop support)

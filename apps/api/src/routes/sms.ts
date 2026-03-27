@@ -11,6 +11,7 @@ import {
 import { authMiddleware } from '../middleware/auth.js';
 import { sendSms, twilioClient, TWILIO_PHONE_NUMBER } from '../lib/twilio.js';
 import { createFollowUpTask } from '../lib/auto-task.js';
+import { logDealEvent } from '../lib/deal-event.js';
 
 const router = Router();
 
@@ -100,6 +101,8 @@ router.post('/send', async (req, res) => {
       twilioSid: sid,
       status: status as 'queued' | 'sent' | 'delivered' | 'failed' | 'received',
     }).returning();
+
+    if (dealId) logDealEvent({ dealId, type: 'sms_sent', toValue: body.slice(0, 100), userId: req.user!.userId }).catch(console.error);
 
     res.status(201).json(message);
   } catch (err) {
@@ -237,6 +240,8 @@ router.post('/call', async (req, res) => {
       twilioSid: sid,
       status: status as any,
     });
+
+    if (dealId) logDealEvent({ dealId, type: 'call_made', toValue: contactName, userId: req.user!.userId }).catch(console.error);
 
     res.json({ sid, status, message: `Calling ${contactName} at ${contact.phone}` });
   } catch (err) {

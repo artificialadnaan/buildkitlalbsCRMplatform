@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api.js';
 import { formatCurrency, formatDate, formatRelativeTime } from '../lib/format.js';
@@ -82,13 +82,15 @@ interface EmailEventsResponse {
   summary: EmailEventsSummary;
 }
 
-const activityIcons: Record<string, string> = {
-  email: 'mail',
-  call: 'call',
-  meeting: 'calendar_today',
-  note: 'edit_note',
-  text: 'sms',
-};
+interface DealEvent {
+  id: string;
+  type: string;
+  fromValue: string | null;
+  toValue: string | null;
+  userName: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+}
 
 const statusLabels: Record<string, { text: string; bg: string; border: string }> = {
   open: { text: 'IN PROGRESS', bg: 'bg-orange-100 text-orange-700', border: 'border-orange-600' },
@@ -116,6 +118,7 @@ export default function DealDetail() {
   const [selectedStageId, setSelectedStageId] = useState('');
   const [emailSends, setEmailSends] = useState<EmailSend[]>([]);
   const [emailStats, setEmailStats] = useState<Record<string, EmailEventsSummary>>({});
+  const [events, setEvents] = useState<DealEvent[]>([]);
 
   const loadEmailTracking = (dealId: string) => {
     api<EmailSendsResponse>(`/api/email-sends?dealId=${dealId}`).then(async (res) => {
@@ -146,6 +149,7 @@ export default function DealDetail() {
       }).catch(console.error);
     }).catch(console.error);
     api<ActivitiesResponse>(`/api/activities?dealId=${id}`).then((res) => setActivities(res.data)).catch(console.error);
+    api<{ data: DealEvent[] }>(`/api/deals/${id}/events?limit=20`).then((r) => setEvents(r.data)).catch(console.error);
     loadEmailTracking(id);
   };
 
@@ -201,28 +205,6 @@ export default function DealDetail() {
   const stageProgress = currentStage && pipelineStages.length > 0
     ? Math.round((currentStage.position / pipelineStages.length) * 100)
     : 0;
-
-  // Combine activities + emails into unified timeline
-  const timelineItems = [
-    ...activities.map(a => ({
-      id: a.id,
-      type: a.type,
-      title: a.subject ?? `${a.type} logged`,
-      body: a.body,
-      timestamp: a.createdAt,
-      icon: activityIcons[a.type] || 'info',
-    })),
-    ...emailSends.map(e => ({
-      id: e.id,
-      type: 'email_sent',
-      title: e.subject || '(no subject)',
-      body: e.status === 'sent'
-        ? `${emailStats[e.id]?.openCount ?? 0} opens, ${emailStats[e.id]?.clickCount ?? 0} clicks`
-        : e.status,
-      timestamp: e.sentAt || e.createdAt,
-      icon: 'send',
-    })),
-  ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   const contactInitials = result.contactName
     ? result.contactName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
@@ -367,30 +349,59 @@ export default function DealDetail() {
                 <span className="material-symbols-outlined text-sm">history</span>
                 Deal Activity History
               </h3>
-              {timelineItems.length === 0 ? (
+              {events.length === 0 ? (
                 <div className="text-center py-12">
                   <span className="material-symbols-outlined text-4xl text-slate-300">history</span>
                   <p className="text-sm text-slate-400 mt-2">No activity yet — send an email or log a call to get started</p>
                 </div>
               ) : (
                 <div className="relative ml-4 pl-8 border-l-2 border-slate-200 space-y-6">
-                  {timelineItems.map((item, i) => (
-                    <div key={item.id} className="relative">
-                      <div className={`absolute -left-[41px] top-0 w-4 h-4 rounded-full bg-white border-4 ${i === 0 ? 'border-orange-600' : 'border-slate-300'}`} />
-                      <div className={`bg-white p-4 rounded-lg shadow-sm border border-slate-100 ${i > 2 ? 'opacity-50' : ''}`}>
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="material-symbols-outlined text-sm text-slate-400">{item.icon}</span>
-                            <p className="text-sm font-bold text-slate-900">{item.title}</p>
+                  {events.map((event, i) => {
+                    const iconMap: Record<string, string> = {
+                      stage_change: 'swap_horiz',
+                      status_change: 'flag',
+                      sms_sent: 'sms',
+                      call_made: 'call',
+                      email_sent: 'mail',
+                      note_added: 'edit_note',
+                    };
+                    const icon = iconMap[event.type] ?? 'info';
+
+                    let title: React.ReactNode;
+                    if (event.type === 'stage_change') {
+                      title = <span>Moved from <strong>{event.fromValue}</strong> → <strong>{event.toValue}</strong></span>;
+                    } else if (event.type === 'status_change') {
+                      title = <span>Status changed to <strong>{event.toValue}</strong></span>;
+                    } else if (event.type === 'sms_sent') {
+                      title = <span>{event.toValue}</span>;
+                    } else if (event.type === 'call_made') {
+                      title = <span>Call to {event.toValue}</span>;
+                    } else if (event.type === 'email_sent') {
+                      title = <span>{event.toValue}</span>;
+                    } else {
+                      title = <span>{event.toValue ?? event.type}</span>;
+                    }
+
+                    return (
+                      <div key={event.id} className="relative">
+                        <div className={`absolute -left-[41px] top-0 w-4 h-4 rounded-full bg-white border-4 ${i === 0 ? 'border-orange-600' : 'border-slate-300'}`} />
+                        <div className={`bg-white p-4 rounded-lg shadow-sm border border-slate-100 ${i > 2 ? 'opacity-50' : ''}`}>
+                          <div className="flex justify-between items-start mb-1">
+                            <div className="flex items-center gap-2">
+                              <span className="material-symbols-outlined text-sm text-slate-400">{icon}</span>
+                              <p className="text-sm font-bold text-slate-900">{title}</p>
+                            </div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter shrink-0 ml-4">
+                              {formatRelativeTime(event.createdAt)}
+                            </span>
                           </div>
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter shrink-0 ml-4">
-                            {formatRelativeTime(item.timestamp)}
-                          </span>
+                          {event.userName && (
+                            <p className="text-xs text-slate-400 ml-6">{event.userName}</p>
+                          )}
                         </div>
-                        {item.body && <p className="text-xs text-slate-500">{item.body}</p>}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
