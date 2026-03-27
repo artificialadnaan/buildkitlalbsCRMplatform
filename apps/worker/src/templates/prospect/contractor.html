@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{BUSINESS_NAME}}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white font-sans">
+
+  <!-- Hero -->
+  <section class="relative h-72 bg-slate-900 overflow-hidden">
+    <img
+      src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1200&q=80"
+      alt="Construction"
+      class="absolute inset-0 w-full h-full object-cover opacity-30"
+    />
+    <div class="relative z-10 flex flex-col items-center justify-center h-full text-white text-center px-6">
+      <p class="text-blue-400 text-sm font-semibold uppercase tracking-widest mb-2">Licensed & Insured</p>
+      <h1 class="text-5xl font-bold drop-shadow-lg">{{BUSINESS_NAME}}</h1>
+      <p class="mt-3 text-slate-300 text-lg">Quality craftsmanship you can count on</p>
+    </div>
+  </section>
+
+  <!-- Rating Bar -->
+  <div class="bg-slate-800 py-3 px-8 flex items-center gap-3">
+    <div class="flex text-yellow-400 text-xl">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+    <span class="text-white font-bold text-lg">{{RATING}}</span>
+    <span class="text-slate-400 text-sm">· {{REVIEW_COUNT}} verified reviews</span>
+    <span class="ml-auto text-blue-400 text-sm font-semibold">Serving DFW &amp; Surrounding Areas</span>
+  </div>
+
+  <!-- Services -->
+  <section class="py-12 px-8 max-w-4xl mx-auto">
+    <h2 class="text-2xl font-bold text-gray-800 mb-8 text-center">Our Services</h2>
+    <div class="grid grid-cols-3 gap-6">
+      <div class="border border-slate-200 rounded-xl p-6 text-center hover:shadow-md transition">
+        <div class="text-4xl mb-3">🏗️</div>
+        <h3 class="font-bold text-gray-800">New Construction</h3>
+        <p class="text-sm text-gray-500 mt-2">Custom builds from ground up</p>
+      </div>
+      <div class="border border-slate-200 rounded-xl p-6 text-center hover:shadow-md transition">
+        <div class="text-4xl mb-3">🔧</div>
+        <h3 class="font-bold text-gray-800">Repairs &amp; Renovations</h3>
+        <p class="text-sm text-gray-500 mt-2">Expert restoration services</p>
+      </div>
+      <div class="border border-slate-200 rounded-xl p-6 text-center hover:shadow-md transition">
+        <div class="text-4xl mb-3">📋</div>
+        <h3 class="font-bold text-gray-800">Free Estimates</h3>
+        <p class="text-sm text-gray-500 mt-2">Transparent, detailed quotes</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Us -->
+  <section class="bg-slate-50 py-10 px-8">
+    <div class="max-w-4xl mx-auto grid grid-cols-2 gap-8 items-center">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Why Choose Us</h2>
+        <ul class="space-y-3 text-gray-600">
+          <li class="flex items-start gap-2"><span class="text-blue-500 font-bold mt-0.5">✓</span> 15+ years of local experience</li>
+          <li class="flex items-start gap-2"><span class="text-blue-500 font-bold mt-0.5">✓</span> Fully licensed, bonded &amp; insured</li>
+          <li class="flex items-start gap-2"><span class="text-blue-500 font-bold mt-0.5">✓</span> On-time project completion</li>
+          <li class="flex items-start gap-2"><span class="text-blue-500 font-bold mt-0.5">✓</span> {{REVIEW_COUNT}}+ satisfied customers</li>
+        </ul>
+      </div>
+      <div class="rounded-xl overflow-hidden shadow-lg">
+        <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600&q=70" alt="Work" class="w-full h-48 object-cover" />
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-10 px-8 max-w-2xl mx-auto text-center">
+    <h2 class="text-2xl font-bold text-gray-800 mb-2">Get a Free Quote</h2>
+    <p class="text-gray-500 mb-1">{{ADDRESS}}</p>
+    <p class="text-gray-500 mb-6">{{PHONE}}</p>
+    <a href="#" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-10 rounded-lg shadow-lg text-lg transition">Request Free Estimate</a>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-400 text-center text-sm py-4">
+    &copy; 2025 {{BUSINESS_NAME}}. Licensed Contractor. All rights reserved.
+  </footer>
+
+</body>
+</html>

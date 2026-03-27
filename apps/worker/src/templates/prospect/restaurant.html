@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{BUSINESS_NAME}}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white font-sans">
+
+  <!-- Hero -->
+  <section class="relative h-72 bg-amber-700 overflow-hidden">
+    <img
+      src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&q=80"
+      alt="Restaurant"
+      class="absolute inset-0 w-full h-full object-cover opacity-40"
+    />
+    <div class="relative z-10 flex flex-col items-center justify-center h-full text-white text-center px-6">
+      <p class="text-amber-300 text-sm font-semibold uppercase tracking-widest mb-2">Welcome to</p>
+      <h1 class="text-5xl font-bold drop-shadow-lg">{{BUSINESS_NAME}}</h1>
+      <p class="mt-3 text-amber-100 text-lg">Serving the finest flavors in your neighborhood</p>
+    </div>
+  </section>
+
+  <!-- Rating Bar -->
+  <div class="bg-amber-50 border-b border-amber-100 py-3 px-8 flex items-center gap-3">
+    <div class="flex text-amber-400 text-xl">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+    <span class="text-amber-800 font-bold text-lg">{{RATING}}</span>
+    <span class="text-gray-500 text-sm">· {{REVIEW_COUNT}} reviews on Google</span>
+  </div>
+
+  <!-- Menu Highlights -->
+  <section class="py-12 px-8 max-w-4xl mx-auto">
+    <h2 class="text-2xl font-bold text-gray-800 mb-8 text-center">Our Specialties</h2>
+    <div class="grid grid-cols-3 gap-6">
+      <div class="rounded-xl overflow-hidden shadow-md">
+        <img src="https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400&q=70" alt="Dish" class="w-full h-36 object-cover" />
+        <div class="p-4 bg-white"><p class="font-semibold text-gray-800">Signature Dish</p><p class="text-sm text-gray-500 mt-1">Fresh, locally sourced ingredients</p></div>
+      </div>
+      <div class="rounded-xl overflow-hidden shadow-md">
+        <img src="https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400&q=70" alt="Dish" class="w-full h-36 object-cover" />
+        <div class="p-4 bg-white"><p class="font-semibold text-gray-800">Chef's Special</p><p class="text-sm text-gray-500 mt-1">Crafted with care every day</p></div>
+      </div>
+      <div class="rounded-xl overflow-hidden shadow-md">
+        <img src="https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=400&q=70" alt="Dish" class="w-full h-36 object-cover" />
+        <div class="p-4 bg-white"><p class="font-semibold text-gray-800">Fan Favorite</p><p class="text-sm text-gray-500 mt-1">Loved by our community</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Reviews -->
+  <section class="bg-orange-50 py-10 px-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">What Our Customers Say</h2>
+    <div class="max-w-3xl mx-auto grid grid-cols-2 gap-5">
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-orange-100">
+        <div class="flex text-amber-400 mb-2">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <p class="text-gray-600 text-sm">"Absolutely amazing food. We come here every weekend — the flavors are unbeatable!"</p>
+        <p class="text-xs text-gray-400 mt-3 font-medium">— Sarah M.</p>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-orange-100">
+        <div class="flex text-amber-400 mb-2">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <p class="text-gray-600 text-sm">"Best dining experience in the area. Staff is friendly and food is always fresh."</p>
+        <p class="text-xs text-gray-400 mt-3 font-medium">— James T.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact / CTA -->
+  <section class="py-10 px-8 max-w-2xl mx-auto text-center">
+    <h2 class="text-2xl font-bold text-gray-800 mb-2">Visit Us Today</h2>
+    <p class="text-gray-500 mb-1">{{ADDRESS}}</p>
+    <p class="text-gray-500 mb-6">{{PHONE}}</p>
+    <a href="#" class="inline-block bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-10 rounded-full shadow-lg text-lg transition">Reserve a Table</a>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-amber-800 text-amber-200 text-center text-sm py-4">
+    &copy; 2025 {{BUSINESS_NAME}}. All rights reserved.
+  </footer>
+
+</body>
+</html>

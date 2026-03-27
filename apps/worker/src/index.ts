@@ -25,6 +25,7 @@ import { setupEmailQueues } from './setup-email-queues.js';
 import { processSmsSend } from './processors/sms-send.js';
 import { processProspectQualify } from './processors/prospect-qualify.js';
 import { processProspectEnrich } from './processors/prospect-enrich.js';
+import { processProspectMockup } from './processors/prospect-mockup.js';
 import { checkStaleDeals } from './jobs/staleDealChecker.js';
 import { sendDailyDigest } from './jobs/dailyDigest.js';
 import { checkFollowUpReminders } from './jobs/follow-up-reminders.js';
@@ -259,7 +260,7 @@ const prospectWorker = new Worker<ProspectJobData>(
     switch (job.data.stage) {
       case 'qualify': return processProspectQualify(job);
       case 'enrich': return processProspectEnrich(job);
-      case 'mockup': console.log('[prospect] Mockup stage — not yet implemented'); break;
+      case 'mockup': return processProspectMockup(job);
       case 'outreach': console.log('[prospect] Outreach stage — not yet implemented'); break;
     }
   },
