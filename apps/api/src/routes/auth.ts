@@ -106,6 +106,33 @@ router.get('/me', authMiddleware, async (req, res) => {
   res.json(user);
 });
 
+// Demo login — bypasses Google OAuth for sales demos
+router.get('/demo', async (req, res) => {
+  try {
+    const demoEmail = 'demo@buildkitlabs.com';
+
+    // Upsert demo user
+    const existing = await db.select().from(users).where(eq(users.email, demoEmail)).limit(1);
+    let user;
+
+    if (existing.length > 0) {
+      user = existing[0];
+    } else {
+      [user] = await db.insert(users).values({
+        email: demoEmail,
+        name: 'Demo User',
+        role: 'admin',
+      }).returning();
+    }
+
+    const jwt = signToken({ userId: user.id, email: user.email, role: user.role });
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback#token=${jwt}`);
+  } catch (err) {
+    console.error('Demo login error:', err);
+    res.status(500).json({ error: 'Demo login failed' });
+  }
+});
+
 // Logout (client-side token discard)
 router.post('/logout', (req, res) => {
   res.json({ success: true });

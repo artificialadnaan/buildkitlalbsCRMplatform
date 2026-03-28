@@ -37,6 +37,29 @@ export default function Login() {
           </svg>
           Sign in with Google
         </a>
+
+        {/* Divider */}
+        <div className="mt-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-slate-700" />
+          <span className="text-xs text-slate-500">or</span>
+          <div className="h-px flex-1 bg-slate-700" />
+        </div>
+
+        {/* Demo Login */}
+        <a
+          href={`${import.meta.env.VITE_API_URL || ''}/auth/demo`}
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-sm font-medium text-cyan-400 transition-colors hover:bg-cyan-500/20"
+        >
+          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+            <polyline points="10 17 15 12 10 7" />
+            <line x1="15" y1="12" x2="3" y2="12" />
+          </svg>
+          Try Demo Account
+        </a>
+        <p className="mt-2 text-xs text-slate-500">
+          Explore the platform with sample data
+        </p>
       </div>
     </div>
   );
