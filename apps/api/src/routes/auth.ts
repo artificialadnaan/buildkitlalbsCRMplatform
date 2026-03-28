@@ -5,6 +5,7 @@ import { db, users } from '@buildkit/shared';
 import { signToken } from '../lib/jwt.js';
 import { encrypt } from '../lib/encryption.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { seedDemoData } from '../lib/demo-seed.js';
 
 const router = Router();
 
@@ -124,6 +125,9 @@ router.get('/demo', async (req, res) => {
         role: 'admin',
       }).returning();
     }
+
+    // Seed demo data on first login (idempotent — skips if data exists)
+    await seedDemoData(user.id);
 
     const jwt = signToken({ userId: user.id, email: user.email, role: user.role });
     res.redirect(`${process.env.FRONTEND_URL}/auth/callback#token=${jwt}`);
