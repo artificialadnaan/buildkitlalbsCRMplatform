@@ -108,6 +108,7 @@ export default function Leads() {
   const [usersList, setUsersList] = useState<UserItem[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [bulkEnriching, setBulkEnriching] = useState(false);
 
   async function handleCreateLead() {
     if (!newLead.name.trim()) return;
@@ -245,6 +246,27 @@ export default function Leads() {
     }
   }
 
+  async function handleBulkEnrich(ids?: string[]) {
+    setBulkEnriching(true);
+    try {
+      const res = await api<{ queued: number; skipped: number; message: string }>('/api/companies/bulk-enrich', {
+        method: 'POST',
+        body: JSON.stringify({ ids }),
+      });
+      if (res.queued > 0) {
+        showSuccess(`Queued ${res.queued} leads for enrichment${res.skipped > 0 ? ` (${res.skipped} skipped — no website)` : ''}`);
+      } else {
+        showError(res.message || 'No leads with websites to enrich');
+      }
+      setSelectedIds(new Set());
+    } catch (err) {
+      console.error('Bulk enrich failed:', err);
+      showError(err instanceof Error ? err.message : 'Bulk enrich failed');
+    } finally {
+      setBulkEnriching(false);
+    }
+  }
+
   function handleExportCsv() {
     const selected = companies.filter((c) => selectedIds.has(c.id));
     const headers = ['Name', 'Type', 'Phone', 'City', 'State', 'Industry', 'Source', 'Score', 'Website'];
@@ -379,6 +401,13 @@ export default function Leads() {
               className="rounded-lg border border-border bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               Export CSV
+            </button>
+            <button
+              onClick={() => handleBulkEnrich()}
+              disabled={bulkEnriching}
+              className="rounded-lg border border-border bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            >
+              {bulkEnriching ? 'Enriching...' : 'Enrich All'}
             </button>
             <button
               onClick={handleRescore}
@@ -521,6 +550,13 @@ export default function Leads() {
               className="rounded-lg bg-purple-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-purple-700"
             >
               Add to Campaign
+            </button>
+            <button
+              onClick={() => handleBulkEnrich(Array.from(selectedIds))}
+              disabled={bulkEnriching}
+              className="rounded-lg border border-green-300 bg-green-50 px-3 py-1.5 text-sm font-medium text-green-700 hover:bg-green-100 disabled:opacity-50"
+            >
+              {bulkEnriching ? 'Enriching...' : 'Enrich'}
             </button>
             <button
               onClick={() => showSuccess('Sequence enrollment coming soon')}

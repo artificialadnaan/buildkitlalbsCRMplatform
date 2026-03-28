@@ -248,6 +248,45 @@ router.post('/:id/audit', async (req, res) => {
   res.status(202).json({ success: true, jobId: job.id });
 });
 
+// Bulk enrich multiple companies
+router.post('/bulk-enrich', async (req, res) => {
+  const { ids } = req.body as { ids?: string[] };
+
+  // If no ids provided, enrich ALL companies with a website that aren't already enriched
+  let companiesToEnrich;
+  if (ids?.length) {
+    companiesToEnrich = await db
+      .select({ id: companies.id, website: companies.website, name: companies.name })
+      .from(companies)
+      .where(sql`${companies.id} = ANY(${ids}) AND ${companies.website} IS NOT NULL AND ${companies.website} != ''`);
+  } else {
+    companiesToEnrich = await db
+      .select({ id: companies.id, website: companies.website, name: companies.name })
+      .from(companies)
+      .where(sql`${companies.website} IS NOT NULL AND ${companies.website} != '' AND ${companies.enrichmentStatus} != 'enriched'`);
+  }
+
+  if (companiesToEnrich.length === 0) {
+    res.json({ success: true, queued: 0, skipped: ids?.length ?? 0, message: 'No companies with websites to enrich' });
+    return;
+  }
+
+  const queue = getEnrichmentQueue();
+  let queued = 0;
+  for (const company of companiesToEnrich) {
+    await db.update(companies).set({ enrichmentStatus: 'pending' }).where(eq(companies.id, company.id));
+    await queue.add('enrich', {
+      companyId: company.id,
+      website: company.website!,
+      companyName: company.name,
+    });
+    queued++;
+  }
+
+  const skipped = (ids?.length ?? 0) - queued;
+  res.status(202).json({ success: true, queued, skipped, message: `Queued ${queued} companies for enrichment` });
+});
+
 // Trigger manual lead enrichment
 router.post('/:id/enrich', async (req, res) => {
   const id = req.params.id as string;
